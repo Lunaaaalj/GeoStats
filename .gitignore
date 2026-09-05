@@ -1,0 +1,106 @@
+# ---------------------------------------------------------------
+# Datos
+#
+# Todo `data/` queda fuera del repo: `raw/` son descargas del INEGI
+# (~5 GB) y `processed/` se regenera con `geostats.consolidar`.
+# Los .gitkeep sí se versionan para que la estructura exista al clonar.
+# ---------------------------------------------------------------
+/data/**
+!/data/raw/
+!/data/processed/
+!/data/**/.gitkeep
+
+# ---------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------
+__pycache__/
+*.py[oc]
+*$py.class
+build/
+dist/
+wheels/
+*.egg-info/
+.eggs/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Cachés de herramientas
+.uv-cache/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+
+# ---------------------------------------------------------------
+# Jupyter
+# ---------------------------------------------------------------
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# ---------------------------------------------------------------
+# Datos sueltos fuera de data/ (red de seguridad: si se descarga algo
+# a la raíz por error, no acaba en un commit de cientos de MB)
+# ---------------------------------------------------------------
+/*.csv
+/*.zip
+/*.parquet
+/*.xlsx
+/ATUS_*/
+
+# Formatos geoespaciales pesados, en cualquier ubicación
+*.shp
+*.shx
+*.dbf
+*.sbn
+*.sbx
+*.qix
+*.gpkg
+*.tif
+*.tiff
+*.gdb/
+
+# ---------------------------------------------------------------
+# Salidas del análisis
+# ---------------------------------------------------------------
+/figuras/
+/reportes/
+*.log
+
+# ---------------------------------------------------------------
+# Secretos
+# ---------------------------------------------------------------
+# .env aquí solo lleva PYTHONPATH (ver README), por eso se versiona.
+!.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---------------------------------------------------------------
+# Editores
+# ---------------------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*~
+
+# ---------------------------------------------------------------
+# Sistema operativo
+# ---------------------------------------------------------------
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
