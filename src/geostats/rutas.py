@@ -29,6 +29,10 @@ ATUS_GEORREFERENCIADO = PROCESADOS / "atus_georreferenciado.parquet"
 # Mismos registros, con geometría de puntos y CRS embebidos (GeoParquet).
 ATUS_GEOPARQUET = PROCESADOS / "atus_georreferenciado_geo.parquet"
 
+# Recorte a la Zona Metropolitana de Monterrey (ver geostats.zonas).
+ATUS_ZMM = PROCESADOS / "atus_zmm.parquet"
+ATUS_ZMM_GEO = PROCESADOS / "atus_zmm_geo.parquet"
+
 
 def procesado(nombre: str) -> Path:
     """Ruta a un archivo derivado, creando `data/processed/` si hace falta."""
