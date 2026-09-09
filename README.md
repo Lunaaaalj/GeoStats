@@ -13,12 +13,17 @@ data/                  ← nada de esto se versiona (~5 GB)
     rativ_abierto_22-26.csv
     _zips/             los comprimidos originales
   processed/           lo que genera este repo; borrable y regenerable
-    atus_georreferenciado.parquet
+    atus_georreferenciado.parquet       nacional, 2019-2024
+    atus_zmm.parquet                    Zona Metropolitana de Monterrey
+docs/
+  diccionario_de_datos.md   los 50 campos, sus catálogos y sus centinelas
 notebooks/
   revisiones.ipynb     exploración
+  calidad_datos.ipynb  reporte de faltantes (no modifica nada)
 src/geostats/
   rutas.py             rutas del proyecto (nada de rutas relativas)
   consolidar.py        raw/ATUS_20XX → processed/*.parquet
+  zonas.py             recortes geográficos (ZMM de Monterrey)
 ```
 
 La separación `raw/` vs `processed/` es la regla del proyecto: **nunca se
@@ -60,6 +65,27 @@ uv run consolidar-atus --verificar  # contrasta los .shp contra los CSV
 Produce 1,317,810 filas × 50 columnas (2019-2024) en 31 MB de Parquet, contra
 219 MB de CSV.
 
+### Recorte a la Zona Metropolitana de Monterrey
+
+```bash
+uv run zona-atus          # data/processed/atus_zmm.parquet
+uv run zona-atus --geo    # además el GeoParquet
+```
+
+379,294 registros (28.8 % del total nacional) en los 18 municipios de la ZMM
+según el Sistema Urbano Nacional. Agrega la columna `NOM_MUN`.
+
+**Esos 18 municipios son exactamente los únicos de Nuevo León que trae ATUS**:
+la cobertura estatal de la encuesta coincide con la zona metropolitana, así que
+filtrar por `EDO == 19` da el mismo resultado. `geostats.zonas` mantiene la lista
+explícita de todos modos, y falla si algún municipio de la zona no aparece en los
+datos, para que el recorte no dependa de esa coincidencia.
+
+Ventaja sobre la base nacional: **el panel está balanceado**, los 18 municipios
+están presentes los seis años. Las series de tiempo de la ZMM sí son comparables
+entre años, cosa que a nivel nacional no ocurre (la cobertura va de 91 a 198
+municipios).
+
 ### Por qué no se consolidan los shapefiles
 
 Los `.shp` traen los mismos registros que los CSV. `--verificar` lo comprueba
@@ -72,7 +98,43 @@ de shapefiles: el resultado es el mismo punto por punto. Ojo: en 2019-2023 el
 orden de las filas difiere entre `.shp` y CSV, así que compararlos por posición
 da resultados sin sentido — hay que unirlos por la llave.
 
+## Identidad visual en las gráficas
+
+Las gráficas siguen el manual de GeoStats, pero los colores de marca están
+pensados para impresión y no todos sirven como marcas de datos sobre fondo
+claro. Se validaron antes de usarlos (banda de luminosidad OKLCH 0.43–0.77,
+piso de croma 0.10, separación bajo simulación de daltonismo, contraste WCAG):
+
+| Color de marca | Uso en gráficas | Resultado |
+|---|---|---|
+| Azul Prusia `#003153` | datos | **No pasa**: L=0.304 (banda 0.43–0.77) y croma 0.078 (piso 0.10, lee como gris). Se conserva el tono 246° y se sube L a 0.45 → `#005991` |
+| Rojo profundo `#8B2C1A` | títulos, énfasis | Pasa sin cambios (L=0.434, croma 0.133) |
+| Rojo óxido `#B15E2E` | detalle cálido | Pasa sin cambios (L=0.571, croma 0.124) |
+| Gris grafito `#2C2C2C` | texto, ejes | Croma 0 — correcto para texto, nunca como serie |
+| Gris claro `#F2F2F2` | rejilla, fondos | — |
+
+**Los dos rojos nunca van como series contiguas:** entre sí quedan en ΔE 14.1
+sobre un piso de 15, así que un lector con visión de color plena no los
+distingue bien lado a lado.
+
+Como la marca solo aporta un tono de datos, las gráficas con más de dos series
+usan **paneles pequeños** (una serie por panel) o la **rampa ordinal** de Azul
+Prusia `#005991 → #1b77b8 → #4195d9` cuando la dimensión tiene orden, en vez de
+inventar colores fuera del manual.
+
+Tipografías: Montserrat (títulos), Cormorant Garamond (texto), Roboto Mono
+(cifras). No están instaladas en el sistema, así que matplotlib usa respaldos.
+Para el renderizado exacto:
+
+```bash
+brew install --cask font-montserrat font-cormorant-garamond font-roboto-mono
+```
+
 ## Notas sobre los datos
+
+El significado de cada campo, sus catálogos de códigos y sus valores centinela
+están en [`docs/diccionario_de_datos.md`](docs/diccionario_de_datos.md), que
+consolida los tres diccionarios del INEGI y los contrasta contra los datos.
 
 Tres cosas que no son obvias y que rompen el análisis si se ignoran:
 
