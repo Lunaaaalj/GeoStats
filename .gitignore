@@ -104,3 +104,5 @@ htmlcov/
 .Spotlight-V100
 .Trashes
 Thumbs.db
+
+!data/processed/atus_*.*
