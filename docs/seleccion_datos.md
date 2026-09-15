@@ -22,13 +22,13 @@ modelo de severidad, y para el descriptivo.
 
 ---
 
-## Núcleo — 15 columnas
+## Núcleo — 16 columnas
 
 Estructurales. Son las que entran a un modelo de conteo.
 
 | Campo | Razón |
 |---|---|
-| `ID`, `ANIO`, `MPIO` | Llave real `(ANIO, EDO, MPIO, ID)`; sin ella no se detectan duplicados |
+| `ID`, `ANIO`, `EDO`, `MPIO` | Llave real `(ANIO, EDO, MPIO, ID)`; sin ella no se detectan duplicados |
 | `ANIO`, `MES`, `DIA` | Reconstruyen la fecha y definen el panel temporal |
 | `DIASEMANA` | Señal limpia (viernes 205,946 vs domingo 170,507); 135 centinelas (0.01%) |
 | `HORA` | Covariable temporal más informativa; 7 centinelas |
@@ -95,15 +95,24 @@ Usables, con la advertencia documentada.
 
 ---
 
-## Descartar — 5 columnas
+## Descartar — 4 columnas
 
 | Campo | Razón |
 |---|---|
 | `CINTURON` | **74.66% "se ignora"**. Solo 15% sí y 10% no. No recuperable |
 | `CAPAROD` | 99.25% pavimentada; varianza cercana a cero |
 | `MINUTOS` | `0` aparece 157,425 veces y `30` 119,320, contra ~10,000 de un minuto cualquiera. Es redondeo del capturista, no dato |
-| `EDO` | Constante = 19 tras el recorte a la ZMM |
 | `OTROMUERTO`, `OTROHERIDO` | 62 y 574 registros **a nivel nacional** |
+
+> **`EDO` estaba aquí y se movió al núcleo.** Es cierto que queda constante = 19
+> tras el recorte, pero la llave real es `(ANIO, EDO, MPIO, ID)`: sin él se rompe
+> la detección de duplicados y cualquier `concat` contra la base nacional. Una
+> columna constante en Parquet cuesta prácticamente cero.
+
+> **Descartar no significa borrar del archivo.** `geostats.limpieza` produce un
+> superconjunto: conserva las 51 columnas y agrega las derivadas. Esta lista se
+> aplica al seleccionar para un análisis, no al escribir el parquet — así la
+> decisión es reversible y auditable. Ver [`limpieza.md`](limpieza.md).
 
 ---
 
@@ -117,11 +126,17 @@ Usables, con la advertencia documentada.
 | `se_fugo` | `SEXO == 1` | Separa la fuga del sexo |
 | `sexo_conductor` | `SEXO ∈ {2,3}` | Sexo limpio, con ausente explícito |
 | `n_vehiculos` | Suma de los 13 | El diccionario garantiza que siempre es ≥ 1 |
-| `id_cruce` | `LONGITUD`+`LATITUD` redondeadas | Llave estable de la intersección |
+| `id_punto` | `LONGITUD`+`LATITUD` | Llave estable del punto geocodificado |
 | `hay_victimas` | `CLASE ∈ {1,2}` | Binaria para severidad |
 
 > `EDAD = 0` y `SEXO = 1` marcan **exactamente los mismos registros** (verificado
 > sobre 1.3M): son los accidentes con fuga. No es ruido, es estructura.
+
+> **`id_cruce` se llama `id_punto`.** No todo punto es un cruce: en la ZMM hay
+> 6,232 registros marcados explícitamente como *no* intersección y 6,578
+> suburbanos. Tampoco se redondea: las coordenadas traen hasta ocho decimales y
+> redondearlas fusiona puntos distintos. `limpieza` produce además un
+> `id_punto_4d` con 10 m de tolerancia, para cuando se quiera agrupar por cruce.
 
 ---
 
@@ -129,15 +144,23 @@ Usables, con la advertencia documentada.
 
 ```
 51 columnas actuales
-├── 15  núcleo          → estructurales, predictores del conteo
+├── 16  núcleo          → estructurales, predictores del conteo
 ├── 18  segundo anillo  → consecuentes, descriptivo y estratos
 ├──  5  con reservas    → usables con advertencia
-├──  5  descartar       → sin varianza o irrecuperables
+├──  4  descartar       → sin varianza o irrecuperables
 └──  8  derivadas nuevas
 ```
 
-38 de 51 conservadas, más 8 derivadas. El recorte es modesto: lo que importa no
-es cuántas se tiran, sino **cuáles pueden ser predictores (15) y cuáles no**.
+39 de 51 conservadas, más 8 derivadas. El recorte es modesto: lo que importa no
+es cuántas se tiran, sino **cuáles pueden ser predictores (16) y cuáles no**.
+
+> **La implementación construyó 20 derivadas, no 8.** Estas ocho son las que este
+> documento especificó desde el diccionario; `geostats.limpieza` agrega además
+> las versiones sin centinela de los campos del conductor (`edad`,
+> `aliento_alcoholico`, `cinturon`, `hora`, `dia_semana`), `gravedad`, las tres
+> vialidades normalizadas, `falta_calle2`, `id_punto_4d` y `precision_baja`.
+> La lista completa, con su regla y su porcentaje de nulos, está en
+> [`limpieza.md`](limpieza.md).
 
 **Alcance.** El diccionario advierte que la cobertura nacional crece de 91
 municipios en 2019 a 198 en 2024. En la ZMM son los mismos 18 municipios los

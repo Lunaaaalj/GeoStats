@@ -14,10 +14,15 @@ dependencies = [
     "openpyxl>=3.1.5",
     "pandas>=3.0.5",
     "pyarrow>=25.0.1",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
+    "statsmodels>=0.15.0",
 ]
 
 [project.scripts]
 consolidar-atus = "geostats.consolidar:main"
+zona-atus = "geostats.zonas:main"
+limpiar-atus = "geostats.limpieza:main"
 
 [build-system]
 requires = ["uv_build>=0.12.7,<0.13.0"]
