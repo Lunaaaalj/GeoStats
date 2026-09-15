@@ -104,3 +104,17 @@ htmlcov/
 .Spotlight-V100
 .Trashes
 Thumbs.db
+
+# ---------------------------------------------------------------
+# Datos procesados
+#
+# Las bases consolidadas sí se versionan, para que un clon tenga datos
+# sin repetir los ~5 GB de descarga del INEGI.
+# ---------------------------------------------------------------
+!data/processed/atus_*.*
+
+# ...menos los artefactos de limpieza. Se regeneran en segundos con
+# `uv run limpiar-atus` a partir de atus_zmm.parquet, y como Parquet es
+# binario comprimido git no puede hacer delta: cada versión commiteada
+# se guardaría entera y se quedaría en el historial para siempre.
+data/processed/*_limpio*.parquet
