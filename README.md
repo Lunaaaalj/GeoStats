@@ -6,7 +6,7 @@ registrados por el INEGI.
 ## Estructura
 
 ```
-data/                  ← nada de esto se versiona (~5 GB)
+data/                  ← qué se versiona y qué no, abajo
   raw/                 descargas del INEGI, tal cual llegaron; solo lectura
     ATUS_2019..2024/   base georreferenciada anual (CSV + shapefile)
     ATUS_anual_csv/    serie anual 1997-2025, sin coordenadas
@@ -15,8 +15,11 @@ data/                  ← nada de esto se versiona (~5 GB)
   processed/           lo que genera este repo; borrable y regenerable
     atus_georreferenciado.parquet       nacional, 2019-2024
     atus_zmm.parquet                    Zona Metropolitana de Monterrey
+    atus_zmm_limpio.parquet             la ZMM más 20 columnas derivadas
 docs/
   diccionario_de_datos.md   los 50 campos, sus catálogos y sus centinelas
+  seleccion_datos.md        qué columnas conservar y con qué papel
+  limpieza.md               las 20 derivadas, y lo que la limpieza no hace
 notebooks/
   revisiones.ipynb     exploración
   calidad_datos.ipynb  reporte de faltantes (no modifica nada)
@@ -24,11 +27,20 @@ src/geostats/
   rutas.py             rutas del proyecto (nada de rutas relativas)
   consolidar.py        raw/ATUS_20XX → processed/*.parquet
   zonas.py             recortes geográficos (ZMM de Monterrey)
+  limpieza.py          columnas derivadas y validación; no borra ni imputa
 ```
 
 La separación `raw/` vs `processed/` es la regla del proyecto: **nunca se
 escribe en `raw/`**. Si algo en `processed/` se corrompe, se borra y se
 regenera; si algo en `raw/` se pierde, hay que volver a bajarlo del INEGI.
+
+**Qué se versiona.** `raw/` nunca: son ~5 GB de descargas del INEGI que se
+vuelven a bajar. De `processed/` sí van al repo las bases consolidadas
+(`atus_georreferenciado*`, `atus_zmm*`), para que un clon tenga datos sin
+repetir esa descarga. Los artefactos de limpieza (`*_limpio*`) quedan fuera: se
+regeneran en segundos con `uv run limpiar-atus`, y como Parquet es binario
+comprimido git no puede hacer delta — cada versión commiteada se guardaría
+entera y se quedaría en el historial para siempre.
 
 ## Preparar el entorno
 
@@ -85,6 +97,33 @@ Ventaja sobre la base nacional: **el panel está balanceado**, los 18 municipios
 están presentes los seis años. Las series de tiempo de la ZMM sí son comparables
 entre años, cosa que a nivel nacional no ocurre (la cobertura va de 91 a 198
 municipios).
+
+### Limpieza
+
+```bash
+uv run limpiar-atus          # data/processed/atus_zmm_limpio.parquet (12 MB)
+uv run limpiar-atus --geo    # además el GeoParquet (15 MB)
+```
+
+Agrega 20 columnas derivadas a las 51 del recorte, y **nunca borra filas ni
+imputa**. No es estilo: el faltante de esta base es MNAR —en accidentes fatales
+el aliento alcohólico se ignora 2.4 veces más seguido que en los de solo daños—,
+así que `dropna()` sesga contra los accidentes graves e imputar bajo supuesto
+MAR mete sesgo en silencio. Si la etapa no puede borrar ni imputar, ninguna de
+las dos cosas puede pasar por descuido más adelante.
+
+Convención: **mayúsculas** es lo que llegó del INEGI y no se toca, incluidos los
+códigos centinela; **minúsculas** es lo que construye este repo. Así en cualquier
+`groupby` se sabe de un vistazo de dónde viene el dato.
+
+`validar()` recorre 21 invariantes y falla con la lista completa de las que se
+rompan; `diagnostico()` imprime las doce cifras que cambian la lectura del
+análisis. El detalle de cada columna está en [`docs/limpieza.md`](docs/limpieza.md).
+
+> Las coordenadas traen **hasta ocho decimales**, no seis como sugiere el
+> ejemplo del diccionario. Formatearlas a seis fusiona 8,115 puntos distintos en
+> silencio, así que `id_punto` no usa formato fijo y una invariante lo comprueba
+> en cada corrida.
 
 ### Por qué no se consolidan los shapefiles
 
