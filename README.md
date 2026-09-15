@@ -21,8 +21,9 @@ docs/
   seleccion_datos.md        qué columnas conservar y con qué papel
   limpieza.md               las 20 derivadas, y lo que la limpieza no hace
 notebooks/
-  revisiones.ipynb     exploración
-  calidad_datos.ipynb  reporte de faltantes (no modifica nada)
+  revisiones.ipynb              exploración
+  calidad_datos.ipynb           reporte de faltantes (no modifica nada)
+  analisis_multivariado.ipynb   covarianza, correlación, factorial y STL
 src/geostats/
   rutas.py             rutas del proyecto (nada de rutas relativas)
   consolidar.py        raw/ATUS_20XX → processed/*.parquet
