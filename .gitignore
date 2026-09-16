@@ -48,6 +48,16 @@ htmlcov/
 *-checkpoint.ipynb
 
 # ---------------------------------------------------------------
+# Quarto: el .qmd se versiona, lo que renderiza no. El PDF de cada
+# notebook sí va al repo, pero vive en docs/, no aquí.
+# ---------------------------------------------------------------
+/.quarto/
+notebooks/*.html
+notebooks/*_files/
+notebooks/*.pdf
+notebooks/*.quarto_ipynb
+
+# ---------------------------------------------------------------
 # Datos sueltos fuera de data/ (red de seguridad: si se descarga algo
 # a la raíz por error, no acaba en un commit de cientos de MB)
 # ---------------------------------------------------------------
@@ -105,4 +115,16 @@ htmlcov/
 .Trashes
 Thumbs.db
 
+# ---------------------------------------------------------------
+# Datos procesados
+#
+# Las bases consolidadas sí se versionan, para que un clon tenga datos
+# sin repetir los ~5 GB de descarga del INEGI.
+# ---------------------------------------------------------------
 !data/processed/atus_*.*
+
+# ...menos los artefactos de limpieza. Se regeneran en segundos con
+# `uv run limpiar-atus` a partir de atus_zmm.parquet, y como Parquet es
+# binario comprimido git no puede hacer delta: cada versión commiteada
+# se guardaría entera y se quedaría en el historial para siempre.
+data/processed/*_limpio*.parquet

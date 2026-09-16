@@ -33,6 +33,11 @@ ATUS_GEOPARQUET = PROCESADOS / "atus_georreferenciado_geo.parquet"
 ATUS_ZMM = PROCESADOS / "atus_zmm.parquet"
 ATUS_ZMM_GEO = PROCESADOS / "atus_zmm_geo.parquet"
 
+# Salida de geostats.limpieza: las mismas filas del recorte, más las columnas
+# derivadas. La limpieza nunca borra filas ni imputa, solo agrega.
+ATUS_ZMM_LIMPIO = PROCESADOS / "atus_zmm_limpio.parquet"
+ATUS_ZMM_LIMPIO_GEO = PROCESADOS / "atus_zmm_limpio_geo.parquet"
+
 
 def procesado(nombre: str) -> Path:
     """Ruta a un archivo derivado, creando `data/processed/` si hace falta."""
