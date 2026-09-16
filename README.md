@@ -20,10 +20,11 @@ docs/
   diccionario_de_datos.md   los 50 campos, sus catálogos y sus centinelas
   seleccion_datos.md        qué columnas conservar y con qué papel
   limpieza.md               las 20 derivadas, y lo que la limpieza no hace
+  *.pdf                     el render de cada notebook, para leer sin entorno
 notebooks/
   revisiones.ipynb              exploración
-  calidad_datos.ipynb           reporte de faltantes (no modifica nada)
-  analisis_multivariado.ipynb   covarianza, correlación, factorial y STL
+  calidad_datos.qmd             reporte de faltantes (no modifica nada)
+  analisis_multivariado.qmd     covarianza, correlación, factorial y STL
 src/geostats/
   rutas.py             rutas del proyecto (nada de rutas relativas)
   consolidar.py        raw/ATUS_20XX → processed/*.parquet
@@ -63,6 +64,30 @@ chflags nohidden .venv/lib/python3.14/site-packages/*.pth
 El archivo `.env` de la raíz (`PYTHONPATH=src`) es la red de seguridad: VS Code
 lo aplica al kernel de Jupyter, así que los notebooks siguen funcionando aunque
 el `.pth` esté oculto. Por eso ese `.env` sí se versiona — no contiene secretos.
+
+## Los notebooks
+
+Van en **Quarto** (`.qmd`), no en `.ipynb`. El `.qmd` es texto plano: git puede
+hacer diff y merge de verdad, y el archivo no carga con las salidas embebidas
+que hacen ilegible el historial de un notebook de Jupyter.
+
+```bash
+uv sync --group dev                        # nbclient y nbformat, que Quarto usa
+quarto render notebooks/calidad_datos.qmd --to html
+```
+
+Si `quarto` no encuentra el intérprete, apúntalo al del proyecto:
+`QUARTO_PYTHON=.venv/Scripts/python.exe` (Windows) o `.venv/bin/python`.
+
+**Cada notebook tiene su PDF en `docs/`.** Se genera del HTML, porque en estas
+máquinas no hay LaTeX:
+
+```bash
+chrome --headless --no-pdf-header-footer   --print-to-pdf=docs/calidad_datos.pdf notebooks/calidad_datos.html
+```
+
+El HTML intermedio y todo lo que Quarto deja en `notebooks/` está en
+`.gitignore`; al repo solo van el `.qmd` y el PDF de `docs/`.
 
 ## Reconstruir los datos procesados
 

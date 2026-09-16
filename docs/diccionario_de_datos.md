@@ -419,6 +419,6 @@ exactamente con la suma de sus componentes.
 Las columnas «Observado» y todos los conteos se calculan sobre
 `data/processed/atus_georreferenciado.parquet`. Para regenerarlo:
 `uv run consolidar-atus`. Para regenerar este documento, ver
-[`notebooks/calidad_datos.ipynb`](../notebooks/calidad_datos.ipynb) y el
+[`notebooks/calidad_datos.qmd`](../notebooks/calidad_datos.qmd) y el
 script que lo produjo.
 

@@ -48,6 +48,16 @@ htmlcov/
 *-checkpoint.ipynb
 
 # ---------------------------------------------------------------
+# Quarto: el .qmd se versiona, lo que renderiza no. El PDF de cada
+# notebook sí va al repo, pero vive en docs/, no aquí.
+# ---------------------------------------------------------------
+/.quarto/
+notebooks/*.html
+notebooks/*_files/
+notebooks/*.pdf
+notebooks/*.quarto_ipynb
+
+# ---------------------------------------------------------------
 # Datos sueltos fuera de data/ (red de seguridad: si se descarga algo
 # a la raíz por error, no acaba en un commit de cientos de MB)
 # ---------------------------------------------------------------

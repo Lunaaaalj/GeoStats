@@ -44,9 +44,22 @@ src/geostats/
   consolidar.py  raw → parquet nacional; validaciones; escribir_geoparquet()
   zonas.py       recorte a la ZMM (usa consolidar.escribir_geoparquet para --geo)
 notebooks/       consumen processed/ vía `from geostats import rutas, zonas`
-docs/            diccionario de datos y selección de variables (fuente de verdad sobre los campos)
+docs/            diccionario de datos, selección de variables y el PDF de cada notebook
 data/            fuera del repo salvo .gitkeep (~5 GB)
 ```
+
+**Los notebooks van en Quarto (`.qmd`), no en `.ipynb`.** El `.qmd` es texto
+plano y git puede versionarlo de verdad; un `.ipynb` arrastra las salidas
+embebidas y hace ilegible el diff. Cada notebook tiene además su PDF renderizado
+en `docs/`:
+
+```bash
+quarto render notebooks/<nombre>.qmd --to html     # QUARTO_PYTHON=.venv/Scripts/python.exe
+chrome --headless --no-pdf-header-footer --print-to-pdf=docs/<nombre>.pdf notebooks/<nombre>.html
+```
+
+El PDF sale del HTML porque no hay LaTeX en estas máquinas. El HTML intermedio
+está en `.gitignore`; al repo van solo el `.qmd` y el PDF de `docs/`.
 
 **Regla del proyecto: nunca se escribe en `data/raw/`.** `processed/` es
 borrable y regenerable. Toda ruta pasa por `geostats.rutas` (nunca rutas
@@ -76,7 +89,7 @@ el directorio de trabajo.
   unir por la llave.
 - Faltantes codificados como centinelas (no `NaN`) y MNAR: ver
   `docs/diccionario_de_datos.md` § "Códigos centinela" y
-  `notebooks/calidad_datos.ipynb` antes de tratar nulos.
+  `notebooks/calidad_datos.qmd` antes de tratar nulos.
 
 ## Gráficas
 

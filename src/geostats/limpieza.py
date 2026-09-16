@@ -2,7 +2,7 @@
 
 Principio de la etapa: **nunca borra filas y nunca imputa**. Solo agrega
 columnas derivadas y banderas, y deja intactas las del INEGI. Así el hallazgo
-MNAR de `notebooks/calidad_datos.ipynb` (el faltante depende de la gravedad,
+MNAR de `notebooks/calidad_datos.qmd` (el faltante depende de la gravedad,
 así que `dropna()` sesga contra los accidentes fatales) queda impedido por la
 arquitectura y no por acordarse.
 
@@ -164,7 +164,7 @@ def _precision_baja(datos: pd.DataFrame) -> pd.Series:
     por encima del azar: en la ZMM prácticamente no hay coordenadas realmente
     burdas, solo floats cuya representación resulta corta.
 
-    Por eso el hallazgo 11 de `calidad_datos.ipynb` («866 registros con <=3
+    Por eso el hallazgo 11 de `calidad_datos.qmd` («866 registros con <=3
     decimales») sobreestima el problema: contaba un solo eje.
 
     `np.isclose` va con `rtol=0`: su tolerancia relativa por omisión sobre
@@ -241,7 +241,7 @@ def limpiar(datos: pd.DataFrame) -> pd.DataFrame:
 def validar(limpio: pd.DataFrame, n_original: int) -> None:
     """Falla si alguna invariante se rompió. Recorre todas antes de lanzar.
 
-    Las diez primeras son las de `calidad_datos.ipynb`, que se verificaron con
+    Las diez primeras son las de `calidad_datos.qmd`, que se verificaron con
     cero violaciones sobre la base sucia: si aparecen ahora, la limpieza rompió
     algo. Las demás comprueban que las derivadas dicen lo que prometen.
 
