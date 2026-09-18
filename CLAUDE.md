@@ -43,8 +43,10 @@ src/geostats/
   rutas.py       constantes de rutas absolutas resueltas desde el paquete
   consolidar.py  raw → parquet nacional; validaciones; escribir_geoparquet()
   zonas.py       recorte a la ZMM (usa consolidar.escribir_geoparquet para --geo)
+  espacial.py    rejilla hexagonal, CRS métrico (UTM 14N) y celdas(): la partición común de análisis y modelo
 notebooks/       consumen processed/ vía `from geostats import rutas, zonas`
 docs/            diccionario de datos, selección de variables y el PDF de cada notebook
+docs/reporte/    reporte técnico en LaTeX (latexmk -pdf reporte.tex); figuras/ se extraen del HTML de los notebooks
 data/            fuera del repo salvo .gitkeep (~5 GB)
 ```
 
@@ -54,9 +56,15 @@ embebidas y hace ilegible el diff. Cada notebook tiene además su PDF renderizad
 en `docs/`:
 
 ```bash
-quarto render notebooks/<nombre>.qmd --to html     # QUARTO_PYTHON=.venv/Scripts/python.exe
+PYTHONPATH=$PWD/src QUARTO_PYTHON=.venv/bin/python quarto render notebooks/<nombre>.qmd --to html --execute-daemon-restart
 chrome --headless --no-pdf-header-footer --print-to-pdf=docs/<nombre>.pdf notebooks/<nombre>.html
 ```
+
+`quarto render` detecta el proyecto uv y resincroniza el entorno, lo que vuelve
+a ocultar el `.pth` **durante el render**: `chflags` no basta. `PYTHONPATH`
+absoluto (Quarto lanza el kernel desde `notebooks/`) y `--execute-daemon-restart`
+(el daemon conserva el `sys.path` roto entre renders) son los que resuelven.
+En Windows, `QUARTO_PYTHON=.venv/Scripts/python.exe`.
 
 El PDF sale del HTML porque no hay LaTeX en estas máquinas. El HTML intermedio
 está en `.gitignore`; al repo van solo el `.qmd` y el PDF de `docs/`.

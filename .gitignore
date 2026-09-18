@@ -128,3 +128,12 @@ Thumbs.db
 # binario comprimido git no puede hacer delta: cada versión commiteada
 # se guardaría entera y se quedaría en el historial para siempre.
 data/processed/*_limpio*.parquet
+
+# Auxiliares de LaTeX (docs/reporte)
+docs/reporte/*.aux
+docs/reporte/*.log
+docs/reporte/*.out
+docs/reporte/*.toc
+docs/reporte/*.fls
+docs/reporte/*.fdb_latexmk
+docs/reporte/*.synctex.gz
