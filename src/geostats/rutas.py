@@ -38,6 +38,11 @@ ATUS_ZMM_GEO = PROCESADOS / "atus_zmm_geo.parquet"
 ATUS_ZMM_LIMPIO = PROCESADOS / "atus_zmm_limpio.parquet"
 ATUS_ZMM_LIMPIO_GEO = PROCESADOS / "atus_zmm_limpio_geo.parquet"
 
+# Salida de notebooks/pronostico_2027.qmd: una fila por hexágono con el
+# pronóstico del modelo jerárquico (mediana, intervalos, probabilidad de estar
+# en el 5 % superior) y la geometría de la celda. Producto final, no insumo.
+PRONOSTICO_2027_GEO = PROCESADOS / "pronostico_2027_geo.parquet"
+
 
 def procesado(nombre: str) -> Path:
     """Ruta a un archivo derivado, creando `data/processed/` si hace falta."""
