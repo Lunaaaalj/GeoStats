@@ -700,25 +700,6 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 
 
 
-<!-- ============ 19 · REPORTES, NO CHOQUES ============ -->
-<section class="slide" data-t="El dato mide reportes" data-parte="Parte 3"
-  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="Santa Catarina registró 3 accidentes en 2020 y 2 910 en 2023. Guadalupe alcanzó su máximo en plena pandemia y desde entonces cayó a un tercio. Salinas Victoria alterna sin patrón. Ninguna dinámica de tránsito produce esos números: lo que cambió fue la práctica de captura del municipio. Es la mayor fuente de error de cualquier pronóstico sobre esta base, y ningún modelo la anticipa desde el pasado.">
-  <div class="ceja" data-anim style="--i:0">Lo que se está midiendo</div>
-  <h2 data-anim style="--i:1" style="max-width:30ch">Esta base cuenta reportes</h2>
-  <div class="marco" style="flex-direction:column;align-items:stretch;gap:20px">
-    <div class="grafica" data-g="series" style="width:100%;flex:1;min-height:0"></div>
-    <div class="aviso" data-anim style="--i:2">
-      <div class="t">Un municipio que reporta más no es un municipio más peligroso</div>
-      <div class="c" style="max-width:none">Ninguna dinámica de tránsito produce esos saltos: lo que cambió fue la práctica de captura. Por eso el modelo estima el nivel de cada municipio por separado, y el mapa que devuelve compara cada zona <b>contra las de su propio municipio</b>.</div>
-    </div>
-  </div>
-</section>
-
-
-
-
-
 <!-- ============ 22 · 2027 ============ -->
 <section class="slide" data-t="Pronóstico 2027" data-parte="Parte 3"
   data-capa="p2027" data-rampa="calida" data-marco="derecha" data-velo="claro"
@@ -796,48 +777,6 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   </div>
 </section>
 
-<!-- ============ FORO ============ -->
-<section class="slide hondo" data-t="Foro de discusión" data-parte="Parte 4"
-  data-capa="total" data-marco="llena" data-velo="tinta"
-  data-notas="Aquí se deja de presentar y se abre la conversación. Las cuatro preguntas no son retóricas: ninguna se contesta con los datos que tenemos, y las cuatro dependen de a quién se le pregunte. La primera es la más incómoda: el centro concentra los choques y la periferia las víctimas, y el presupuesto es uno solo. La segunda vuelve sobre lo del reporte, pero como pregunta política y no técnica. La tercera es sobre quién decide: el modelo ordena una lista, no la firma. La cuarta abre el siguiente paso del proyecto, que son los kilómetros de vialidad por zona.">
-  <div class="ceja" data-anim style="--i:0">Foro</div>
-  <h2 data-anim style="--i:1" style="max-width:24ch">Cuatro preguntas que los datos no contestan</h2>
-  <div class="marco" style="align-items:center">
-    <div class="col" style="flex:0 0 700px">
-      <div class="foro">
-        <div class="pregunta" data-anim style="--i:2">
-          <span class="np">01</span>
-          <div>
-            <div class="q">¿Se interviene donde más se choca o donde más se pierde?</div>
-            <div class="ctx">En el centro hay 498 accidentes por zona y 4,7 % con víctimas. En el tercer anillo, 39 por zona y 10,3 %. El presupuesto es uno solo.</div>
-          </div>
-        </div>
-        <div class="pregunta" data-anim style="--i:3">
-          <span class="np">02</span>
-          <div>
-            <div class="q">Si el dato es el reporte, ¿qué estamos celebrando cuando un municipio «baja»?</div>
-            <div class="ctx">Guadalupe cayó a un tercio en dos años. Nadie sabe cuánto de eso es la calle y cuánto la oficina.</div>
-          </div>
-        </div>
-        <div class="pregunta" data-anim style="--i:4">
-          <span class="np">03</span>
-          <div>
-            <div class="q">¿Quién elige los cincuenta cruces?</div>
-            <div class="ctx">El modelo ordena una lista. No la firma, no la financia y no vive en esas colonias.</div>
-          </div>
-        </div>
-        <div class="pregunta" data-anim style="--i:5">
-          <span class="np">04</span>
-          <div>
-            <div class="q">¿Qué nos falta medir?</div>
-            <div class="ctx">Sin saber cuántos autos pasan, no podemos distinguir un cruce peligroso de uno por el que pasa muchísima gente.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ============ 26 · CIERRE ============ -->
 <section class="slide hondo" data-t="Cierre" data-parte="Parte 4"
   data-capa="total" data-marco="llena" data-velo="tinta">
@@ -851,13 +790,19 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
         <div><div class="m">2<i class="e"></i>241</div><div class="pie" style="font-size:15px;font-family:var(--display);font-weight:500">zonas con pronóstico</div></div>
       </div>
     </div>
-    <div class="col corta" style="align-items:center;justify-content:center">
-      <div data-anim style="--i:4">
-        <svg class="qr" viewBox="0 0 {{QR_LADO:https://github.com/Lunaaaalj/GeoStats}} {{QR_LADO:https://github.com/Lunaaaalj/GeoStats}}" width="208" height="208" role="img" aria-label="Código QR al repositorio del proyecto en GitHub">
+    <div class="col corta" style="align-items:center;justify-content:center;flex-direction:row;align-items:flex-start;gap:36px">
+      <div style="display:flex;flex-direction:column;align-items:center" data-anim style="--i:4">
+        <svg class="qr" viewBox="0 0 {{QR_LADO:https://geo-stats-three.vercel.app/#25}} {{QR_LADO:https://geo-stats-three.vercel.app/#25}}" width="176" height="176" role="img" aria-label="Código QR a esta presentación">
+          <path d="{{QR_TRAZO:https://geo-stats-three.vercel.app/#25}}"/>
+        </svg>
+        <div class="pie" style="text-align:center;font-family:var(--cifra);font-size:12px;margin-top:12px;max-width:none;white-space:nowrap">la presentación<br>geo-stats-three.vercel.app</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center" data-anim style="--i:5">
+        <svg class="qr" viewBox="0 0 {{QR_LADO:https://github.com/Lunaaaalj/GeoStats}} {{QR_LADO:https://github.com/Lunaaaalj/GeoStats}}" width="176" height="176" role="img" aria-label="Código QR al repositorio del proyecto en GitHub">
           <path d="{{QR_TRAZO:https://github.com/Lunaaaalj/GeoStats}}"/>
         </svg>
+        <div class="pie" style="text-align:center;font-family:var(--cifra);font-size:12px;margin-top:12px;max-width:none;white-space:nowrap">el código y los datos<br>github.com/Lunaaaalj/GeoStats</div>
       </div>
-      <div class="pie" data-anim style="--i:5" style="text-align:center;font-family:var(--cifra);font-size:13px;margin-top:14px;max-width:none">github.com/Lunaaaalj/GeoStats</div>
     </div>
   </div>
 </section>
