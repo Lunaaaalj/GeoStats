@@ -65,6 +65,9 @@ def main() -> None:
 
     # --- el pronóstico 2027, tal como lo dejó el notebook --------------------
     pron = gpd.read_parquet(rutas.PRONOSTICO_2027_GEO).set_index("hex")
+    # Por municipio: el observado de 2024 y la media a posteriori de 2027 (la
+    # media de una suma es la suma de las medias; las medianas no se suman).
+    por_mun = pron.groupby("municipio")[["y_2024", "lambda_media"]].sum()
     pron = pron.reindex(orden)
     capas["p2027"] = pron["lambda_med"].fillna(0).round().astype(int).tolist()
     capas["ptop5"] = (pron["p_top5"].fillna(0) * 100).round().astype(int).tolist()
@@ -195,6 +198,8 @@ def main() -> None:
             "nombres": nombres,
             "porCelda": [indice_mun[m] for m in dominante],
             "serie": {m: serie.loc[m].astype(int).tolist() for m in serie.index},
+            "p2027": {m: [int(r.y_2024), int(round(r.lambda_media))]
+                      for m, r in por_mun.sort_values("y_2024", ascending=False).iterrows()},
         },
         "horaDia": {"dias": [str(d)[:3] for d in dias], "tabla": hora_dia},
         "lorenz": lorenz,
