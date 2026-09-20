@@ -803,9 +803,9 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   data-notas="El visor corre aquí mismo, dentro de la presentación; necesita conexión. Mientras el cursor esté sobre el mapa las teclas van al visor, no a la presentación: para avanzar hay que hacer clic fuera del marco o usar la cadena de abajo. Si la red falla, el QR de la lámina anterior lleva a la misma app.">
   <div class="ceja" data-anim style="--i:0">El visor interactivo</div>
   <div class="marco" style="margin-top:14px;align-items:stretch">
-    <div data-anim style="--i:1;flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--linea);background:#fff">
+    <div data-anim style="--i:1;flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--linea);background:#fff;pointer-events:auto">
       <iframe data-src="https://app-geo-eosin.vercel.app" title="Visor interactivo GeoStats" loading="lazy" referrerpolicy="no-referrer"
-              style="flex:1;width:100%;border:0;display:block"></iframe>
+              style="flex:1;width:100%;border:0;display:block;pointer-events:auto"></iframe>
     </div>
   </div>
   <div class="pie" data-anim style="--i:2;font-family:var(--cifra);font-size:11px;margin-top:8px;max-width:none">app-geo-eosin.vercel.app · para avanzar la presentación, clic fuera del mapa o en la cadena de abajo</div>
