@@ -4,7 +4,7 @@
 tiene ni una imagen. Los mapas, la curva de concentración, el calendario, la
 matriz de perfiles y las series se dibujan en el navegador desde `datos.json`, y
 las tipografías van embebidas, así que se abre con doble clic y se ve igual sin
-conexión. **29 láminas** en cuatro partes.
+conexión. **26 láminas** en cuatro partes.
 
 ## Presentar
 
@@ -92,6 +92,14 @@ nodos.
 Las marcas de datos usan `#005991` y no el `#003153` de marca: la validación de
 color del README raíz lo descarta como serie sobre fondo claro. El azul de
 marca se reserva para superficies y texto.
+
+## Qué quedó fuera a propósito
+
+La Parte 3 presenta **solo los resultados del modelo**: no hay láminas de
+método ni de validación. Lo que se retiró —qué se puede predecir y qué no, por
+qué hexágonos, cómo está armado el modelo y cuánto acierta en 2024— vive en las
+**notas del presentador** (tecla `N`) de las láminas vecinas, para poder
+mencionarlo o contestarlo sin proyectarlo.
 
 ## Una advertencia sobre el mapa del país
 

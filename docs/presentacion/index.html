@@ -204,11 +204,11 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 .barras.anchas .canal{height:16px}
 .barras.anchas .val{font-size:17px}
 
-.aviso{border-left:3px solid var(--ladrillo); padding:2px 0 2px 20px}
+.aviso{border-left:3px solid var(--ladrillo); padding:2px 0 2px 20px; font-size:19px}
 .aviso .t{font-family:var(--display); font-weight:700; font-size:14px; letter-spacing:.06em;
   text-transform:uppercase; color:var(--ladrillo)}
 .hondo .aviso{border-left-color:#E8A88F} .hondo .aviso .t{color:#E8A88F}
-.aviso .c{font-family:var(--texto); font-size:19px; line-height:1.34; color:var(--grafito); margin-top:6px; max-width:44ch}
+.aviso .c{font-family:var(--texto); font-size:inherit; line-height:1.34; color:var(--grafito); margin-top:6px; max-width:44ch}
 .hondo .aviso .c{color:#DCE9F2}
 
 /* Ficha técnica de la base: etiqueta y valor, sin caja ni adorno. */
@@ -219,6 +219,17 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 .especificacion dd{font-family:var(--texto); font-size:19.5px; line-height:1.3;
   color:var(--grafito); margin:0}
 .especificacion dd b{font-weight:600}
+
+/* Foro de cierre: preguntas numeradas, no viñetas. El número dice que son
+   cuatro y que van en orden; las viñetas no dirían nada. */
+.foro{display:flex; flex-direction:column; gap:22px}
+.pregunta{display:grid; grid-template-columns:52px 1fr; gap:18px; align-items:baseline}
+.pregunta .np{font-family:var(--cifra); font-size:14px; font-weight:700;
+  letter-spacing:.16em; color:var(--oxido)}
+.pregunta .q{font-family:var(--display); font-weight:700; font-size:23px; line-height:1.2;
+  color:#FFFFFF; letter-spacing:-.01em}
+.pregunta .ctx{font-family:var(--texto); font-size:18px; line-height:1.3;
+  color:#A9C8DD; margin-top:5px; max-width:52ch}
 
 /* ------------------------------------------------------------- fichas ---- */
 .fichas{display:flex; gap:10px; flex:none}
@@ -426,7 +437,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 <!-- ============ 5 · LO QUE NO SABE ============ -->
 <section class="slide" data-t="La unidad: un hexágono" data-parte="Parte 1"
   data-capa="total" data-marco="derecha" data-velo="claro"
-  data-notas="Antes de seguir, una instrucción de lectura, porque todos los mapas de aquí en adelante están hechos de estos hexágonos. La metrópoli se cubrió con una rejilla de hexágonos iguales de 500 metros de lado: un kilómetro de punta a punta y 0,65 kilómetros cuadrados, el tamaño de un barrio. Se conservan las 2 241 celdas donde cayó al menos un accidente en seis años; las vacías no tienen red vial. Lo importante es que todas miden lo mismo: el conteo de una celda se compara con el de cualquier otra sin corregir nada, y el color del mapa es siempre cuántos accidentes cayeron dentro.">
+  data-notas="Si preguntan por qué hexágonos y no colonias o AGEB: las fronteras de esos polígonos están trazadas sobre las avenidas, que es justo donde ocurren los accidentes, así que cada choque caería en el límite entre dos y asignarlo a uno u otro sería arbitrario; además unas miden 0,2 kilómetros cuadrados y otras varios, y sus conteos no se pueden comparar. La rejilla no sabe dónde están las calles, así que no puede sesgar nada. Antes de seguir, una instrucción de lectura, porque todos los mapas de aquí en adelante están hechos de estos hexágonos. La metrópoli se cubrió con una rejilla de hexágonos iguales de 500 metros de lado: un kilómetro de punta a punta y 0,65 kilómetros cuadrados, el tamaño de un barrio. Se conservan las 2 241 celdas donde cayó al menos un accidente en seis años; las vacías no tienen red vial. Lo importante es que todas miden lo mismo: el conteo de una celda se compara con el de cualquier otra sin corregir nada, y el color del mapa es siempre cuántos accidentes cayeron dentro.">
   <div class="ceja" data-anim style="--i:0">La unidad de medida</div>
   <h2 data-anim style="--i:1">Cada celda del mapa es un hexágono</h2>
   <div class="marco">
@@ -444,6 +455,10 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
         <div class="especificacion" data-anim style="--i:5">
           <dt>Cómo se lee</dt>
           <dd>El color es <b>cuántos accidentes cayeron dentro</b>. Como todas miden igual, dos celdas se comparan sin corregir nada.</dd>
+        </div>
+        <div class="especificacion" data-anim style="--i:6">
+          <dt>Y no colonias</dt>
+          <dd>Las fronteras de una colonia van <b>por en medio de las avenidas</b>, justo donde ocurren los choques: cada accidente caería en el límite entre dos polígonos. La rejilla no sabe dónde están las calles.</dd>
         </div>
       </dl>
     </div>
@@ -611,7 +626,8 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
   data-notas="Dos cruces con el mismo número de accidentes pueden ser problemas distintos: uno acumula alcances a la hora pico y otro atropella peatones. Esa diferencia está en el perfil, no en el volumen. Se tomaron los 2 302 cruces con 30 o más accidentes en seis años, el 54,6 % de todos los registros; por debajo de 30, un porcentaje no describe nada. De cada cruce se midieron siete rasgos, todos composicionales: porcentajes de sus propios choques. El volumen se dejó fuera a propósito, porque si entrara el algoritmo separaría cruces grandes de chicos, que es lo que ya hace el mapa de puntos negros. Con eso se corrió un k-medias. Y hay que decirlo con todas sus letras: la silueta, que mide qué tan separados están los grupos, es baja. El máximo está en k igual a dos con 0,28, y k igual a cuatro da 0,21. No hay categorías naturales ahí: el perfil de un cruce es continuo y esta partición es una discretización útil, no un descubrimiento. Se eligió cuatro porque dos solo separa con víctimas de sin víctimas, que ya es una columna de la base, y porque los cuatro centroides son interpretables y estables: con otra semilla, el 99,8 % de los cruces conserva su tipo.">
   <div class="ceja" data-anim style="--i:0">Tipología &#183; el modelo</div>
-  <h2 data-anim style="--i:1">Cómo agrupamos los cruces</h2>
+  <h2 data-anim style="--i:1" style="max-width:none">Cómo agrupamos los cruces</h2>
+  <p class="entrada" data-anim style="--i:2" >Dos cruces con el mismo número de accidentes pueden ser problemas distintos.</p>
   <div class="marco" style="align-items:flex-start">
     <div class="col" style="flex:0 0 590px">
       <div class="especificacion" data-anim style="--i:3">
@@ -629,10 +645,10 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
         <div class="rotulo">El volumen no entra</div>
         <div class="txt">Si entrara, el algoritmo separaría cruces grandes de chicos &#8212; que es lo que ya hace el mapa de puntos negros. Aquí buscamos <b>tipos de problema, no tamaños</b>.</div>
       </div>
-      <div class="grafica" data-g="silueta" style="margin-top:16px"></div>
-      <div class="aviso" data-anim style="--i:8;margin-top:12px">
+      <div class="grafica" data-g="silueta" style="margin-top:12px"></div>
+      <div class="aviso" data-anim style="--i:8;margin-top:12px;font-size:17px">
         <div class="t">Y la silueta es baja</div>
-        <div class="c">No hay cuatro categorías naturales esperando ser descubiertas: el perfil de un cruce es continuo. Esto es una <b>división útil</b>, no un hallazgo. Se eligió 4 porque 2 solo separa &#171;con víctimas / sin víctimas&#187;, y porque estos cuatro son estables: con otra semilla, el <b>99,8 %</b> de los cruces conserva su tipo.</div>
+        <div class="c">El perfil de un cruce es continuo: estos cuatro grupos son una <b>división útil</b>, no categorías naturales. Lo que sí es firme: con otra semilla, el <b>99,8 %</b> de los cruces conserva su tipo.</div>
       </div>
     </div>
   </div>
@@ -653,6 +669,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   data-notas="El mismo mapa, año por año, con la misma escala de color. Cambia el nivel, no el dibujo: de los 200 peores cruces, 155 aparecen en los seis años, con una pandemia en medio. Y 53 de los 100 peores de 2019-20 siguen entre los peores de 2023-24. Un problema que se queda quieto es un problema que se puede planear: esto es lo que hace posible la Parte 3.">
   <div class="ceja" data-anim style="--i:0">Persistencia</div>
   <h2 data-anim style="--i:1">Y el mapa casi no se mueve</h2>
+  <p class="entrada" data-anim style="--i:3">Cambia el nivel, no el dibujo. Y eso es lo que vuelve planeable el problema: lo que se repite se puede anticipar.</p>
   <div class="marco">
     <div class="col media">
       <div class="fichas" data-anim style="--i:2" data-fichas="anios"></div>
@@ -672,122 +689,40 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 
 <!-- ============ 16 · CORTE III ============ -->
 <section class="slide hondo corte" data-t="Parte 3 · El modelo" data-parte="Parte 3"
-  data-capa="total" data-marco="llena" data-velo="tinta">
+  data-capa="total" data-marco="llena" data-velo="tinta"
+  data-notas="Antes de enseñar el resultado conviene decir qué clase de cosa es. Nadie puede predecir un choque: a escala de una esquina y un martes, un accidente es prácticamente azar. Lo que sí se puede estimar es la tasa esperada de cada zona, qué tan cargada está la moneda de cada lugar. Es la diferencia entre adivinar un volado y saber que la moneda está cargada: la moneda cargada se puede medir, el volado no. Y con esa tasa salen las tres cosas de un jalón: la suma da el total de la ciudad, el orden da la lista de prioridades y el mapa da el dónde.">
   <div class="num" data-anim style="--i:0">PARTE 3</div>
-  <h1 data-anim style="--i:1">Del mapa de ayer<br>al de mañana</h1>
-  <p class="entrada" data-anim style="--i:2">Cómo se convierte un historial en un pronóstico. Sin una sola fórmula.</p>
+  <h1 data-anim style="--i:1">El mapa<br>de 2027</h1>
+  <p class="entrada" data-anim style="--i:2">Lo que el modelo devuelve, zona por zona.</p>
 </section>
 
-<!-- ============ 17 · QUÉ SE PREDICE ============ -->
-<section class="slide" data-t="Nadie predice un choque" data-parte="Parte 3"
-  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="A escala de una esquina y un martes, un accidente es prácticamente azar. Lo que sí se puede estimar es la tasa esperada de cada lugar: qué tan cargada está la moneda. Con esa tasa se construyen el ranking, el total y el mapa. Y una sola pregunta responde las dos: si estimamos cuántos accidentes esperamos en cada lugar, la suma da el total y el orden da la lista de prioridades.">
-  <div class="ceja" data-anim style="--i:0">El planteamiento</div>
-  <h2 data-anim style="--i:1">Nadie puede predecir un choque</h2>
-  <div class="marco">
-    <div class="col">
-      <div class="pila" style="gap:30px">
-        <div class="dato" data-anim style="--i:2"><div class="rotulo">No se predice</div><div class="txt">«El jueves a las 8:15 habrá un choque en Gonzalitos y San Jerónimo».</div></div>
-        <div class="dato frio" data-anim style="--i:3"><div class="rotulo">Sí se estima</div><div class="txt">«Ese cruce carga 30 veces el riesgo del promedio de su zona».</div></div>
-      </div>
-    </div>
-    <div class="col">
-      <div data-anim style="--i:4">
-        <div class="entrada" style="font-size:31px;line-height:1.28;color:var(--grafito);max-width:21ch">Es la diferencia entre adivinar un volado y saber que <i>la moneda está cargada</i>.</div>
-        <p class="pie" data-anim style="margin-top:22px">La moneda cargada se puede medir. El volado, no.</p>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- ============ 18 · HEXÁGONOS ============ -->
-<section class="slide" data-t="Por qué hexágonos" data-parte="Parte 3"
-  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="Contar por colonia o por AGEB parece lo natural y no funciona: las fronteras de esos polígonos están trazadas justo sobre las avenidas, que es donde ocurren los accidentes. Un choque en Constitución cae en el límite entre dos polígonos y asignarlo a uno u otro es arbitrario. Además unas miden 0,2 km² y otras varios. La rejilla hexagonal no sabe dónde están las calles, así que no puede sesgar nada: 2 241 hexágonos de 0,65 km², todos con la misma área y los mismos seis vecinos. Es la rejilla que se ha visto en todos los mapas anteriores.">
-  <div class="ceja" data-anim style="--i:0">La unidad de análisis</div>
-  <h2 data-anim style="--i:1">Por qué hexágonos y no colonias</h2>
-  <div class="marco" style="gap:38px;align-items:stretch">
-    <div class="col" data-anim style="--i:2">
-      <div class="rotulo arde" style="font-size:12px;letter-spacing:.16em;text-transform:uppercase">Por colonia o AGEB</div>
-      <svg viewBox="0 0 310 200" style="width:100%;height:auto;margin-top:10px" role="img" aria-label="Las fronteras de las colonias caen sobre la avenida, donde están los accidentes">
-        <g stroke="#FFFFFF" stroke-width="1">
-          <path d="M10 14 L150 14 L150 112 L10 144Z" fill="#003153" fill-opacity=".05"/>
-          <path d="M150 14 L300 14 L300 64 L150 112Z" fill="#003153" fill-opacity=".14"/>
-          <path d="M10 144 L150 112 L150 194 L10 194Z" fill="#003153" fill-opacity=".17"/>
-          <path d="M150 112 L300 64 L300 194 L150 194Z" fill="#003153" fill-opacity=".08"/>
-        </g>
-        <path d="M10 144 L150 112 L300 64" fill="none" stroke="#B15E2E" stroke-width="10" stroke-opacity=".38" stroke-linecap="round"/>
-        <path d="M10 144 L150 112 L300 64" fill="none" stroke="#2C2C2C" stroke-width="1.4" stroke-dasharray="6 4"/>
-        <g fill="#8B2C1A">
-          <circle cx="38" cy="138" r="4"/><circle cx="66" cy="132" r="4"/><circle cx="94" cy="126" r="4"/>
-          <circle cx="122" cy="119" r="4"/><circle cx="150" cy="112" r="4"/><circle cx="180" cy="102" r="4"/>
-          <circle cx="210" cy="93" r="4"/><circle cx="240" cy="83" r="4"/><circle cx="270" cy="74" r="4"/>
-        </g>
-      </svg>
-      <p class="pie" style="max-width:none;font-size:18px">El límite va <b>por en medio de la avenida</b>: cada choque cae justo en la frontera y asignarlo a un lado es arbitrario.</p>
-    </div>
-    <div class="col" data-anim style="--i:3">
-      <div class="rotulo" style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--prusia)">Rejilla hexagonal</div>
-      <div class="grafica" data-g="hexdemo" style="width:100%;margin-top:10px"></div>
-      <p class="pie" style="max-width:none;font-size:18px"><b>2 241 celdas</b> de 0,65 km². La rejilla no sabe dónde están las calles: no puede sesgar nada.</p>
-    </div>
-  </div>
-</section>
+
+
 
 <!-- ============ 19 · REPORTES, NO CHOQUES ============ -->
 <section class="slide" data-t="El dato mide reportes" data-parte="Parte 3"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
   data-notas="Santa Catarina registró 3 accidentes en 2020 y 2 910 en 2023. Guadalupe alcanzó su máximo en plena pandemia y desde entonces cayó a un tercio. Salinas Victoria alterna sin patrón. Ninguna dinámica de tránsito produce esos números: lo que cambió fue la práctica de captura del municipio. Es la mayor fuente de error de cualquier pronóstico sobre esta base, y ningún modelo la anticipa desde el pasado.">
-  <div class="ceja" data-anim style="--i:0">El obstáculo</div>
-  <h2 data-anim style="--i:1" style="max-width:34ch">A mitad del camino, un hallazgo incómodo</h2>
+  <div class="ceja" data-anim style="--i:0">Lo que se está midiendo</div>
+  <h2 data-anim style="--i:1" style="max-width:30ch">Esta base cuenta reportes</h2>
   <div class="marco" style="flex-direction:column;align-items:stretch;gap:20px">
     <div class="grafica" data-g="series" style="width:100%;flex:1;min-height:0"></div>
     <div class="aviso" data-anim style="--i:2">
-      <div class="t">Esta base mide reportes, no choques</div>
-      <div class="c" style="max-width:none">Ninguna dinámica de tránsito produce esos saltos. Lo que cambió fue la práctica de captura de cada municipio — y eso ningún modelo lo anticipa.</div>
+      <div class="t">Un municipio que reporta más no es un municipio más peligroso</div>
+      <div class="c" style="max-width:none">Ninguna dinámica de tránsito produce esos saltos: lo que cambió fue la práctica de captura. Por eso el modelo estima el nivel de cada municipio por separado, y el mapa que devuelve compara cada zona <b>contra las de su propio municipio</b>.</div>
     </div>
   </div>
 </section>
 
-<!-- ============ 20 · EL MODELO ============ -->
-<section class="slide" data-t="El modelo en una idea" data-parte="Parte 3"
-  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="En vez de pelear contra el problema del reporte, se le hace un lugar propio dentro del modelo. El nivel del municipio absorbe cuánto se reporta y cambia año con año. El perfil de la zona absorbe dónde, dentro del municipio, se concentra el riesgo, y es estable. El producto de los dos da los accidentes esperados. Además cada zona aprende de sus seis vecinas, y en las 618 zonas con cinco accidentes o menos el modelo triplica el margen de error que reporta: admite lo que no sabe.">
-  <div class="ceja" data-anim style="--i:0">El modelo</div>
-  <h2 data-anim style="--i:1">Así que el modelo separa dos cosas</h2>
-  <div class="marco" style="flex-direction:column;justify-content:center;gap:34px">
-    <div class="grafica" data-g="modelo" style="width:100%"></div>
-    <div class="tira" data-anim style="--i:2">
-      <div><div class="rotulo">Cada zona aprende de sus vecinas</div><div class="pie" style="font-size:16px;font-family:var(--display);font-weight:500;max-width:36ch">Una zona con pocos accidentes no se estima sola: se apoya en las seis que la rodean.</div></div>
-      <div><div class="rotulo">Y admite lo que no sabe</div><div class="pie" style="font-size:16px;font-family:var(--display);font-weight:500;max-width:36ch">En las 618 zonas con cinco accidentes o menos, el margen que reporta es <b>el triple</b>.</div></div>
-    </div>
-  </div>
-</section>
 
-<!-- ============ 21 · VALIDACIÓN ============ -->
-<section class="slide" data-t="¿Y acierta?" data-parte="Parte 3"
-  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="El modelo se entrenó únicamente con 2019-2023 y después se le pidió el 2024, que nunca había visto. Falló el total metropolitano por 0,6 %. Cuando promete un margen del 90 % de confianza acierta el 87 % de las veces; el método simple de promediar el pasado solo acierta el 68 %, o sea promete una certeza que no tiene. Y el 5 % del territorio que señaló captura el 42 % de los accidentes del año siguiente. Esa última cifra ya se conseguía contando y ordenando el pasado: el dónde lo decide el historial, y lo que el modelo agrega es cuánta confianza merece cada zona.">
-  <div class="ceja" data-anim style="--i:0">Validación</div>
-  <h2 data-anim style="--i:1">¿Y acierta?</h2>
-  <p class="entrada" data-anim style="--i:2">Se entrenó solo con 2019–2023 y luego se le pidió el 2024, que nunca había visto.</p>
-  <div class="marco">
-    <div class="col"><div data-anim style="--i:3">
-      <div class="xl">0,6<i class="e"></i>%</div>
-      <div class="pie">de error en el total de 2024: predijo 70<i class="e"></i>815, ocurrieron 71<i class="e"></i>249</div></div></div>
-    <div class="col"><div data-anim style="--i:4">
-      <div class="l">87<i class="e"></i>% <span style="color:var(--tenue)">vs</span> 68<i class="e"></i>%</div>
-      <div class="pie">acierta su margen del 90 % el 87 % de las veces. Promediar el pasado, solo el 68 %</div></div></div>
-    <div class="col"><div data-anim style="--i:5">
-      <div class="xl arde">42<i class="e"></i>%</div>
-      <div class="pie">de los accidentes de 2024 caen en el 5 % del territorio que señaló de antemano</div></div></div>
-  </div>
-</section>
+
+
 
 <!-- ============ 22 · 2027 ============ -->
 <section class="slide" data-t="Pronóstico 2027" data-parte="Parte 3"
   data-capa="p2027" data-rampa="calida" data-marco="derecha" data-velo="claro"
-  data-notas="El pronóstico central para 2027 es 73 577 accidentes, con un intervalo del 90 % de más menos 3 %, condicional a que ningún municipio cambie su forma de reportar. Si se admite que se muevan como se movieron entre 2019 y 2024, el total podría ir de 53 mil a 220 mil: ese rango no es un pronóstico, es la medida de cuánto depende cualquier cifra de decisiones administrativas. Lo robusto es el dónde: el 5 % superior concentra el 43 %, y de esas 112 celdas, 89 están en la cabeza con probabilidad mayor a 0,9.">
+  data-notas="El pronóstico central para 2027 es 73 577 accidentes con un margen del 3 %. Lo robusto es el dónde: el 5 % de zonas con más riesgo concentra el 43 % del total, y de esas 112 zonas, 89 están ahí con probabilidad mayor a 0,9. Por dentro, el modelo separa dos cosas: el nivel de cada municipio, que dice cuánto se reporta y cambia año con año, y el perfil de cada zona, que dice dónde se concentra el riesgo dentro de ese municipio y es estable. El producto de los dos da los accidentes esperados. Además cada zona aprende de sus seis vecinas, y en las 618 zonas con cinco accidentes o menos el modelo triplica el margen que reporta: admite lo que no sabe. Si preguntan qué tan bien funciona: se entrenó solo con 2019-2023 y se le pidió el 2024, que nunca había visto; falló el total metropolitano por 0,6 por ciento, y el 5 por ciento del territorio que señaló de antemano capturó el 42 por ciento de los accidentes de ese año.">
   <div class="ceja" data-anim style="--i:0">Pronóstico</div>
   <h2 data-anim style="--i:1">2027</h2>
   <div class="marco">
@@ -801,8 +736,9 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
           <div class="pie">accidentes esperados en 2027, con un margen de ±3 %</div></div>
         <div data-anim style="--i:4"><div class="l arde">42,9<i class="e"></i>%</div>
           <div class="pie">caerá en el 5 % de zonas con más riesgo. El <i>dónde</i> no cambia de escenario a escenario</div></div>
-        <div class="aviso" data-anim style="--i:5"><div class="t">Con una condición</div>
-          <div class="c" style="font-size:18px">Vale <i>si ningún municipio cambia su forma de reportar</i>.</div></div>
+        <div class="dato" data-anim style="--i:5">
+          <div class="txt">De las 112 zonas de la cabeza, <b>89</b> están ahí con probabilidad mayor a 0,9. El resto compite por la frontera.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -855,6 +791,48 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
         <div class="dato" data-anim style="--i:7"><div class="txt">Que un municipio con menos registros sea <b>más seguro</b>.</div></div>
         <div class="dato" data-anim style="--i:8"><div class="txt">Que un cruce con más choques sea <b>más peligroso</b>: falta el aforo.</div></div>
         <div class="dato" data-anim style="--i:9"><div class="txt">Cuándo un municipio cambiará su forma de capturar.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FORO ============ -->
+<section class="slide hondo" data-t="Foro de discusión" data-parte="Parte 4"
+  data-capa="total" data-marco="llena" data-velo="tinta"
+  data-notas="Aquí se deja de presentar y se abre la conversación. Las cuatro preguntas no son retóricas: ninguna se contesta con los datos que tenemos, y las cuatro dependen de a quién se le pregunte. La primera es la más incómoda: el centro concentra los choques y la periferia las víctimas, y el presupuesto es uno solo. La segunda vuelve sobre lo del reporte, pero como pregunta política y no técnica. La tercera es sobre quién decide: el modelo ordena una lista, no la firma. La cuarta abre el siguiente paso del proyecto, que son los kilómetros de vialidad por zona.">
+  <div class="ceja" data-anim style="--i:0">Foro</div>
+  <h2 data-anim style="--i:1" style="max-width:24ch">Cuatro preguntas que los datos no contestan</h2>
+  <div class="marco" style="align-items:center">
+    <div class="col" style="flex:0 0 700px">
+      <div class="foro">
+        <div class="pregunta" data-anim style="--i:2">
+          <span class="np">01</span>
+          <div>
+            <div class="q">¿Se interviene donde más se choca o donde más se pierde?</div>
+            <div class="ctx">En el centro hay 498 accidentes por zona y 4,7 % con víctimas. En el tercer anillo, 39 por zona y 10,3 %. El presupuesto es uno solo.</div>
+          </div>
+        </div>
+        <div class="pregunta" data-anim style="--i:3">
+          <span class="np">02</span>
+          <div>
+            <div class="q">Si el dato es el reporte, ¿qué estamos celebrando cuando un municipio «baja»?</div>
+            <div class="ctx">Guadalupe cayó a un tercio en dos años. Nadie sabe cuánto de eso es la calle y cuánto la oficina.</div>
+          </div>
+        </div>
+        <div class="pregunta" data-anim style="--i:4">
+          <span class="np">03</span>
+          <div>
+            <div class="q">¿Quién elige los cincuenta cruces?</div>
+            <div class="ctx">El modelo ordena una lista. No la firma, no la financia y no vive en esas colonias.</div>
+          </div>
+        </div>
+        <div class="pregunta" data-anim style="--i:5">
+          <span class="np">04</span>
+          <div>
+            <div class="q">¿Qué nos falta medir?</div>
+            <div class="ctx">Sin saber cuántos autos pasan, no podemos distinguir un cruce peligroso de uno por el que pasa muchísima gente.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1351,7 +1329,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 
   function rasgos(caja){
     var cont = el("div");
-    cont.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:9px 22px";
+    cont.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:7px 22px";
     D.agrupamiento.rasgos.forEach(function(r){
       var f = el("div");
       f.setAttribute("data-anim", "");
@@ -1366,7 +1344,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   }
 
   function silueta(caja){
-    var S = D.agrupamiento.silueta, W = 430, H = 132, m = {t: 22, r: 14, b: 28, l: 40};
+    var S = D.agrupamiento.silueta, W = 430, H = 118, m = {t: 20, r: 14, b: 26, l: 40};
     var s = svgEl("svg", {viewBox: "0 0 " + W + " " + H, style: "width:100%;height:auto"});
     var px = function(k){ return m.l + (k - 2) / 6 * (W - m.l - m.r); };
     var py = function(v){ return H - m.b - (v / 0.32) * (H - m.t - m.b); };
