@@ -786,10 +786,29 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
         <div class="dato frio" data-anim style="--i:2"><div class="rotulo">Hasta la esquina</div><div class="txt">Las 2 241 zonas y los cruces que las componen.</div></div>
         <div class="dato frio" data-anim style="--i:3"><div class="rotulo">Filtra lo que importa</div><div class="txt">Año, tipo de usuario, gravedad.</div></div>
         <div class="dato" data-anim style="--i:4"><div class="rotulo">Y el pronóstico</div><div class="txt">Con qué certeza, zona por zona.</div></div>
-        <div data-anim style="--i:5"><div class="pie" style="font-family:var(--cifra);font-size:14px;color:var(--prusia)">[liga de Vercel]</div></div>
+        <div data-anim style="--i:5;display:flex;align-items:center;gap:18px;margin-top:6px">
+          <svg class="qr" style="padding:12px;flex:none" viewBox="0 0 {{QR_LADO:https://app-geo-eosin.vercel.app}} {{QR_LADO:https://app-geo-eosin.vercel.app}}" width="128" height="128" role="img" aria-label="Código QR al visor interactivo">
+            <path d="{{QR_TRAZO:https://app-geo-eosin.vercel.app}}"/>
+          </svg>
+          <div class="pie" style="font-family:var(--cifra);font-size:13px;color:var(--prusia);max-width:none;line-height:1.5">app-geo-eosin<br>.vercel.app</div>
+        </div>
       </div>
     </div>
   </div>
+</section>
+
+<!-- ============ 24b · EL VISOR, EMBEBIDO ============ -->
+<section class="slide" data-t="El visor, en vivo" data-parte="Parte 4"
+  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
+  data-notas="El visor corre aquí mismo, dentro de la presentación; necesita conexión. Mientras el cursor esté sobre el mapa las teclas van al visor, no a la presentación: para avanzar hay que hacer clic fuera del marco o usar la cadena de abajo. Si la red falla, el QR de la lámina anterior lleva a la misma app.">
+  <div class="ceja" data-anim style="--i:0">El visor interactivo</div>
+  <div class="marco" style="margin-top:14px;align-items:stretch">
+    <div data-anim style="--i:1;flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--linea);background:#fff">
+      <iframe data-src="https://app-geo-eosin.vercel.app" title="Visor interactivo GeoStats" loading="lazy" referrerpolicy="no-referrer"
+              style="flex:1;width:100%;border:0;display:block"></iframe>
+    </div>
+  </div>
+  <div class="pie" data-anim style="--i:2;font-family:var(--cifra);font-size:11px;margin-top:8px;max-width:none">app-geo-eosin.vercel.app · para avanzar la presentación, clic fuera del mapa o en la cadena de abajo</div>
 </section>
 
 <!-- ============ 25 · SABEMOS / NO SABEMOS ============ -->
@@ -1739,6 +1758,9 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   function pintar(){
     var s = laminas[i];
     laminas.forEach(function(x, k){ x.classList.toggle("viva", k === i); });
+    // Lo embebido se carga hasta que se llega a su lámina: el resto del deck
+    // no depende de la red y no tiene por qué esperarla.
+    s.querySelectorAll("iframe[data-src]").forEach(function(f){ f.src = f.dataset.src; f.removeAttribute("data-src"); });
     nodos.forEach(function(n, k){
       n.classList.toggle("hecho", k < i); n.classList.toggle("aqui", k === i);
     });
