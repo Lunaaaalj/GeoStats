@@ -38,7 +38,7 @@ def main() -> None:
     # arrastrar los atributos del accidente al agregado por celda.
     union = gpd.sjoin(
         g[["geometry", "ANIO", "TIPACCID", "MOTOCICLET", "BICICLETA",
-           "hay_victimas", "NOM_MUN", "hora", "dia_semana"]],
+           "hay_victimas", "TOTHERIDOS", "TOTMUERTOS", "NOM_MUN", "hora", "dia_semana"]],
         rejilla[["hex", "geometry"]],
         predicate="within", how="inner",
     )
@@ -56,6 +56,10 @@ def main() -> None:
     capas["ciclista"] = por_celda(union, union.TIPACCID == 11, orden)
     capas["peaton"] = por_celda(union, union.TIPACCID == 2, orden)
     capas["victimas"] = por_celda(union, union.hay_victimas.fillna(False), orden)
+    # Personas, no accidentes: heridos y muertos sumados por celda.
+    for capa, col in (("heridos", "TOTHERIDOS"), ("muertos", "TOTMUERTOS")):
+        capas[capa] = (union.groupby("hex")[col].sum()
+                       .reindex(orden, fill_value=0).astype(int).tolist())
 
     # --- municipio dominante de cada celda -----------------------------------
     dominante = union.groupby("hex").NOM_MUN.agg(

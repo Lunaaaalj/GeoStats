@@ -743,6 +743,29 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   </div>
 </section>
 
+<!-- ============ 22c · HERIDOS Y MUERTOS ============ -->
+<section class="slide" data-t="Heridos y muertos" data-parte="Parte 3"
+  data-capa="heridos" data-marco="derecha" data-velo="claro"
+  data-notas="Aquí el mapa cambia de unidad: ya no cuenta accidentes sino personas. Los heridos siguen casi el mismo dibujo que los choques: donde más se choca, más gente sale lastimada. Los muertos no: el 5 % de zonas con más accidentes concentra el 43 % de los choques y solo el 25 % de los muertos. Las muertes están en las vías rápidas y en la periferia. Santiago tiene 18 muertos por cada mil accidentes, Monterrey 2, San Pedro menos de 1. Son 1 162 muertos en seis años, uno cada dos días. A esa escala el mapa se lee por corredor y por municipio, no por zona: con un muerto cada dos celdas en seis años, una celda sola no dice nada.">
+  <div class="ceja" data-anim style="--i:0">Víctimas</div>
+  <h2 data-anim style="--i:1">Donde se choca feo</h2>
+  <div class="marco">
+    <div class="col media">
+      <div class="fichas" data-anim style="--i:2">
+        <button class="ficha puesta" data-capa="heridos">Heridos</button>
+        <button class="ficha" data-capa="muertos">Muertos</button>
+      </div>
+      <div class="pila" style="margin-top:14px">
+        <div data-anim style="--i:3">
+          <div class="l"><span data-cifra-capa="suma">25<i class="e"></i>616</span></div>
+          <div class="pie" data-cifra-capa="pie">heridos en seis años</div>
+        </div>
+        <div class="dato" data-anim style="--i:4"><div class="txt" data-cifra-capa="txt">Casi el mismo mapa que los choques: donde más se choca, más gente sale lastimada. Pero no la misma proporción: 6 heridos por cada cien accidentes en Monterrey, 23 en Juárez.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ 23 · CORTE IV ============ -->
 <section class="slide hondo corte" data-t="Parte 4 · El visor" data-parte="Parte 4"
   data-capa="ptop5" data-rampa="calida" data-marco="llena" data-velo="tinta">
@@ -1100,6 +1123,8 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     peaton:   ["Atropellamientos por zona · 2019–2024", "atropellamientos"],
     ciclista: ["Colisiones con ciclista por zona · 2019–2024", "colisiones"],
     victimas: ["Accidentes con víctimas por zona · 2019–2024", "accidentes"],
+    heridos:  ["Heridos por zona · 2019–2024", "heridos"],
+    muertos:  ["Muertos por zona · 2019–2024", "muertos"],
     p2027:    ["Accidentes esperados por zona · 2027", "esperados"],
     ptop5:    ["Probabilidad de estar en el 5 % de mayor riesgo · 2027", "%"]
   };
@@ -1110,6 +1135,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   var ETIQUETAS = {
     total: "accidentes 2019–2024", moto: "con motocicleta", peaton: "atropellamientos",
     ciclista: "con ciclista", victimas: "accidentes con víctimas",
+    heridos: "heridos 2019–2024", muertos: "muertos 2019–2024",
     p2027: "esperados en 2027", ptop5: "% de probabilidad de estar en el 5 % peor"
   };
   svg.addEventListener("mousemove", function(ev){
@@ -1615,7 +1641,11 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     peaton: ["atropellamientos en seis años",
              "Se concentra en el primer cuadro y en las avenidas que cruzan colonias densas, no en las vías rápidas."],
     ciclista: ["colisiones con ciclista en seis años",
-               "El patrón más disperso y el de menor volumen: un problema que la base apenas alcanza a ver."]
+               "El patrón más disperso y el de menor volumen: un problema que la base apenas alcanza a ver."],
+    heridos: ["heridos en seis años",
+              "Casi el mismo mapa que los choques: donde más se choca, más gente sale lastimada. Pero no la misma proporción: 6 heridos por cada cien accidentes en Monterrey, 23 en Juárez."],
+    muertos: ["muertos en seis años: uno cada dos días",
+              "Otro mapa. El 5 % de zonas con más choques tiene el 43 % de los accidentes y solo el 25 % de los muertos. Santiago: 18 muertos por cada mil accidentes; Monterrey, 2."]
   };
   function actualizarFichas(slide, capa){
     slide.querySelectorAll(".ficha").forEach(function(f){
