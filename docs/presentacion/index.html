@@ -1555,66 +1555,101 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   }
 
   function arbol(caja){
-    // Árbol de probabilidades del costo humano: cuatro columnas, de izquierda a
-    // derecha. La rama que termina en las intersecciones de cuatro municipios
-    // va en cálido; todo lo demás en frío.
-    var A = D.arbol, W = 1140, H = 405;
+    // Árbol de proporciones del costo humano, como un flujo: cada caja lleva la
+    // rebanada de sus hijos a escala, y el flujo se abre desde esa rebanada hasta
+    // la caja siguiente, que se dibuja a tamaño legible. La rama que termina en
+    // las intersecciones de cuatro municipios va en cálido.
+    var A = D.arbol, W = 1140, H = 420;
     var pct = function(n, d){ var q = n / d * 100; return q.toFixed(q < 1 ? 2 : 1).replace(".", ",") + " %"; };
-    var col = [0, 300, 600, 900], anchoN = 240;
-    var nodos = {
-      total:  {c: 0, y: 200, t: "Todos los accidentes", v: milesTexto(A.total), sub: "2019–2024"},
-      danos:  {c: 1, y: 62,  t: "Solo daños materiales", v: pct(A.danos, A.total), sub: milesTexto(A.danos) + " accidentes"},
-      costo:  {c: 1, y: 278, t: "Con costo humano", v: pct(A.costo, A.total), sub: milesTexto(A.costo) + " accidentes", calido: true},
-      her:    {c: 2, y: 178, t: "Solo heridos", v: pct(A.solo_heridos, A.total), sub: milesTexto(A.heridos) + " personas heridas"},
-      def:    {c: 2, y: 330, t: "Con defunciones", v: pct(A.con_defunciones, A.total), sub: milesTexto(A.defunciones) + " defunciones", calido: true},
-      top4:   {c: 3, y: 262, t: "Intersecciones de " + A.top4_municipios.join(", "), v: pct(A.top4, A.defunciones), sub: milesTexto(A.top4) + " de las " + milesTexto(A.defunciones) + " defunciones", calido: true, fuerte: true},
-      resto:  {c: 3, y: 362, t: "Demás municipios e intersecciones", v: pct(A.defunciones - A.top4, A.defunciones), sub: milesTexto(A.defunciones - A.top4) + " de las " + milesTexto(A.defunciones) + " defunciones"}
-    };
-    var ramas = [["total", "danos"], ["total", "costo"], ["costo", "her"], ["costo", "def"], ["def", "top4"], ["def", "resto"]];
+    var FRIO = "#005991", CALIDO = "#B15E2E", LADRILLO = "#8B2C1A";
     var s = svgEl("svg", {viewBox: "0 0 " + W + " " + H, style: "width:100%;height:100%"});
-    var alto = 78;
-    function centro(n){ return {x: col[n.c] + anchoN, y: n.y}; }
-    var trazos = [];
-    ramas.forEach(function(r){
-      var a = nodos[r[0]], b = nodos[r[1]];
-      var x1 = col[a.c] + anchoN, y1 = a.y, x2 = col[b.c], y2 = b.y, xm = (x1 + x2) / 2;
-      var calido = a.calido && b.calido;
-      var l = svgEl("path", {d: "M" + x1 + " " + y1 + "C" + xm + " " + y1 + " " + xm + " " + y2 + " " + x2 + " " + y2,
-        fill: "none", stroke: calido ? "#B15E2E" : "#003153", "stroke-opacity": calido ? .9 : .28,
-        "stroke-width": calido ? 3 : 1.6});
-      s.appendChild(l); trazos.push(l);
-    });
-    Object.keys(nodos).forEach(function(k, idx){
-      var n = nodos[k], x = col[n.c], y = n.y - alto / 2;
+    var animados = [];
+
+    function flujo(x1, a1, b1, x2, a2, b2, color, op){
+      var xm = (x1 + x2) / 2;
+      var f = svgEl("path", {d: "M" + x1 + " " + a1 + "C" + xm + " " + a1 + " " + xm + " " + a2 + " " + x2 + " " + a2 +
+        "L" + x2 + " " + b2 + "C" + xm + " " + b2 + " " + xm + " " + b1 + " " + x1 + " " + b1 + "Z",
+        fill: color, "fill-opacity": op});
+      s.appendChild(f); animados.push(f); return f;
+    }
+    function rebanada(x, y, w, h, color, op){
+      s.appendChild(svgEl("rect", {x: x, y: y, width: w, height: h, fill: color, "fill-opacity": op}));
+    }
+    function cajaTexto(x, y, w, h, n, columna){
       var g = svgEl("g", {});
-      g.appendChild(svgEl("rect", {x: x, y: y, width: anchoN, height: alto, rx: 3,
-        fill: n.fuerte ? "#8B2C1A" : n.calido ? "#FBF1EA" : "#fff",
-        stroke: n.calido ? "#B15E2E" : "#003153", "stroke-opacity": n.calido ? 1 : .35, "stroke-width": n.fuerte ? 0 : 1.2}));
-      var inkT = n.fuerte ? "#fff" : n.calido ? "#8B2C1A" : "#2C2C2C";
-      var inkV = n.fuerte ? "#fff" : n.calido ? "#B15E2E" : "#005991";
-      var tt = svgEl("text", {x: x + 14, y: y + 22, "font-family": "Montserrat, sans-serif", "font-size": 13.5, "font-weight": 700, fill: inkT});
-      // Título largo: partirlo en dos líneas.
-      var palabras = n.t.split(" "), lineas = [""], L = 0;
-      palabras.forEach(function(w){ if ((lineas[L] + " " + w).length > 30){ lineas.push(w); L++; } else lineas[L] = (lineas[L] + " " + w).trim(); });
-      lineas.forEach(function(ln, i){ var ts = svgEl("tspan", {x: x + 14, dy: i ? 14 : 0}); ts.textContent = ln; tt.appendChild(ts); });
+      g.appendChild(svgEl("rect", {x: x, y: y, width: w, height: h, rx: 3,
+        fill: n.fuerte ? LADRILLO : n.calido ? "#FBF1EA" : "#fff",
+        stroke: n.calido ? CALIDO : FRIO, "stroke-opacity": n.calido ? 1 : .4, "stroke-width": n.fuerte ? 0 : 1.2}));
+      var inkT = n.fuerte ? "#fff" : n.calido ? LADRILLO : "#2C2C2C";
+      var inkV = n.fuerte ? "#fff" : n.calido ? CALIDO : FRIO;
+      var palabras = n.t.split(" "), lineas = [""], L = 0, MAX = Math.floor(w / 8.4);
+      palabras.forEach(function(p){ if ((lineas[L] + " " + p).trim().length > MAX){ lineas.push(p); L++; } else lineas[L] = (lineas[L] + " " + p).trim(); });
+      var alto = 14 * lineas.length + 22 + 17, y0 = y + (h - alto) / 2 + 12;
+      var tt = svgEl("text", {x: x + 12, y: y0, "font-family": "Montserrat, sans-serif", "font-size": 13, "font-weight": 700, fill: inkT});
+      lineas.forEach(function(ln, i){ var ts = svgEl("tspan", {x: x + 12, dy: i ? 14 : 0}); ts.textContent = ln; tt.appendChild(ts); });
       g.appendChild(tt);
-      var vy = y + 22 + (lineas.length - 1) * 14 + 22;
-      var tv = svgEl("text", {x: x + 14, y: vy, "font-family": "Roboto Mono, monospace", "font-size": 17, "font-weight": 700, fill: inkV});
+      var vy = y0 + 14 * (lineas.length - 1) + 21;
+      var tv = svgEl("text", {x: x + 12, y: vy, "font-family": "Roboto Mono, monospace", "font-size": 16, "font-weight": 700, fill: inkV});
       tv.textContent = n.v; g.appendChild(tv);
-      var tsb = svgEl("text", {x: x + 14, y: vy + 17, "font-family": "Cormorant Garamond, Georgia, serif", "font-size": 14.5, fill: inkT, "fill-opacity": n.fuerte ? .9 : .7});
+      var tsb = svgEl("text", {x: x + 12, y: vy + 16, "font-family": "Cormorant Garamond, Georgia, serif", "font-size": 14, fill: inkT, "fill-opacity": n.fuerte ? .9 : .72});
       tsb.textContent = n.sub; g.appendChild(tsb);
       if (!quieto){
-        g.style.opacity = 0; g.style.transition = "opacity .5s ease " + (0.25 + n.c * 0.45) + "s";
+        g.style.opacity = 0; g.style.transition = "opacity .5s ease " + (0.2 + columna * 0.5) + "s";
         requestAnimationFrame(function(){ g.style.opacity = 1; });
       }
       s.appendChild(g);
-    });
+    }
+
+    // --- columna 0: el total, con la rebanada de costo humano abajo -----------
+    var x0 = 0, w0 = 96, yT = 16, hT = H - 32;
+    var hCosto0 = hT * A.costo / A.total;
+    s.appendChild(svgEl("rect", {x: x0, y: yT, width: w0, height: hT, fill: FRIO, "fill-opacity": .16}));
+    rebanada(x0, yT + hT - hCosto0, w0, hCosto0, CALIDO, .9);
+    var tT = svgEl("text", {x: x0 + w0 / 2, y: yT + hT / 2 - 10, "text-anchor": "middle",
+      "font-family": "Montserrat, sans-serif", "font-size": 12, "font-weight": 700, fill: "#2C2C2C"});
+    tT.textContent = "TODOS"; s.appendChild(tT);
+    var tT2 = svgEl("text", {x: x0 + w0 / 2, y: yT + hT / 2 + 10, "text-anchor": "middle",
+      "font-family": "Roboto Mono, monospace", "font-size": 13, "font-weight": 700, fill: FRIO});
+    tT2.textContent = milesTexto(A.total); s.appendChild(tT2);
+
+    // --- columna 1: solo daños (arriba) y costo humano (abajo) ----------------
+    var x1 = 250, w1 = 230;
+    var c1 = {danos: [16, 120], costo: [236, 168]};       // [y, alto]
+    flujo(x0 + w0, yT, yT + hT - hCosto0, x1, c1.danos[0], c1.danos[0] + c1.danos[1], FRIO, .10);
+    flujo(x0 + w0, yT + hT - hCosto0, yT + hT, x1, c1.costo[0], c1.costo[0] + c1.costo[1], CALIDO, .28);
+    cajaTexto(x1, c1.danos[0], w1, c1.danos[1], {t: "Solo daños materiales", v: pct(A.danos, A.total), sub: milesTexto(A.danos) + " accidentes"}, 1);
+    cajaTexto(x1, c1.costo[0], w1, c1.costo[1], {t: "Con costo humano", v: pct(A.costo, A.total) + " del total", sub: milesTexto(A.costo) + " accidentes", calido: true}, 1);
+    // dentro de "costo humano": la rebanada de los que tuvieron defunciones
+    var hDef1 = c1.costo[1] * A.con_defunciones / A.costo;
+    rebanada(x1 + w1 - 14, c1.costo[0] + c1.costo[1] - hDef1, 14, hDef1, LADRILLO, .95);
+    rebanada(x1 + w1 - 14, c1.costo[0], 14, c1.costo[1] - hDef1, CALIDO, .35);
+
+    // --- columna 2: solo heridos (arriba) y con defunciones (abajo) -----------
+    var x2 = 560, w2 = 230;
+    var c2 = {her: [150, 112], def: [296, 108]};
+    flujo(x1 + w1, c1.costo[0], c1.costo[0] + c1.costo[1] - hDef1, x2, c2.her[0], c2.her[0] + c2.her[1], CALIDO, .16);
+    flujo(x1 + w1, c1.costo[0] + c1.costo[1] - hDef1, c1.costo[0] + c1.costo[1], x2, c2.def[0], c2.def[0] + c2.def[1], LADRILLO, .38);
+    cajaTexto(x2, c2.her[0], w2, c2.her[1], {t: "Solo heridos", v: pct(A.solo_heridos, A.total) + " del total", sub: milesTexto(A.heridos) + " personas heridas", calido: true}, 2);
+    cajaTexto(x2, c2.def[0], w2, c2.def[1], {t: "Con defunciones", v: pct(A.con_defunciones, A.total) + " del total", sub: milesTexto(A.defunciones) + " defunciones", calido: true}, 2);
+    // dentro de "con defunciones": la rebanada de los cuatro municipios
+    var hTop = c2.def[1] * A.top4 / A.defunciones;
+    rebanada(x2 + w2 - 14, c2.def[0], 14, hTop, LADRILLO, .95);
+    rebanada(x2 + w2 - 14, c2.def[0] + hTop, 14, c2.def[1] - hTop, LADRILLO, .35);
+
+    // --- columna 3: dónde están las defunciones ---------------------------------
+    var x3 = 870, w3 = 270;
+    var c3 = {top4: [222, 108], resto: [344, 76]};
+    flujo(x2 + w2, c2.def[0], c2.def[0] + hTop, x3, c3.top4[0], c3.top4[0] + c3.top4[1], LADRILLO, .42);
+    flujo(x2 + w2, c2.def[0] + hTop, c2.def[0] + c2.def[1], x3, c3.resto[0], c3.resto[0] + c3.resto[1], LADRILLO, .16);
+    cajaTexto(x3, c3.top4[0], w3, c3.top4[1], {t: "Intersecciones de " + A.top4_municipios.join(", "), v: pct(A.top4, A.defunciones) + " de las defunciones",
+      sub: milesTexto(A.top4) + " de las " + milesTexto(A.defunciones) + " defunciones", calido: true, fuerte: true}, 3);
+    cajaTexto(x3, c3.resto[0], w3, c3.resto[1], {t: "Demás municipios e intersecciones", v: pct(A.defunciones - A.top4, A.defunciones) + " de las defunciones",
+      sub: milesTexto(A.defunciones - A.top4) + " de las " + milesTexto(A.defunciones) + " defunciones", calido: true}, 3);
+
     caja.appendChild(s);
-    if (!quieto) trazos.forEach(function(l, i){
-      var L = l.getTotalLength();
-      l.style.strokeDasharray = L; l.style.strokeDashoffset = L;
-      l.style.transition = "stroke-dashoffset .7s cubic-bezier(.22,.68,.16,1) " + (0.35 + Math.floor(i / 2) * 0.45) + "s";
-      requestAnimationFrame(function(){ l.style.strokeDashoffset = 0; });
+    if (!quieto) animados.forEach(function(f, i){
+      f.style.opacity = 0; f.style.transition = "opacity .6s ease " + (0.2 + Math.floor(i / 2) * 0.5) + "s";
+      requestAnimationFrame(function(){ f.style.opacity = 1; });
     });
   }
 
