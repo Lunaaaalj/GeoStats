@@ -5,6 +5,7 @@ Toma `plantilla.html` y sustituye cada marca por el recurso ya codificado:
     {{FUENTE:...}}     archivo .woff2 de fuentes/, en base64
     {{QR_LADO:<url>}}  módulos por lado del QR de esa liga (para el viewBox)
     {{QR_TRAZO:<url>}} el trazado SVG de ese mismo QR
+    {{IMG:<archivo>}}  un PNG de logos/, en base64 (solo los logotipos de la portada)
     {{DATOS}}          `datos.json` completo (lo genera `datos.py`)
 
 No hay ni una imagen: los mapas, la curva de concentración y el calendario se
@@ -30,6 +31,12 @@ def fuente(nombre: str) -> str:
     """Devuelve un .woff2 como data URI."""
     b64 = base64.b64encode((FUENTES / f"{nombre}.woff2").read_bytes()).decode("ascii")
     return f"data:font/woff2;base64,{b64}"
+
+
+def imagen(nombre: str) -> str:
+    """Devuelve un PNG de logos/ como data URI."""
+    b64 = base64.b64encode((AQUI / "logos" / nombre).read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{b64}"
 
 
 def qr(url: str) -> tuple[int, str]:
@@ -66,13 +73,15 @@ def resolver(marca: re.Match[str]) -> str:
         return str(qr(valor)[0])
     if tipo == "QR_TRAZO":
         return qr(valor)[1]
+    if tipo == "IMG":
+        return imagen(valor)
     raise ValueError(f"marca desconocida: {tipo}")
 
 
 def main() -> None:
     plantilla = (AQUI / "plantilla.html").read_text(encoding="utf-8")
     salida = plantilla.replace("{{DATOS}}", datos())
-    salida = re.sub(r"\{\{(FUENTE|QR_LADO|QR_TRAZO):([^}]+)\}\}", resolver, salida)
+    salida = re.sub(r"\{\{(FUENTE|QR_LADO|QR_TRAZO|IMG):([^}]+)\}\}", resolver, salida)
     destino = AQUI / "index.html"
     destino.write_text(salida, encoding="utf-8")
     print(f"{destino.name}: {len(salida) / 1e6:.2f} MB")

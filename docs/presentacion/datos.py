@@ -38,7 +38,7 @@ def main() -> None:
     # arrastrar los atributos del accidente al agregado por celda.
     union = gpd.sjoin(
         g[["geometry", "ANIO", "TIPACCID", "MOTOCICLET", "BICICLETA",
-           "hay_victimas", "NOM_MUN", "hora", "dia_semana"]],
+           "hay_victimas", "TOTHERIDOS", "TOTMUERTOS", "NOM_MUN", "hora", "dia_semana"]],
         rejilla[["hex", "geometry"]],
         predicate="within", how="inner",
     )
@@ -56,6 +56,10 @@ def main() -> None:
     capas["ciclista"] = por_celda(union, union.TIPACCID == 11, orden)
     capas["peaton"] = por_celda(union, union.TIPACCID == 2, orden)
     capas["victimas"] = por_celda(union, union.hay_victimas.fillna(False), orden)
+    # Personas, no accidentes: heridos y muertos sumados por celda.
+    for capa, col in (("heridos", "TOTHERIDOS"), ("muertos", "TOTMUERTOS")):
+        capas[capa] = (union.groupby("hex")[col].sum()
+                       .reindex(orden, fill_value=0).astype(int).tolist())
 
     # --- municipio dominante de cada celda -----------------------------------
     dominante = union.groupby("hex").NOM_MUN.agg(
@@ -65,6 +69,9 @@ def main() -> None:
 
     # --- el pronóstico 2027, tal como lo dejó el notebook --------------------
     pron = gpd.read_parquet(rutas.PRONOSTICO_2027_GEO).set_index("hex")
+    # Por municipio: el observado de 2024 y la media a posteriori de 2027 (la
+    # media de una suma es la suma de las medias; las medianas no se suman).
+    por_mun = pron.groupby("municipio")[["y_2024", "lambda_media"]].sum()
     pron = pron.reindex(orden)
     capas["p2027"] = pron["lambda_med"].fillna(0).round().astype(int).tolist()
     capas["ptop5"] = (pron["p_top5"].fillna(0) * 100).round().astype(int).tolist()
@@ -120,7 +127,7 @@ def main() -> None:
     acum_cruce = np.cumsum(conteo_cruce) / conteo_cruce.sum()
     hitos = [[k, round(float(k) / len(conteo_cruce) * 100, 2),
               round(float(acum_cruce[k - 1]) * 100, 1)]
-             for k in (50, 250, 1000, 5000)]
+             for k in (50, 250, 1000, 5000, len(conteo_cruce))]
 
     # --- vialidades: los dos campos de calle cuentan igual -------------------
     calles = pd.concat([g.calle1_norm, g.calle2_norm]).dropna()
@@ -162,14 +169,29 @@ def main() -> None:
         np.hypot(centros.x - centro[0], centros.y - centro[1]).to_numpy(),
         index=orden.to_numpy())
     grupo = pd.qcut(d_celda, 4, labels=[1, 2, 3, 4])
+    capas["anillos"] = grupo.astype(int).tolist()
     victimas_celda = pd.Series(capas["victimas"], index=orden.to_numpy())
     total_celda = pd.Series(capas["total"], index=orden.to_numpy())
     anillos = []
     for k in (1, 2, 3, 4):
         m = grupo == k
+        # [anillo, % con víctimas, accidentes por celda, radio exterior en km]
         anillos.append([int(k),
                         round(float(victimas_celda[m].sum() / total_celda[m].sum()) * 100, 1),
-                        int(round(total_celda[m].mean()))])
+                        int(round(total_celda[m].mean())),
+                        round(float(d_celda[m].max()) / 1000, 1)])
+
+    # --- tipos de accidente: proporción y gravedad de cada uno ---------------
+    NOMBRES_TIPO = {1: "Colisión entre vehículos", 2: "Atropellamiento", 3: "Colisión con animal",
+                    4: "Colisión con objeto fijo", 5: "Volcadura", 6: "Caída de pasajero",
+                    7: "Salida del camino", 8: "Incendio", 9: "Colisión con ferrocarril",
+                    10: "Colisión con motocicleta", 11: "Colisión con ciclista", 12: "Otro"}
+    por_tipo = (g.groupby("TIPACCID", observed=True)
+                .agg(n=("hay_victimas", "size"), vic=("hay_victimas", "mean"))
+                .sort_values("n", ascending=False))
+    tipos_accidente = [[NOMBRES_TIPO.get(int(t), str(t)), int(r.n),
+                        round(float(r.n) / len(g) * 100, 1), round(float(r.vic) * 100, 1)]
+                       for t, r in por_tipo.iterrows()]
 
     # --- el país entero, en celdas de 0,1° -----------------------------------
     # No es un mapa de México con sus fronteras: es dónde están los accidentes
@@ -185,16 +207,54 @@ def main() -> None:
     foco = [float(np.floor((zmm.geometry.x.mean() + 118) / PASO)),
             float(np.floor((zmm.geometry.y.mean() - 14) / PASO))]
 
+    # El contorno del país, en las mismas unidades de la retícula (celdas de
+    # 0,1°, centradas en el índice). Viene simplificado de Natural Earth y
+    # está en el repo para que esto no dependa de la red.
+    contorno_ll = json.load(open(AQUI / "mexico_contorno.json", encoding="utf-8"))["anillos"]
+    contorno = [[[round((lon + 118) / PASO - 0.5, 2), round((lat - 14) / PASO - 0.5, 2)]
+                 for lon, lat in anillo] for anillo in contorno_ll]
+
+    # --- vialidades principales, como guía de la forma de la ciudad ----------
+    # OSM (motorway, trunk, primary), simplificadas y guardadas en el repo; se
+    # pasan a las mismas unidades de la rejilla que los cruces.
+    vias_ll = json.load(open(AQUI / "vialidades_zmm.json", encoding="utf-8"))["vias"]
+    vias = []
+    for clase, coords in vias_ll:
+        puntos = gpd.GeoSeries.from_xy([c[0] for c in coords], [c[1] for c in coords], crs=4326).to_crs(espacial.UTM_ZMM)
+        vias.append([clase, [[round((px_ - xmin) / LADO, 2), round((py_ - ymin) / LADO, 2)]
+                             for px_, py_ in zip(puntos.x, puntos.y)]])
+
+    # --- el árbol de costo humano -------------------------------------------
+    con_h = g.TOTHERIDOS > 0
+    con_m = g.TOTMUERTOS > 0
+    TOP4 = ["Monterrey", "Apodaca", "Guadalupe", "García"]
+    en_top4 = con_m & (g.en_interseccion == True) & g.NOM_MUN.isin(TOP4)
+    arbol = {
+        "total": int(len(g)),
+        "danos": int((~con_h & ~con_m).sum()),
+        "costo": int((con_h | con_m).sum()),
+        "solo_heridos": int((con_h & ~con_m).sum()),
+        "heridos": int(g.TOTHERIDOS.sum()),
+        "con_defunciones": int(con_m.sum()),
+        "defunciones": int(g.TOTMUERTOS.sum()),
+        "top4": int(g.loc[en_top4, "TOTMUERTOS"].sum()),
+        "top4_municipios": TOP4,
+    }
+
     datos = {
         "rejilla": {"i": i.tolist(), "j": j.tolist()},
         "nacional": {"paso": PASO,
                      "i": cuenta.i.tolist(), "j": cuenta.j.tolist(),
-                     "n": cuenta.n.tolist(), "foco": foco},
+                     "n": cuenta.n.tolist(), "foco": foco, "contorno": contorno},
+        "arbol": arbol,
+        "vias": vias,
         "capas": capas,
         "municipios": {
             "nombres": nombres,
             "porCelda": [indice_mun[m] for m in dominante],
             "serie": {m: serie.loc[m].astype(int).tolist() for m in serie.index},
+            "p2027": {m: [int(r.y_2024), int(round(r.lambda_media))]
+                      for m, r in por_mun.sort_values("y_2024", ascending=False).iterrows()},
         },
         "horaDia": {"dias": [str(d)[:3] for d in dias], "tabla": hora_dia},
         "lorenz": lorenz,
@@ -204,6 +264,7 @@ def main() -> None:
         "vialidades": vialidades,
         "corredores": corredores,
         "anillos": anillos,
+        "tiposAccidente": tipos_accidente,
         # Perfiles de cruce: salen del k-medias de `patrones_espaciales.qmd`.
         # Se copian porque reproducir el agrupamiento aquí costaría minutos y
         # el resultado es estable (99,8 % de los cruces conserva su tipo).
@@ -217,8 +278,8 @@ def main() -> None:
                 ["moto", "Con motocicleta", "colisión con moto"],
                 ["vulnerable", "Con peatón o ciclista", "atropellamiento o ciclista"],
                 ["objetoFijo", "Contra objeto fijo", "poste, muro, árbol, auto estacionado"],
-                ["victimas", "Con víctimas", "alguien lesionado o muerto"],
-                ["vehiculos", "Vehículos por choque", "promedio de vehículos involucrados"],
+                ["victimas", "Con afectados", "algún herido o defunción"],
+                ["vehiculos", "Vehículos por hecho", "promedio de vehículos involucrados"],
             ],
             "silueta": [[2, 0.284], [3, 0.280], [4, 0.206], [5, 0.216],
                         [6, 0.184], [7, 0.181], [8, 0.187]],
