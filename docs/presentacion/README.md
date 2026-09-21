@@ -4,7 +4,7 @@
 tiene ni una imagen. Los mapas, la curva de concentración, el calendario, la
 matriz de perfiles y las series se dibujan en el navegador desde `datos.json`, y
 las tipografías van embebidas, así que se abre con doble clic y se ve igual sin
-conexión. **25 láminas** en cuatro partes.
+conexión. **26 láminas** en cuatro partes.
 
 ## Presentar
 
@@ -27,7 +27,7 @@ haciendo clic.
 
 ## Cómo está armado
 
-El mapa hexagonal **no pertenece a ninguna lámina**: vive por encima de todas y
+Debajo de las celdas van, como guía de la forma de la ciudad, las vialidades principales de OSM (`vialidades_zmm.json`, simplificadas y guardadas en el repo) y, en el mapa del país, el contorno de México (`mexico_contorno.json`, Natural Earth). El mapa hexagonal **no pertenece a ninguna lámina**: vive por encima de todas y
 va cambiando de capa, de paleta y de encuadre conforme avanza la narración. Es
 el hilo que une las cuatro partes. Cada lámina lo configura con atributos:
 

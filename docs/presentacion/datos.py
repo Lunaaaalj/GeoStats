@@ -214,6 +214,16 @@ def main() -> None:
     contorno = [[[round((lon + 118) / PASO - 0.5, 2), round((lat - 14) / PASO - 0.5, 2)]
                  for lon, lat in anillo] for anillo in contorno_ll]
 
+    # --- vialidades principales, como guía de la forma de la ciudad ----------
+    # OSM (motorway, trunk, primary), simplificadas y guardadas en el repo; se
+    # pasan a las mismas unidades de la rejilla que los cruces.
+    vias_ll = json.load(open(AQUI / "vialidades_zmm.json", encoding="utf-8"))["vias"]
+    vias = []
+    for clase, coords in vias_ll:
+        puntos = gpd.GeoSeries.from_xy([c[0] for c in coords], [c[1] for c in coords], crs=4326).to_crs(espacial.UTM_ZMM)
+        vias.append([clase, [[round((px_ - xmin) / LADO, 2), round((py_ - ymin) / LADO, 2)]
+                             for px_, py_ in zip(puntos.x, puntos.y)]])
+
     # --- el árbol de costo humano -------------------------------------------
     con_h = g.TOTHERIDOS > 0
     con_m = g.TOTMUERTOS > 0
@@ -237,6 +247,7 @@ def main() -> None:
                      "i": cuenta.i.tolist(), "j": cuenta.j.tolist(),
                      "n": cuenta.n.tolist(), "foco": foco, "contorno": contorno},
         "arbol": arbol,
+        "vias": vias,
         "capas": capas,
         "municipios": {
             "nombres": nombres,
@@ -267,7 +278,7 @@ def main() -> None:
                 ["moto", "Con motocicleta", "colisión con moto"],
                 ["vulnerable", "Con peatón o ciclista", "atropellamiento o ciclista"],
                 ["objetoFijo", "Contra objeto fijo", "poste, muro, árbol, auto estacionado"],
-                ["victimas", "Con víctimas", "alguien lesionado o muerto"],
+                ["victimas", "Con víctimas", "alguien lesionado o fallecido"],
                 ["vehiculos", "Vehículos por choque", "promedio de vehículos involucrados"],
             ],
             "silueta": [[2, 0.284], [3, 0.280], [4, 0.206], [5, 0.216],

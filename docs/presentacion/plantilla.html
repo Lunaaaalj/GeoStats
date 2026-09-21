@@ -69,6 +69,11 @@ body{margin:0; background:#071722; color:var(--grafito); font-family:var(--displ
 #corredores path{transition:stroke-dashoffset 1.6s var(--lento) .25s}
 #corredores circle{transition:opacity .6s var(--curva)}
 #corredores.apagado circle{opacity:0}
+#vias path{fill:none; stroke:#2C2C2C; stroke-opacity:.3; stroke-linecap:round; stroke-linejoin:round;
+  stroke-width:.9px; vector-effect:non-scaling-stroke}
+#vias path.mayor{stroke-width:1.5px; stroke-opacity:.4}
+#lienzo.noche #vias path{stroke:#fff; stroke-opacity:.22}
+#lienzo.noche #vias path.mayor{stroke-opacity:.34}
 #celdas{transition:opacity .7s var(--curva)}
 #celdas.tenue{opacity:0}
 
@@ -959,6 +964,15 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     celdas[k] = u;
   }
   svg.appendChild(gHex);
+
+  // las vialidades principales, encima de las celdas: una guía tenue de la
+  // forma de la ciudad, no una capa de datos
+  var gVias = svgEl("g", {id: "vias"});
+  (D.vias || []).forEach(function(v){
+    var d = v[1].map(function(q, k){ return (k ? "L" : "M") + q[0] + " " + ((maxY - q[1]) - minY).toFixed(2); }).join("");
+    gVias.appendChild(svgEl("path", {d: d, "class": v[0] === "m" ? "mayor" : "primaria"}));
+  });
+  svg.appendChild(gVias);
 
   // los cruces, encima de la rejilla
   var gCruces = svgEl("g", {id: "cruces"});
