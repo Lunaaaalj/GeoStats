@@ -268,9 +268,13 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 .leyenda .rampa{width:132px; height:8px}
 
 /* ------------------------------------------------------------- portada --- */
-.portada{justify-content:flex-end}
-.portada h1{font-size:92px; margin:0; color:#fff}
-.portada .autores{display:flex; flex-wrap:wrap; gap:10px 0; margin-top:26px; padding-top:18px;
+.portada{justify-content:center; padding-top:48px; padding-bottom:48px}
+.portada .logos{display:flex; align-items:center; gap:34px; margin-bottom:auto}
+.portada .logos img{filter:invert(1); opacity:.92; display:block}
+.portada .ceja{margin-top:40px}
+.portada h1{font-size:92px; margin:14px 0 0; color:#fff}
+.portada .marca{margin-top:28px}
+.portada .autores{display:flex; flex-wrap:wrap; gap:10px 0; margin-top:auto; padding-top:18px;
   border-top:1px solid rgba(255,255,255,.26); font-family:var(--display); font-weight:500; font-size:15px; color:#B2CDE0}
 .portada .autores span{padding-right:22px; margin-right:22px; border-right:1px solid rgba(255,255,255,.22); line-height:1}
 .portada .autores span:last-child{padding-right:0; margin-right:0; border-right:0}
@@ -369,10 +373,14 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
 
 <!-- ============ 1 · PORTADA ============ -->
 <section class="slide hondo portada" data-t="Portada" data-capa="total" data-marco="llena" data-velo="tinta">
-  <div class="ceja" data-anim style="--i:0">GeoStats · Zona Metropolitana de Monterrey</div>
-  <h1 data-anim style="--i:1;font-size:76px">¿Dónde es peligroso<br>moverse en Monterrey?</h1>
-  <div class="marca" data-anim style="--i:2">Semana de la Movilidad · ATUS 2019–2024</div>
-  <div class="autores" data-anim style="--i:3">
+  <div class="logos" data-anim style="--i:0">
+    <img src="{{IMG:geostats.png}}" alt="GeoStats" style="height:74px">
+    <img src="{{IMG:sdlm.png}}" alt="SDLM" style="height:46px">
+  </div>
+  <div class="ceja" data-anim style="--i:1">Zona Metropolitana de Monterrey</div>
+  <h1 data-anim style="--i:2;font-size:76px">¿Dónde es peligroso<br>moverse en Monterrey?</h1>
+  <div class="marca" data-anim style="--i:3">Semana de la Movilidad · ATUS 2019–2024</div>
+  <div class="autores" data-anim style="--i:4">
     <span>Angel Eduardo Luna</span><span>Jenaro Alcaraz</span><span>Roberto Pérez</span><span>Damián Yul Reynosa</span><span>Mateo Rodolfo Flores</span>
   </div>
 </section>
@@ -579,12 +587,6 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
       <div class="barras tipos" data-barras="tipos" style="--et:214px"></div>
       <p class="pie" data-anim style="--i:9;margin-top:14px;max-width:46ch">Porcentaje de los 379 294 accidentes de la Zona Metropolitana, 2019–2024, por tipo. A la derecha de cada barra, qué porcentaje de ese tipo deja víctimas.</p>
     </div>
-    <div class="col">
-      <div class="aviso" data-anim style="--i:4">
-        <div class="t">El más común es el menos grave</div>
-        <div class="c">De los choques entre vehículos, el <b>1,3 %</b> deja víctimas. De las volcaduras, el <b>24 %</b>; de las colisiones con motocicleta, el <b>18 %</b>. Un atropellamiento, <b>siempre</b>.</div>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -604,6 +606,15 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
       <p class="entrada" data-anim style="--i:4">Al revés: el <b>91 %</b> de los cruces aporta menos de un tercio de los accidentes.</p>
     </div>
   </div>
+</section>
+
+<!-- ============ 8b · EL ÁRBOL DEL COSTO HUMANO ============ -->
+<section class="slide" data-t="El costo humano" data-parte="Parte 2"
+  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
+  data-notas="Se lee de izquierda a derecha. De los 379 294 accidentes, el 94 % fue solo daños materiales. El 5,7 % tuvo costo humano: 21 523 accidentes. De esos, la gran mayoría dejó heridos, 25 642 personas en seis años. Solo el 0,28 % de todos los accidentes, 1 075, tuvo alguna defunción; pero entre ellos suman 1 167 defunciones, que no es poco: una cada dos días. Y de esas 1 167, el 64 % ocurrió en intersecciones de cuatro municipios: Monterrey, Apodaca, Guadalupe y García. El otro 36 % se reparte entre los demás municipios y los tramos que no son intersección.">
+  <div class="ceja" data-anim style="--i:0">El costo humano</div>
+  <h2 data-anim style="--i:1;max-width:none">Dónde cuestan vidas los accidentes</h2>
+  <div class="marco" style="align-items:stretch;margin-top:10px"><div class="grafica" data-g="arbol" style="width:100%;height:100%"></div></div>
 </section>
 
 <!-- ============ 9 · LOS DIEZ PEORES ============ -->
@@ -752,7 +763,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
       </div>
     </div>
     <div class="col" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
-      <svg class="qr" data-anim style="--i:5" viewBox="0 0 {{QR_LADO:https://app-geo-eosin.vercel.app}} {{QR_LADO:https://app-geo-eosin.vercel.app}}" width="220" height="220" role="img" aria-label="Código QR al visor interactivo">
+      <svg class="qr" data-anim style="--i:5" viewBox="0 0 {{QR_LADO:https://app-geo-eosin.vercel.app}} {{QR_LADO:https://app-geo-eosin.vercel.app}}" width="320" height="320" role="img" aria-label="Código QR al visor interactivo">
         <path d="{{QR_TRAZO:https://app-geo-eosin.vercel.app}}"/>
       </svg>
       <div class="pie" data-anim style="--i:6;text-align:center;font-family:var(--cifra);font-size:13px;color:var(--prusia);margin-top:14px;max-width:none">app-geo-eosin.vercel.app</div>
@@ -1018,10 +1029,23 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     var Y = MX.j;
     var nx = Math.min.apply(null, X), xx = Math.max.apply(null, X);
     var ny = Math.min.apply(null, Y), xy = Math.max.apply(null, Y);
+    // El contorno del país puede sobresalir de las celdas con accidentes: el
+    // encuadre lo incluye.
+    (MX.contorno || []).forEach(function(an){ an.forEach(function(q){
+      nx = Math.min(nx, q[0] * kx); xx = Math.max(xx, q[0] * kx);
+      ny = Math.min(ny, q[1]); xy = Math.max(xy, q[1]);
+    }); });
     mxVB = {x: nx - 2, y: -2, w: (xx - nx) + 4, h: (xy - ny) + 4};
     mxSvg = svgEl("svg", {viewBox: mxVB.x + " " + mxVB.y + " " + mxVB.w + " " + mxVB.h,
       preserveAspectRatio: "xMidYMid meet"});
     var tope = Math.max.apply(null, MX.n);
+    if (MX.contorno){
+      var dC = MX.contorno.map(function(an){
+        return an.map(function(q, k){ return (k ? "L" : "M") + (q[0] * kx).toFixed(2) + " " + (xy - q[1]).toFixed(2); }).join("") + "Z";
+      }).join("");
+      mxSvg.appendChild(svgEl("path", {d: dC, fill: "#003153", "fill-opacity": .035,
+        stroke: "#003153", "stroke-opacity": .45, "stroke-width": .45, "stroke-linejoin": "round"}));
+    }
     var g = svgEl("g", {});
     MX.i.forEach(function(v, k){
       var t = Math.pow(MX.n[k] / tope, 0.34);
@@ -1164,7 +1188,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   /* --- encuadres --------------------------------------------------------- */
   // El mapa entra en el marco por altura, así que para llenarlo hay que
   // ampliarlo y dejar que sobresalga por arriba y por abajo.
-  var MARCOS_MX = {llena: "scale(1.16)", derecha: "translate(20%, 0) scale(1.05)"};
+  var MARCOS_MX = {llena: "translate(4%, 9%) scale(1.04)", derecha: "translate(20%, 0) scale(1.05)"};
   var MARCOS = {
     llena:   "scale(1.72)",
     derecha: "translate(27%, 0) scale(1.24)",
@@ -1530,6 +1554,70 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     }
   }
 
+  function arbol(caja){
+    // Árbol de probabilidades del costo humano: cuatro columnas, de izquierda a
+    // derecha. La rama que termina en las intersecciones de cuatro municipios
+    // va en cálido; todo lo demás en frío.
+    var A = D.arbol, W = 1140, H = 405;
+    var pct = function(n, d){ var q = n / d * 100; return q.toFixed(q < 1 ? 2 : 1).replace(".", ",") + " %"; };
+    var col = [0, 300, 600, 900], anchoN = 240;
+    var nodos = {
+      total:  {c: 0, y: 200, t: "Todos los accidentes", v: milesTexto(A.total), sub: "2019–2024"},
+      danos:  {c: 1, y: 62,  t: "Solo daños materiales", v: pct(A.danos, A.total), sub: milesTexto(A.danos) + " accidentes"},
+      costo:  {c: 1, y: 278, t: "Con costo humano", v: pct(A.costo, A.total), sub: milesTexto(A.costo) + " accidentes", calido: true},
+      her:    {c: 2, y: 178, t: "Solo heridos", v: pct(A.solo_heridos, A.total), sub: milesTexto(A.heridos) + " personas heridas"},
+      def:    {c: 2, y: 330, t: "Con defunciones", v: pct(A.con_defunciones, A.total), sub: milesTexto(A.defunciones) + " defunciones", calido: true},
+      top4:   {c: 3, y: 262, t: "Intersecciones de " + A.top4_municipios.join(", "), v: pct(A.top4, A.defunciones), sub: milesTexto(A.top4) + " de las " + milesTexto(A.defunciones) + " defunciones", calido: true, fuerte: true},
+      resto:  {c: 3, y: 362, t: "Demás municipios e intersecciones", v: pct(A.defunciones - A.top4, A.defunciones), sub: milesTexto(A.defunciones - A.top4) + " de las " + milesTexto(A.defunciones) + " defunciones"}
+    };
+    var ramas = [["total", "danos"], ["total", "costo"], ["costo", "her"], ["costo", "def"], ["def", "top4"], ["def", "resto"]];
+    var s = svgEl("svg", {viewBox: "0 0 " + W + " " + H, style: "width:100%;height:100%"});
+    var alto = 78;
+    function centro(n){ return {x: col[n.c] + anchoN, y: n.y}; }
+    var trazos = [];
+    ramas.forEach(function(r){
+      var a = nodos[r[0]], b = nodos[r[1]];
+      var x1 = col[a.c] + anchoN, y1 = a.y, x2 = col[b.c], y2 = b.y, xm = (x1 + x2) / 2;
+      var calido = a.calido && b.calido;
+      var l = svgEl("path", {d: "M" + x1 + " " + y1 + "C" + xm + " " + y1 + " " + xm + " " + y2 + " " + x2 + " " + y2,
+        fill: "none", stroke: calido ? "#B15E2E" : "#003153", "stroke-opacity": calido ? .9 : .28,
+        "stroke-width": calido ? 3 : 1.6});
+      s.appendChild(l); trazos.push(l);
+    });
+    Object.keys(nodos).forEach(function(k, idx){
+      var n = nodos[k], x = col[n.c], y = n.y - alto / 2;
+      var g = svgEl("g", {});
+      g.appendChild(svgEl("rect", {x: x, y: y, width: anchoN, height: alto, rx: 3,
+        fill: n.fuerte ? "#8B2C1A" : n.calido ? "#FBF1EA" : "#fff",
+        stroke: n.calido ? "#B15E2E" : "#003153", "stroke-opacity": n.calido ? 1 : .35, "stroke-width": n.fuerte ? 0 : 1.2}));
+      var inkT = n.fuerte ? "#fff" : n.calido ? "#8B2C1A" : "#2C2C2C";
+      var inkV = n.fuerte ? "#fff" : n.calido ? "#B15E2E" : "#005991";
+      var tt = svgEl("text", {x: x + 14, y: y + 22, "font-family": "Montserrat, sans-serif", "font-size": 13.5, "font-weight": 700, fill: inkT});
+      // Título largo: partirlo en dos líneas.
+      var palabras = n.t.split(" "), lineas = [""], L = 0;
+      palabras.forEach(function(w){ if ((lineas[L] + " " + w).length > 30){ lineas.push(w); L++; } else lineas[L] = (lineas[L] + " " + w).trim(); });
+      lineas.forEach(function(ln, i){ var ts = svgEl("tspan", {x: x + 14, dy: i ? 14 : 0}); ts.textContent = ln; tt.appendChild(ts); });
+      g.appendChild(tt);
+      var vy = y + 22 + (lineas.length - 1) * 14 + 22;
+      var tv = svgEl("text", {x: x + 14, y: vy, "font-family": "Roboto Mono, monospace", "font-size": 17, "font-weight": 700, fill: inkV});
+      tv.textContent = n.v; g.appendChild(tv);
+      var tsb = svgEl("text", {x: x + 14, y: vy + 17, "font-family": "Cormorant Garamond, Georgia, serif", "font-size": 14.5, fill: inkT, "fill-opacity": n.fuerte ? .9 : .7});
+      tsb.textContent = n.sub; g.appendChild(tsb);
+      if (!quieto){
+        g.style.opacity = 0; g.style.transition = "opacity .5s ease " + (0.25 + n.c * 0.45) + "s";
+        requestAnimationFrame(function(){ g.style.opacity = 1; });
+      }
+      s.appendChild(g);
+    });
+    caja.appendChild(s);
+    if (!quieto) trazos.forEach(function(l, i){
+      var L = l.getTotalLength();
+      l.style.strokeDasharray = L; l.style.strokeDashoffset = L;
+      l.style.transition = "stroke-dashoffset .7s cubic-bezier(.22,.68,.16,1) " + (0.35 + Math.floor(i / 2) * 0.45) + "s";
+      requestAnimationFrame(function(){ l.style.strokeDashoffset = 0; });
+    });
+  }
+
   function hexuno(caja){
     // Un solo hexágono, acotado: es la instrucción de lectura de todo el deck.
     var W = 232, H = 216, cx = 106, cy = 104, R = 84;
@@ -1614,7 +1702,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     caja.appendChild(s);
   }
 
-  var GRAFICAS = {lorenz: lorenz, horadia: horadia, tipos: tipos, series: series, municipios: municipios, tendencia: tendencia,
+  var GRAFICAS = {lorenz: lorenz, horadia: horadia, tipos: tipos, series: series, municipios: municipios, tendencia: tendencia, arbol: arbol,
                   hexdemo: hexdemo, hexuno: hexuno, modelo: modelo,
                   rasgos: rasgos, silueta: silueta};
 

@@ -207,11 +207,36 @@ def main() -> None:
     foco = [float(np.floor((zmm.geometry.x.mean() + 118) / PASO)),
             float(np.floor((zmm.geometry.y.mean() - 14) / PASO))]
 
+    # El contorno del país, en las mismas unidades de la retícula (celdas de
+    # 0,1°, centradas en el índice). Viene simplificado de Natural Earth y
+    # está en el repo para que esto no dependa de la red.
+    contorno_ll = json.load(open(AQUI / "mexico_contorno.json", encoding="utf-8"))["anillos"]
+    contorno = [[[round((lon + 118) / PASO - 0.5, 2), round((lat - 14) / PASO - 0.5, 2)]
+                 for lon, lat in anillo] for anillo in contorno_ll]
+
+    # --- el árbol de costo humano -------------------------------------------
+    con_h = g.TOTHERIDOS > 0
+    con_m = g.TOTMUERTOS > 0
+    TOP4 = ["Monterrey", "Apodaca", "Guadalupe", "García"]
+    en_top4 = con_m & (g.en_interseccion == True) & g.NOM_MUN.isin(TOP4)
+    arbol = {
+        "total": int(len(g)),
+        "danos": int((~con_h & ~con_m).sum()),
+        "costo": int((con_h | con_m).sum()),
+        "solo_heridos": int((con_h & ~con_m).sum()),
+        "heridos": int(g.TOTHERIDOS.sum()),
+        "con_defunciones": int(con_m.sum()),
+        "defunciones": int(g.TOTMUERTOS.sum()),
+        "top4": int(g.loc[en_top4, "TOTMUERTOS"].sum()),
+        "top4_municipios": TOP4,
+    }
+
     datos = {
         "rejilla": {"i": i.tolist(), "j": j.tolist()},
         "nacional": {"paso": PASO,
                      "i": cuenta.i.tolist(), "j": cuenta.j.tolist(),
-                     "n": cuenta.n.tolist(), "foco": foco},
+                     "n": cuenta.n.tolist(), "foco": foco, "contorno": contorno},
+        "arbol": arbol,
         "capas": capas,
         "municipios": {
             "nombres": nombres,
