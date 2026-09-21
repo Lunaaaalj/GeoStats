@@ -176,6 +176,19 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 .barra.b2 .relleno{background:var(--dato-2)} .barra.b2 .val{color:var(--dato-2)}
 .barra.b3 .relleno{background:var(--dato-3)} .barra.b3 .val{color:var(--dato-3)}
 .barra.calida .relleno{background:var(--oxido)} .barra.calida .val{color:var(--oxido)}
+.barras.tipos .barra{grid-template-columns:var(--et,160px) 1fr 214px}
+/* Dos magnitudes en un solo canal: la ZMM dentro del país. */
+.superpuesta .canal{height:26px; background:rgba(0,49,83,.09); position:relative; overflow:hidden}
+.superpuesta .relleno{position:absolute; inset:0 auto 0 0; width:0; transition:width 1.3s var(--curva) .3s}
+.viva .superpuesta .relleno{width:var(--w)}
+.superpuesta .relleno.pais{background:var(--dato)} .superpuesta .relleno.zmm{background:var(--dato-2)}
+.superpuesta .claves{display:flex; flex-direction:column; gap:6px; margin-top:12px; font-family:var(--texto); font-size:18px; color:var(--grafito)}
+.superpuesta .claves span::before{content:""; display:inline-block; width:12px; height:12px; margin-right:10px; vertical-align:-1px}
+.superpuesta .claves .pais::before{background:var(--dato)} .superpuesta .claves .zmm::before{background:var(--dato-2)}
+#cruces text{font-family:var(--cifra); font-weight:700; fill:#8B2C1A; paint-order:stroke; stroke:#fff; stroke-width:.5px;
+  opacity:0; transition:opacity .5s var(--curva); pointer-events:none}
+#cruces.etiquetas text{opacity:1}
+#cruces.etiquetas circle:not(.top){opacity:.16}
 
 /* Pie de lámina: la fuente a la izquierda y, a la derecha, qué mide el color
    del mapa. Es una sola fila para que nunca se encimen. */
@@ -298,6 +311,14 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 #cadena .nodo.aqui{background:var(--oxido); transform:scale(2)}
 #reloj{position:fixed; right:16px; bottom:8px; z-index:30; font-family:var(--cifra); font-size:11px;
   color:rgba(255,255,255,.42); font-variant-numeric:tabular-nums; letter-spacing:.08em}
+/* Cuando la ventana es 16:9 o más ancha, la banda inferior cae sobre la lámina
+   y no sobre el fondo oscuro de la página: sobre una lámina clara, el blanco
+   desaparece. `sobreLamina` lo pone `escalar()`; `noche`, `pintar()`. */
+body.sobreLamina:not(.noche) #reloj, body.sobreLamina:not(.noche) #ayuda{color:rgba(44,44,44,.62)}
+body.sobreLamina:not(.noche) #cadena .nodo{background:rgba(0,49,83,.22)}
+body.sobreLamina:not(.noche) #cadena .arco{background:rgba(0,49,83,.14)}
+body.sobreLamina:not(.noche) #cadena .nodo.hecho{background:rgba(0,49,83,.48)}
+body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
 #ayuda{position:fixed; left:16px; bottom:8px; z-index:30; font-family:var(--cifra); font-size:11px;
   color:rgba(255,255,255,.26); letter-spacing:.08em}
 
@@ -373,30 +394,61 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   data-capa="ninguna" data-cruces="si" data-marco="llena" data-velo="tinta">
   <div class="num" data-anim style="--i:0">PARTE 1</div>
   <h1 data-anim style="--i:1">El problema<br>y los datos</h1>
-  <p class="entrada" data-anim style="--i:2">Cada punto es un cruce donde alguien chocó. Son 54 742, y dibujan solos la ciudad.</p>
 </section>
 
 <!-- ============ 3 · LA PROBLEMÁTICA ============ -->
-<section class="slide" data-t="Cerca de un accidente cada ocho minutos" data-parte="Parte 1"
+<section class="slide" data-t="Un accidente cada dos minutos" data-parte="Parte 1"
   data-capa="total" data-mapa="mx" data-marco="llena" data-velo="claro"
-  data-notas="El mapa es el país: cada celda son once kilómetros y el color es cuántos accidentes registra ATUS ahí. Ojo con leerlo mal: los huecos del noroeste no son ausencia de accidentes, son ausencia de reporte — la cobertura pasó de 91 municipios en 2019 a 198 en 2024, y no son los mismos cada año. Por eso el análisis se queda en una sola zona, donde el panel sí está completo. En la Zona Metropolitana de Monterrey son 379 294 accidentes en seis años: 173 al día, cerca de uno cada ocho minutos, y uno de cada dieciocho deja a alguien lesionado o muerto.">
+  data-notas="El mapa es el país: cada celda son once kilómetros y el color es cuántos accidentes registra ATUS ahí. En todo el país son 1,3 millones de accidentes en seis años: 601 al día, uno cada 2,4 minutos. En la Zona Metropolitana de Monterrey, 379 294: 173 al día, cerca de uno cada ocho minutos. Y en la metrópoli uno de cada dieciocho deja heridos o defunciones; en el país es uno de cada siete, porque muchos municipios solo levantan el parte cuando hay lesionados. Ojo con leer mal el mapa: los huecos del noroeste no son ausencia de accidentes, son ausencia de reporte.">
   <div class="ceja" data-anim style="--i:0">La problemática</div>
-  <h2 data-anim style="--i:1">Cerca de un accidente cada ocho minutos</h2>
+  <h2 data-anim style="--i:1;max-width:30ch">Un accidente cada dos minutos en el país; uno cada ocho en Monterrey</h2>
   <div class="marco">
     <div class="col media">
       <div class="pila">
         <div data-anim style="--i:2">
-          <div class="xl"><span class="cuenta" data-v="173">173</span></div>
-          <div class="pie">accidentes al día en la Zona Metropolitana de Monterrey</div>
+          <div class="xl"><span class="cuenta" data-v="601">601</span></div>
+          <div class="pie">accidentes al día <b>en todo el país</b> · uno cada 2,4 minutos</div>
         </div>
         <div data-anim style="--i:3">
-          <div class="l arde">1 de cada 18</div>
-          <div class="pie">deja a alguien lesionado o muerto</div>
+          <div class="l"><span class="cuenta" data-v="173">173</span></div>
+          <div class="pie">al día <b>en la Zona Metropolitana de Monterrey</b> · uno cada 8 minutos</div>
         </div>
-        <div class="dato" data-anim style="--i:4">
-          <div class="txt">El mapa es dónde ATUS <b>reporta</b>: 198 municipios en 2024, y no los mismos cada año. Por eso el análisis se queda en uno solo.</div>
+        <div data-anim style="--i:4">
+          <div class="l arde">1 de cada 18</div>
+          <div class="pie"><b>en la Zona Metropolitana</b> deja heridos o defunciones</div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 · EL HEXÁGONO ============ -->
+<section class="slide" data-t="La unidad: un hexágono" data-parte="Parte 1"
+  data-capa="total" data-marco="derecha" data-velo="claro"
+  data-notas="Si preguntan por qué hexágonos y no colonias, es decir, las AGEB del INEGI: las fronteras de esos polígonos están trazadas sobre las avenidas, que es justo donde ocurren los accidentes, así que cada choque caería en el límite entre dos y asignarlo a uno u otro sería arbitrario; además unas miden 0,2 kilómetros cuadrados y otras varios, y sus conteos no se pueden comparar. La rejilla no sabe dónde están las calles, así que no puede sesgar nada. Antes de seguir, una instrucción de lectura, porque todos los mapas de aquí en adelante están hechos de estos hexágonos. La metrópoli se cubrió con una rejilla de hexágonos iguales de 500 metros de lado: un kilómetro de punta a punta, el tamaño de un barrio. Se conservan las 2 241 celdas donde cayó al menos un accidente en seis años; las vacías no tienen red vial. Lo importante es que todas miden lo mismo: el conteo de una celda se compara con el de cualquier otra sin corregir nada, y el color del mapa es siempre cuántos accidentes cayeron dentro.">
+  <div class="ceja" data-anim style="--i:0">La unidad de medida</div>
+  <h2 data-anim style="--i:1">Cada celda del mapa es un hexágono</h2>
+  <div class="marco">
+    <div class="col" style="flex:0 0 640px; gap:22px">
+      <div class="grafica" data-g="hexuno" data-anim style="--i:2;width:232px"></div>
+      <dl class="especificaciones">
+        <div class="especificacion" data-anim style="--i:3">
+          <dt>Tamaño</dt>
+          <dd><b>Un kilómetro de punta a punta</b>, más o menos un barrio.</dd>
+        </div>
+        <div class="especificacion" data-anim style="--i:4">
+          <dt>Cuántos</dt>
+          <dd><b>2 241 celdas</b> cubren todo el territorio de la metrópoli donde hay calles. Las vacías se descartan: no tienen red vial.</dd>
+        </div>
+        <div class="especificacion" data-anim style="--i:5">
+          <dt>Cómo se lee</dt>
+          <dd>El color es <b>cuántos accidentes cayeron dentro</b>. Como todas miden igual, dos celdas se comparan sin corregir nada.</dd>
+        </div>
+        <div class="especificacion" data-anim style="--i:6">
+          <dt>Y no colonias (AGEB)</dt>
+          <dd>Las fronteras de una colonia &#8212;las AGEB del INEGI&#8212; van <b>por en medio de las avenidas</b>, justo donde ocurren los choques: cada accidente caería en el límite entre dos polígonos. La rejilla no sabe dónde están las calles.</dd>
+        </div>
+      </dl>
     </div>
   </div>
 </section>
@@ -423,66 +475,36 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
           <dt>Desde</dt>
           <dd>La serie anual arranca en <b>1997</b>. La versión con coordenadas, apenas en <b>2019</b> — y por eso este trabajo empieza ahí.</dd>
         </div>
-        <div class="especificacion" data-anim style="--i:5">
-          <dt>Cada fila</dt>
-          <dd>Un accidente, con <b>50 campos</b>: fecha, hora, las dos calles del cruce, vehículos, víctimas y su coordenada.</dd>
-        </div>
       </dl>
-      <div class="barras anchas" style="--et:146px">
-        <div class="barra" data-anim style="--i:6"><div class="et">Todo el país</div><div class="canal"><div class="relleno" style="--w:100%"></div></div><div class="val">1,3 millones</div></div>
-        <div class="barra b2" data-anim style="--i:7"><div class="et">Zona Metropolitana</div><div class="canal"><div class="relleno" style="--w:28.8%"></div></div><div class="val">379<i class="e"></i>294</div></div>
+      <div class="superpuesta" data-anim style="--i:5">
+        <div class="canal"><div class="relleno pais" style="--w:100%"></div><div class="relleno zmm" style="--w:28.8%"></div></div>
+        <div class="claves">
+          <span class="pais">Todo el país · 1,3 millones de accidentes</span>
+          <span class="zmm">Zona Metropolitana de Monterrey · 379<i class="e"></i>294 · el 28,8 %</span>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============ 5 · LO QUE NO SABE ============ -->
-<section class="slide" data-t="La unidad: un hexágono" data-parte="Parte 1"
-  data-capa="total" data-marco="derecha" data-velo="claro"
-  data-notas="Si preguntan por qué hexágonos y no colonias o AGEB: las fronteras de esos polígonos están trazadas sobre las avenidas, que es justo donde ocurren los accidentes, así que cada choque caería en el límite entre dos y asignarlo a uno u otro sería arbitrario; además unas miden 0,2 kilómetros cuadrados y otras varios, y sus conteos no se pueden comparar. La rejilla no sabe dónde están las calles, así que no puede sesgar nada. Antes de seguir, una instrucción de lectura, porque todos los mapas de aquí en adelante están hechos de estos hexágonos. La metrópoli se cubrió con una rejilla de hexágonos iguales de 500 metros de lado: un kilómetro de punta a punta y 0,65 kilómetros cuadrados, el tamaño de un barrio. Se conservan las 2 241 celdas donde cayó al menos un accidente en seis años; las vacías no tienen red vial. Lo importante es que todas miden lo mismo: el conteo de una celda se compara con el de cualquier otra sin corregir nada, y el color del mapa es siempre cuántos accidentes cayeron dentro.">
-  <div class="ceja" data-anim style="--i:0">La unidad de medida</div>
-  <h2 data-anim style="--i:1">Cada celda del mapa es un hexágono</h2>
+<!-- ============ 5b · HERIDOS Y DEFUNCIONES ============ -->
+<section class="slide" data-t="Heridos y defunciones" data-parte="Parte 1"
+  data-capa="heridos" data-marco="derecha" data-velo="claro"
+  data-notas="Aquí el mapa cambia de unidad: ya no cuenta accidentes sino personas. Los heridos siguen casi el mismo dibujo que los choques: donde más se choca, más gente sale lastimada. Las defunciones no: el 5 % de zonas con más accidentes concentra el 43 % de los choques y solo el 25 % de las defunciones. Están en las vías rápidas y en la periferia. Santiago tiene 18 defunciones por cada mil accidentes, Monterrey 2, San Pedro menos de 1. Son 1 162 defunciones en seis años. A esa escala el mapa se lee por corredor y por municipio, no por zona: con una defunción cada dos celdas en seis años, una celda sola no dice nada.">
+  <div class="ceja" data-anim style="--i:0">Víctimas</div>
+  <h2 data-anim style="--i:1">Las personas detrás de los registros</h2>
   <div class="marco">
-    <div class="col" style="flex:0 0 640px; gap:22px">
-      <div class="grafica" data-g="hexuno" data-anim style="--i:2;width:232px"></div>
-      <dl class="especificaciones">
-        <div class="especificacion" data-anim style="--i:3">
-          <dt>Tamaño</dt>
-          <dd><b>0,65 km&#178;</b> &#8212; un kilómetro de punta a punta, más o menos un barrio.</dd>
-        </div>
-        <div class="especificacion" data-anim style="--i:4">
-          <dt>Cuántos</dt>
-          <dd><b>2 241 celdas</b> cubren todo el territorio de la metrópoli donde hay calles. Las vacías se descartan: no tienen red vial.</dd>
-        </div>
-        <div class="especificacion" data-anim style="--i:5">
-          <dt>Cómo se lee</dt>
-          <dd>El color es <b>cuántos accidentes cayeron dentro</b>. Como todas miden igual, dos celdas se comparan sin corregir nada.</dd>
-        </div>
-        <div class="especificacion" data-anim style="--i:6">
-          <dt>Y no colonias</dt>
-          <dd>Las fronteras de una colonia van <b>por en medio de las avenidas</b>, justo donde ocurren los choques: cada accidente caería en el límite entre dos polígonos. La rejilla no sabe dónde están las calles.</dd>
-        </div>
-      </dl>
-    </div>
-  </div>
-</section>
-
-<section class="slide" data-t="Lo que la base no sabe" data-parte="Parte 1"
-  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="Dos límites que conviene declarar de entrada. Sin aforo vehicular no se puede distinguir un cruce peligroso de uno por el que pasa muchísima gente: es la pieza que más falta y el siguiente paso del proyecto. Y el INEGI codifica se ignora como respuesta válida, así que solo el 25 % de los registros está completo en los seis campos sensibles. Lo más importante: la base mide accidentes reportados, no ocurridos.">
-  <div class="ceja" data-anim style="--i:0">Los límites</div>
-  <h2 data-anim style="--i:1">Lo que esta base no puede decir</h2>
-  <div class="marco">
-    <div class="col">
-      <div class="pila">
-        <div class="dato" data-anim style="--i:2"><div class="rotulo">Cuántos autos pasan</div><div class="txt">Sin aforo no se distingue un cruce peligroso de uno muy transitado.</div></div>
-        <div class="dato" data-anim style="--i:3"><div class="rotulo">Lo que no se anotó</div><div class="txt">«Se ignora» es respuesta válida del catálogo. Solo el 25 % está completo.</div></div>
+    <div class="col media">
+      <div class="fichas" data-anim style="--i:2">
+        <button class="ficha puesta" data-capa="heridos">Heridos</button>
+        <button class="ficha" data-capa="muertos">Defunciones</button>
       </div>
-    </div>
-    <div class="col">
-      <div class="aviso" data-anim style="--i:4">
-        <div class="t">Y lo más importante</div>
-        <div class="c">Esta base mide accidentes <b>reportados</b>, no ocurridos. Cuando un municipio cambia su forma de capturar, la base cambia con él.</div>
+      <div class="pila" style="margin-top:14px">
+        <div data-anim style="--i:3">
+          <div class="l"><span data-cifra-capa="suma">25<i class="e"></i>616</span></div>
+          <div class="pie" data-cifra-capa="pie">heridos en seis años</div>
+        </div>
+        <div class="dato" data-anim style="--i:4"><div class="txt" data-cifra-capa="txt">Casi el mismo mapa que los choques: donde más se choca, más gente sale lastimada. Pero no la misma proporción: 6 heridos por cada cien accidentes en Monterrey, 23 en Juárez.</div></div>
       </div>
     </div>
   </div>
@@ -493,60 +515,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   data-capa="total" data-marco="llena" data-velo="tinta">
   <div class="num" data-anim style="--i:0">PARTE 2</div>
   <h1 data-anim style="--i:1">Lo que muestran<br>los datos</h1>
-  <p class="entrada" data-anim style="--i:2">Dónde, cuándo y quién. Sin modelos: contar bien y mirar el mapa.</p>
-</section>
-
-<!-- ============ 7 · LA RED ============ -->
-<section class="slide" data-t="Los puntos negros" data-parte="Parte 2"
-  data-capa="ninguna" data-cruces="si" data-marco="llena" data-velo="claro"
-  data-notas="Los 600 cruces con más accidentes, con el área del círculo proporcional al conteo. Lo primero que salta no es dónde están: es que formen hileras, alineadas sobre avenidas completas. El riesgo tiene forma de corredor.">
-  <div class="ceja" data-anim style="--i:0">El mapa</div>
-  <h2 data-anim style="--i:1">Los puntos negros</h2>
-  <div class="marco">
-    <div class="col media">
-      <div class="pila">
-        <div data-anim style="--i:2"><div class="l"><span class="cuenta" data-v="600">600</span></div><div class="pie">los cruces con más accidentes. El área del círculo es el conteo</div></div>
-        <div class="dato" data-anim style="--i:3"><div class="txt">No están sueltos: <b>forman hileras</b> sobre avenidas completas.</div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 8 · CONCENTRACIÓN ============ -->
-<section class="slide" data-t="La concentración" data-parte="Parte 2"
-  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="La curva de concentración: los cruces ordenados de mayor a menor contra el porcentaje acumulado de accidentes. Los 50 peores, que son el 0,1 % de los cruces, concentran el 7,5 %. Mil cruces, el 1,8 %, concentran el 40 %. Al revés: el 91 % de los cruces aporta menos de un tercio. Repartir el presupuesto parejo por la ciudad es repartirlo donde casi no pasa nada.">
-  <div class="ceja" data-anim style="--i:0">Concentración</div>
-  <h2 data-anim style="--i:1">Mil cruces explican cuatro de cada diez</h2>
-  <div class="marco">
-    <div class="col media"><div class="grafica" data-g="lorenz" style="width:100%;height:410px"></div></div>
-    <div class="col">
-      <table data-anim style="--i:2">
-        <thead><tr><th>Los peores…</th><th style="text-align:right">de los cruces</th><th style="text-align:right">de los accidentes</th></tr></thead>
-        <tbody data-tabla="hitos"></tbody>
-      </table>
-      <p class="entrada" data-anim style="--i:4">Al revés: el <b>91 %</b> de los cruces aporta menos de un tercio de los accidentes.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 9 · LOS DIEZ PEORES ============ -->
-<section class="slide" data-t="Los diez peores cruces" data-parte="Parte 2"
-  data-capa="ninguna" data-cruces="si" data-marco="zoom" data-velo="ancho"
-  data-notas="Cualquiera de estos diez se puede visitar mañana: esa es la diferencia entre un mapa de calor y una lista de trabajo. Fidel Velázquez con Fray Luis de León, en San Nicolás, acumula 1 024 accidentes en seis años: uno cada dos días.">
-  <div class="ceja" data-anim style="--i:0">Los puntos negros</div>
-  <h2 data-anim style="--i:1">Tienen nombre y apellido</h2>
-  <div class="marco">
-    <div class="col media">
-      <table data-anim style="--i:2"><tbody data-tabla="cruces"></tbody></table>
-    </div>
-    <div class="col" style="flex:0 0 430px">
-      <div data-anim style="--i:3">
-        <div class="heroe"><span class="cuenta" data-v="1024">1<i class="e"></i>024</span></div>
-        <div class="pie" style="margin-top:14px;max-width:26ch">accidentes en <b>un solo cruce</b> en seis años: uno cada dos días</div>
-      </div>
-    </div>
-  </div>
+  <p class="entrada" data-anim style="--i:2">Análisis descriptivo de los datos.</p>
 </section>
 
 <!-- ============ 10 · CORREDORES ============ -->
@@ -566,16 +535,12 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 <!-- ============ 11 · HORA × DÍA ============ -->
 <section class="slide" data-t="Hora y día" data-parte="Parte 2"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="168 celdas: cada hora de cada día. Las dos más altas son el martes a las ocho de la mañana, con 4 527, y el sábado a las dos de la tarde, con 4 402: separadas por un 3 %, así que no hay un pico sino dos. Uno es la hora pico entre semana y el otro la tarde de fin de semana. Solo el 8,6 % ocurre entre medianoche y las cinco. Es un fenómeno de exposición, no de imprudencia nocturna.">
+  data-notas="168 celdas: cada hora de cada día. Las tres más altas son el martes a las ocho de la mañana, el sábado a las dos de la tarde y el viernes a las tres: entre la primera y la tercera hay apenas un 3 %, así que no hay un pico sino dos, la hora pico entre semana y la tarde del fin de semana. Solo el 8,6 % ocurre entre medianoche y las cinco. Es un fenómeno de exposición, no de imprudencia nocturna.">
   <div class="ceja" data-anim style="--i:0">El calendario</div>
   <h2 data-anim style="--i:1" style="max-width:26ch">El pico no es de madrugada: es la hora pico</h2>
   <div class="marco" style="flex-direction:column;align-items:stretch;gap:18px">
     <div class="grafica" data-g="horadia" style="width:100%;flex:1;min-height:0"></div>
-    <div class="tira" data-anim style="--i:2">
-      <div><div class="rotulo">Martes 08 h · 4<i class="e"></i>527</div><div class="pie" style="font-size:15px;font-family:var(--display);font-weight:500;max-width:32ch">la celda más alta de las 168</div></div>
-      <div><div class="rotulo calido">Sábado 14 h · 4<i class="e"></i>402</div><div class="pie" style="font-size:15px;font-family:var(--display);font-weight:500;max-width:32ch">a un 3 % de la primera: no hay un pico, hay dos</div></div>
-      <div><div class="m">8,6<i class="e"></i>%</div><div class="pie" style="font-size:15px;font-family:var(--display);font-weight:500;max-width:32ch">ocurre entre las 00 y las 05 h</div></div>
-    </div>
+    <div class="tira" data-anim style="--i:2" data-tabla="horasTop"></div>
   </div>
 </section>
 
@@ -603,65 +568,86 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   </div>
 </section>
 
-<!-- ============ 13 · GRAVEDAD ============ -->
-<section class="slide" data-t="Gravedad" data-parte="Parte 2"
-  data-capa="victimas" data-marco="derecha" data-velo="claro"
-  data-notas="Dividiendo la metrópoli en cuatro anillos por distancia al centro: en el centro hay 498 accidentes por zona y el 4,7 % deja víctimas; en el tercer anillo hay 39 por zona y el 10,3 % deja víctimas. En el centro se choca mucho y despacio; hacia afuera se choca poco y grave. Un ranking hecho solo con el conteo pone la periferia hasta abajo, y ahí es donde la gente sale peor.">
-  <div class="ceja" data-anim style="--i:0">Gravedad</div>
-  <h2 data-anim style="--i:1">Donde más se choca no es donde más se pierde</h2>
+<!-- ============ 12b · TIPOS DE ACCIDENTE ============ -->
+<section class="slide" data-t="Tipos de accidente" data-parte="Parte 2"
+  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
+  data-notas="De qué tipo son los accidentes, según el catálogo del INEGI. Siete de cada diez son colisiones entre vehículos; uno de cada siete, contra un objeto fijo: un poste, una guarnición, un vehículo estacionado. La motocicleta ya es el tercer tipo, con el 6,4 %. Lo importante está en la segunda columna: el tipo más común es el que menos daño hace por accidente, el 1,3 % deja víctimas; una volcadura deja víctimas en uno de cada cuatro casos, una colisión con motocicleta en uno de cada cinco, y un atropellamiento siempre, porque el atropellado es la víctima.">
+  <div class="ceja" data-anim style="--i:0">Qué tipo de accidente</div>
+  <h2 data-anim style="--i:1">Siete de cada diez son choques entre vehículos</h2>
+  <div class="marco" style="align-items:flex-start">
+    <div class="col" style="flex:0 0 720px">
+      <div class="barras tipos" data-barras="tipos" style="--et:214px"></div>
+      <p class="pie" data-anim style="--i:9;margin-top:14px;max-width:46ch">Porcentaje de los 379 294 accidentes de la Zona Metropolitana, 2019–2024, por tipo. A la derecha de cada barra, qué porcentaje de ese tipo deja víctimas.</p>
+    </div>
+    <div class="col">
+      <div class="aviso" data-anim style="--i:4">
+        <div class="t">El más común es el menos grave</div>
+        <div class="c">De los choques entre vehículos, el <b>1,3 %</b> deja víctimas. De las volcaduras, el <b>24 %</b>; de las colisiones con motocicleta, el <b>18 %</b>. Un atropellamiento, <b>siempre</b>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8 · CONCENTRACIÓN ============ -->
+<section class="slide" data-t="La concentración" data-parte="Parte 2"
+  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
+  data-notas="La curva de concentración: los cruces ordenados de mayor a menor contra el porcentaje acumulado de accidentes. Los 50 peores, que son el 0,1 % de los cruces, concentran el 7,5 %. Mil cruces, el 1,8 %, concentran el 40 %. Al revés: el 91 % de los cruces aporta menos de un tercio. Repartir el presupuesto parejo por la ciudad es repartirlo donde casi no pasa nada.">
+  <div class="ceja" data-anim style="--i:0">Concentración</div>
+  <h2 data-anim style="--i:1">Mil cruces explican cuatro de cada diez</h2>
+  <div class="marco">
+    <div class="col media"><div class="grafica" data-g="lorenz" style="width:100%;height:410px"></div></div>
+    <div class="col">
+      <table data-anim style="--i:2">
+        <thead><tr><th>Los peores…</th><th style="text-align:right">% de los cruces</th><th style="text-align:right">% acumulado de accidentes</th></tr></thead>
+        <tbody data-tabla="hitos"></tbody>
+      </table>
+      <p class="entrada" data-anim style="--i:4">Al revés: el <b>91 %</b> de los cruces aporta menos de un tercio de los accidentes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9 · LOS DIEZ PEORES ============ -->
+<section class="slide" data-t="Los diez peores cruces" data-parte="Parte 2"
+  data-capa="ninguna" data-cruces="si" data-etiquetas="si" data-marco="zoom" data-velo="claro"
+  data-notas="Cualquiera de estos diez se puede visitar mañana: esa es la diferencia entre un mapa de calor y una lista de trabajo. Los números del mapa son los de la tabla. Fidel Velázquez con Fray Luis de León, en San Nicolás, acumula 1 024 accidentes en seis años.">
+  <div class="ceja" data-anim style="--i:0">Los puntos negros</div>
+  <h2 data-anim style="--i:1">Tienen nombre y apellido</h2>
   <div class="marco">
     <div class="col media">
-      <table data-anim style="--i:2">
-        <thead><tr><th>Anillo</th><th style="text-align:right">Accidentes por zona</th><th style="text-align:right">% con víctimas</th></tr></thead>
+      <table data-anim style="--i:2"><tbody data-tabla="cruces"></tbody></table>
+      <p class="pie" data-anim style="--i:3;max-width:48ch;margin-top:14px">En el mapa, cada número es un renglón de esta tabla. El primero acumula <b>1 024</b> accidentes en seis años.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13 · GRAVEDAD ============ -->
+<section class="slide" data-t="Gravedad" data-parte="Parte 2"
+  data-capa="anillos" data-marco="derecha" data-velo="claro"
+  data-notas="Los anillos se construyen así: se toma el centro de masa de los accidentes, que cae en el centro de Monterrey, se mide la distancia de cada una de las 2 241 zonas a ese punto, y se reparten en cuatro grupos con el mismo número de zonas. El mapa de la derecha los pinta. Centro: hasta 11 kilómetros, Monterrey, San Nicolás, Guadalupe y San Pedro. Primer anillo: de 11 a 18, Apodaca y Escobedo. Segundo: de 18 a 27, Juárez, Pesquería y García. Periferia: más allá, Santiago, Cadereyta y Salinas Victoria. Con eso: en el centro hay 498 accidentes por zona y el 4,7 % deja víctimas; en el tercer anillo hay 39 por zona y el 10,3 % deja víctimas. En el centro se choca mucho y despacio; hacia afuera se choca poco y grave. Un ranking hecho solo con el conteo pone la periferia hasta abajo, y ahí es donde la gente sale peor.">
+  <div class="ceja" data-anim style="--i:0">Gravedad</div>
+  <h2 data-anim style="--i:1">Donde más se choca no es donde más se pierde</h2>
+  <div class="marco" style="align-items:flex-start;margin-top:14px">
+    <div class="col media">
+      <table data-anim style="--i:2;font-size:15px">
+        <thead><tr><th>Anillo · distancia al centro</th><th style="text-align:right">Accidentes por zona</th><th style="text-align:right">% con víctimas</th></tr></thead>
         <tbody data-tabla="anillos"></tbody>
       </table>
-      <div class="aviso" data-anim style="--i:3" style="margin-top:18px">
+      <div class="aviso" data-anim style="--i:3;margin-top:16px">
         <div class="t">La relación se invierte</div>
         <div class="c">En el centro se choca mucho y despacio. Hacia afuera, poco y grave.</div>
       </div>
+      <p class="pie" data-anim style="--i:4;margin-top:12px;max-width:46ch;font-size:14px">Cómo se hicieron los anillos: las 2 241 zonas se reparten en cuatro grupos iguales según su distancia al centro de masa de los accidentes, en el centro de Monterrey. El mapa de la derecha los pinta.</p>
     </div>
   </div>
 </section>
 
-<!-- ============ 14 · TIPOLOGÍA ============ -->
-<section class="slide" data-t="Cómo agrupamos los cruces" data-parte="Parte 2"
-  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="Dos cruces con el mismo número de accidentes pueden ser problemas distintos: uno acumula alcances a la hora pico y otro atropella peatones. Esa diferencia está en el perfil, no en el volumen. Se tomaron los 2 302 cruces con 30 o más accidentes en seis años, el 54,6 % de todos los registros; por debajo de 30, un porcentaje no describe nada. De cada cruce se midieron siete rasgos, todos composicionales: porcentajes de sus propios choques. El volumen se dejó fuera a propósito, porque si entrara el algoritmo separaría cruces grandes de chicos, que es lo que ya hace el mapa de puntos negros. Con eso se corrió un k-medias. Y hay que decirlo con todas sus letras: la silueta, que mide qué tan separados están los grupos, es baja. El máximo está en k igual a dos con 0,28, y k igual a cuatro da 0,21. No hay categorías naturales ahí: el perfil de un cruce es continuo y esta partición es una discretización útil, no un descubrimiento. Se eligió cuatro porque dos solo separa con víctimas de sin víctimas, que ya es una columna de la base, y porque los cuatro centroides son interpretables y estables: con otra semilla, el 99,8 % de los cruces conserva su tipo.">
-  <div class="ceja" data-anim style="--i:0">Tipología &#183; el modelo</div>
-  <h2 data-anim style="--i:1" style="max-width:none">Cómo agrupamos los cruces</h2>
-  <p class="entrada" data-anim style="--i:2" >Dos cruces con el mismo número de accidentes pueden ser problemas distintos.</p>
-  <div class="marco" style="align-items:flex-start">
-    <div class="col" style="flex:0 0 590px">
-      <div class="especificacion" data-anim style="--i:3">
-        <dt>Universo</dt>
-        <dd>Los <b>2 302 cruces</b> con 30 o más accidentes en seis años: el <b>54,6 %</b> de todos los registros. Por debajo de 30, un porcentaje no es un perfil.</dd>
-      </div>
-      <div class="especificacion" data-anim style="--i:4;margin-top:12px">
-        <dt>Rasgos</dt>
-        <dd>Siete, todos <b>composicionales</b>: qué porcentaje de los choques de <i>ese</i> cruce cumple cada condición.</dd>
-      </div>
-      <div class="grafica" data-g="rasgos" style="margin-top:16px"></div>
-    </div>
-    <div class="col">
-      <div class="dato" data-anim style="--i:6">
-        <div class="rotulo">El volumen no entra</div>
-        <div class="txt">Si entrara, el algoritmo separaría cruces grandes de chicos &#8212; que es lo que ya hace el mapa de puntos negros. Aquí buscamos <b>tipos de problema, no tamaños</b>.</div>
-      </div>
-      <div class="grafica" data-g="silueta" style="margin-top:12px"></div>
-      <div class="aviso" data-anim style="--i:8;margin-top:12px;font-size:17px">
-        <div class="t">Y la silueta es baja</div>
-        <div class="c">El perfil de un cruce es continuo: estos cuatro grupos son una <b>división útil</b>, no categorías naturales. Lo que sí es firme: con otra semilla, el <b>99,8 %</b> de los cruces conserva su tipo.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
+<!-- ============ 14 · LOS CUATRO PERFILES ============ -->
 <section class="slide" data-t="Los cuatro perfiles" data-parte="Parte 2"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
   data-notas="Esta es la tabla que conviene leer en voz alta. Cada columna es un grupo y cada renglón uno de los siete rasgos; el color dice si ese grupo está por encima o por debajo del promedio de todos. Alto flujo es el grupo más grande, 1 163 cruces, y no destaca en nada salvo en tener el promedio de vehículos más alto y la tasa de víctimas más baja, 2,8 %: son alcances, fierros y no personas. Corredor de motocicleta: 9,6 % de sus choques involucra moto, casi el triple del anterior, y casi tres de cada diez ocurren en fin de semana. Pérdida de control nocturna: 14,4 % de madrugada y 25,4 % contra objeto fijo, con el promedio de vehículos más bajo, 1,77 — un solo vehículo que se sale del camino y pega contra algo. Exposición de peatón y ciclista: 7,7 % de sus choques arrolla a alguien y 13,2 % deja víctimas, casi cinco veces el primer grupo. El giro está ahí: el grupo más grande es el menos dañino por accidente, y el más chico es el que manda gente al hospital.">
-  <div class="ceja" data-anim style="--i:0">Tipología &#183; el resultado</div>
-  <h2 data-anim style="--i:1">Los cuatro perfiles</h2>
-  <p class="entrada" data-anim style="--i:2" style="max-width:none">Cada columna es un grupo; cada renglón, un rasgo. El color dice si está por encima o por debajo del promedio.</p>
+  <div class="ceja" data-anim style="--i:0">Tipología</div>
+  <h2 data-anim style="--i:1">Los cuatro perfiles de cruce</h2>
+  <p class="entrada" data-anim style="--i:2;max-width:none">Los 2 302 cruces con 30 o más accidentes, agrupados por <b>qué porcentaje de sus choques</b> cumple cada rasgo. Cada columna es un grupo; el color dice si está por encima o por debajo del promedio.</p>
   <div class="marco"><div class="grafica" data-g="tipos" style="width:100%"></div></div>
 </section>
 
@@ -671,20 +657,21 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   data-notas="El mismo mapa, año por año, con la misma escala de color. Cambia el nivel, no el dibujo: de los 200 peores cruces, 155 aparecen en los seis años, con una pandemia en medio. Y 53 de los 100 peores de 2019-20 siguen entre los peores de 2023-24. Un problema que se queda quieto es un problema que se puede planear: esto es lo que hace posible la Parte 3.">
   <div class="ceja" data-anim style="--i:0">Persistencia</div>
   <h2 data-anim style="--i:1">Y el mapa casi no se mueve</h2>
-  <p class="entrada" data-anim style="--i:3">Cambia el nivel, no el dibujo. Y eso es lo que vuelve planeable el problema: lo que se repite se puede anticipar.</p>
-  <div class="marco">
+  <p class="entrada" data-anim style="--i:3;margin-bottom:0">Cambia el nivel, no el dibujo: lo que se repite se puede anticipar.</p>
+  <div class="marco" style="align-items:flex-start;margin-top:10px">
     <div class="col media">
       <div class="fichas" data-anim style="--i:2" data-fichas="anios"></div>
-      <div class="pila" style="margin-top:16px">
+      <div class="pila" style="margin-top:12px;gap:10px">
         <div data-anim style="--i:3">
           <div class="l"><span data-anio-total>63<i class="e"></i>134</span></div>
           <div class="pie">accidentes registrados en <span data-anio-etiqueta>2019</span></div>
         </div>
         <div data-anim style="--i:4">
-          <div class="xl arde"><span class="cuenta" data-v="155">155</span></div>
+          <div class="l arde"><span class="cuenta" data-v="155">155</span></div>
           <div class="pie">de los 200 peores cruces aparecen en <b>los seis años</b></div>
         </div>
       </div>
+      <div class="grafica" data-g="tendencia" style="width:92%;margin-top:6px"></div>
     </div>
   </div>
 </section>
@@ -715,13 +702,10 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
         <button class="ficha" data-capa="ptop5" data-rampa="calida">¿Está en el 5 % peor?</button>
       </div>
       <div class="pila" style="margin-top:16px">
-        <div data-anim style="--i:3"><div class="l"><span class="cuenta" data-v="73577">73<i class="e"></i>577</span></div>
-          <div class="pie">accidentes esperados en 2027, con un margen de ±3 %</div></div>
+        <div data-anim style="--i:3"><div class="l"><span class="cuenta" data-v="74">74</span> mil</div>
+          <div class="pie">accidentes esperados en 2027 en la Zona Metropolitana</div></div>
         <div data-anim style="--i:4"><div class="l arde">42,9<i class="e"></i>%</div>
           <div class="pie">caerá en el 5 % de zonas con más riesgo. El <i>dónde</i> no cambia de escenario a escenario</div></div>
-        <div class="dato" data-anim style="--i:5">
-          <div class="txt">De las 112 zonas de la cabeza, <b>89</b> están ahí con probabilidad mayor a 0,9. El resto compite por la frontera.</div>
-        </div>
       </div>
     </div>
   </div>
@@ -739,30 +723,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
       <div class="pila" style="gap:26px">
         <div class="dato" data-anim style="--i:3"><div class="rotulo">Casi todos, donde están</div><div class="txt">Fuera de Abasolo, que tiene tres accidentes, ninguno se mueve más de un 13 % respecto a 2024. El modelo proyecta el nivel reciente de cada uno; no inventa tendencias.</div></div>
         <div class="dato frio" data-anim style="--i:4"><div class="rotulo">Más margen donde hay menos zonas</div><div class="txt">En Monterrey el margen es de ±5 %; en Hidalgo o El Carmen, cerca de ±30 %. El modelo sabe cuánto sabe de cada uno.</div></div>
-        <div class="dato frio" data-anim style="--i:5"><div class="rotulo">Sube más de lo que baja</div><div class="txt">13 de 18 quedan por encima de 2024. No es tendencia: a una zona con pocos choques el modelo le presta los de sus vecinas, y eso suma un 3 % al total.</div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 22c · HERIDOS Y MUERTOS ============ -->
-<section class="slide" data-t="Heridos y muertos" data-parte="Parte 3"
-  data-capa="heridos" data-marco="derecha" data-velo="claro"
-  data-notas="Aquí el mapa cambia de unidad: ya no cuenta accidentes sino personas. Los heridos siguen casi el mismo dibujo que los choques: donde más se choca, más gente sale lastimada. Los muertos no: el 5 % de zonas con más accidentes concentra el 43 % de los choques y solo el 25 % de los muertos. Las muertes están en las vías rápidas y en la periferia. Santiago tiene 18 muertos por cada mil accidentes, Monterrey 2, San Pedro menos de 1. Son 1 162 muertos en seis años, uno cada dos días. A esa escala el mapa se lee por corredor y por municipio, no por zona: con un muerto cada dos celdas en seis años, una celda sola no dice nada.">
-  <div class="ceja" data-anim style="--i:0">Víctimas</div>
-  <h2 data-anim style="--i:1">Donde se choca feo</h2>
-  <div class="marco">
-    <div class="col media">
-      <div class="fichas" data-anim style="--i:2">
-        <button class="ficha puesta" data-capa="heridos">Heridos</button>
-        <button class="ficha" data-capa="muertos">Muertos</button>
-      </div>
-      <div class="pila" style="margin-top:14px">
-        <div data-anim style="--i:3">
-          <div class="l"><span data-cifra-capa="suma">25<i class="e"></i>616</span></div>
-          <div class="pie" data-cifra-capa="pie">heridos en seis años</div>
-        </div>
-        <div class="dato" data-anim style="--i:4"><div class="txt" data-cifra-capa="txt">Casi el mismo mapa que los choques: donde más se choca, más gente sale lastimada. Pero no la misma proporción: 6 heridos por cada cien accidentes en Monterrey, 23 en Juárez.</div></div>
+        <div class="dato frio" data-anim style="--i:5"><div class="rotulo">Casi todos un poco arriba</div><div class="txt">13 de 18 quedan algo por encima de 2024. No es que vayan a subir: el modelo reparte parte de los choques de las zonas concurridas hacia sus vecinas con pocos, y al sumar eso da un 3 % de más.</div></div>
       </div>
     </div>
   </div>
@@ -778,23 +739,23 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 
 <!-- ============ 24 · EL VISOR ============ -->
 <section class="slide" data-t="El visor interactivo" data-parte="Parte 4"
-  data-capa="ptop5" data-rampa="calida" data-marco="mini" data-velo="claro"
+  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
   data-notas="El visor deja acercarse hasta la esquina, filtrar por año, tipo de usuario y gravedad, y ver el pronóstico de cada zona con su incertidumbre. Es la forma de que esto no termine en una presentación.">
   <div class="ceja" data-anim style="--i:0">El visor interactivo</div>
   <h2 data-anim style="--i:1">Busca tu cruce</h2>
-  <div class="marco">
+  <div class="marco" style="align-items:center">
     <div class="col media">
       <div class="pila">
-        <div class="dato frio" data-anim style="--i:2"><div class="rotulo">Hasta la esquina</div><div class="txt">Las 2 241 zonas y los cruces que las componen.</div></div>
-        <div class="dato frio" data-anim style="--i:3"><div class="rotulo">Filtra lo que importa</div><div class="txt">Año, tipo de usuario, gravedad.</div></div>
-        <div class="dato" data-anim style="--i:4"><div class="rotulo">Y el pronóstico</div><div class="txt">Con qué certeza, zona por zona.</div></div>
-        <div data-anim style="--i:5;display:flex;align-items:center;gap:18px;margin-top:6px">
-          <svg class="qr" style="padding:12px;flex:none" viewBox="0 0 {{QR_LADO:https://app-geo-eosin.vercel.app}} {{QR_LADO:https://app-geo-eosin.vercel.app}}" width="128" height="128" role="img" aria-label="Código QR al visor interactivo">
-            <path d="{{QR_TRAZO:https://app-geo-eosin.vercel.app}}"/>
-          </svg>
-          <div class="pie" style="font-family:var(--cifra);font-size:13px;color:var(--prusia);max-width:none;line-height:1.5">app-geo-eosin<br>.vercel.app</div>
-        </div>
+        <div class="dato frio" data-anim style="--i:2"><div class="rotulo">Explora el mapa</div><div class="txt">Aproximadamente 2 200 hexágonos que modelan la ZMM.</div></div>
+        <div class="dato frio" data-anim style="--i:3"><div class="rotulo">Checa la zona por donde circulas</div><div class="txt">Acércate hasta tu calle.</div></div>
+        <div class="dato" data-anim style="--i:4"><div class="rotulo">Mira nuestras predicciones</div><div class="txt">Cuántos accidentes para el 2027.</div></div>
       </div>
+    </div>
+    <div class="col" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <svg class="qr" data-anim style="--i:5" viewBox="0 0 {{QR_LADO:https://app-geo-eosin.vercel.app}} {{QR_LADO:https://app-geo-eosin.vercel.app}}" width="220" height="220" role="img" aria-label="Código QR al visor interactivo">
+        <path d="{{QR_TRAZO:https://app-geo-eosin.vercel.app}}"/>
+      </svg>
+      <div class="pie" data-anim style="--i:6;text-align:center;font-family:var(--cifra);font-size:13px;color:var(--prusia);margin-top:14px;max-width:none">app-geo-eosin.vercel.app</div>
     </div>
   </div>
 </section>
@@ -996,10 +957,18 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     var p = svgEl("circle", {
       cx: c[0], cy: (maxY - c[1]) - minY, r: r,
       fill: idx < 10 ? "#8B2C1A" : "#003153", "fill-opacity": idx < 10 ? 1 : .62,
-      stroke: idx < 10 ? "#F2F2F2" : "none", "stroke-width": idx < 10 ? .35 : 0
+      stroke: idx < 10 ? "#F2F2F2" : "none", "stroke-width": idx < 10 ? .35 : 0,
+      "class": idx < 10 ? "top" : ""
     });
     if (!quieto) p.style.transitionDelay = (idx * 1.6).toFixed(0) + "ms";
     gCruces.appendChild(p);
+    if (idx < 10){
+      // El número de la tabla, junto al punto: así la lista y el mapa se leen juntos.
+      // Alternar arriba y abajo: el 1 y el 4 son cruces vecinos y sus números se pisarían.
+      var e = svgEl("text", {x: c[0] + r + 0.4, y: (maxY - c[1]) - minY + (idx % 2 ? 2.3 : -0.6), "font-size": 1.9});
+      e.textContent = idx + 1;
+      gCruces.appendChild(e);
+    }
   });
   gCruces.classList.add("apagado");
   svg.appendChild(gCruces);
@@ -1105,7 +1074,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     }
     var v = D.capas[nombre], tope = 0;
     for (k = 0; k < N; k++) if (v[k] > tope) tope = v[k];
-    var lineal = nombre === "ptop5";
+    var lineal = nombre === "ptop5" || nombre === "anillos";
     for (k = 0; k < N; k++){
       var t = tope ? (lineal ? v[k] / tope : Math.pow(v[k] / tope, 0.42)) : 0;
       out[k] = v[k] === 0 ? vacia : mezcla(rampa, t);
@@ -1126,7 +1095,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     // Potencia 0,42: la cola es tan larga que una escala lineal deja el 95 %
     // del mapa del mismo color. Es la misma razón por la que los mapas del
     // reporte van en logaritmo.
-    var lineal = nombre === "ptop5";
+    var lineal = nombre === "ptop5" || nombre === "anillos";
     for (k = 0; k < N; k++){
       var t = tope ? (lineal ? v[k] / tope : Math.pow(v[k] / tope, 0.42)) : 0;
       celdas[k].setAttribute("fill", v[k] === 0 ? vacia : mezcla(rampa, t));
@@ -1145,9 +1114,10 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     ciclista: ["Colisiones con ciclista por zona · 2019–2024", "colisiones"],
     victimas: ["Accidentes con víctimas por zona · 2019–2024", "accidentes"],
     heridos:  ["Heridos por zona · 2019–2024", "heridos"],
-    muertos:  ["Muertos por zona · 2019–2024", "muertos"],
+    muertos:  ["Defunciones por zona · 2019–2024", "defunciones"],
     p2027:    ["Accidentes esperados por zona · 2027", "esperados"],
-    ptop5:    ["Probabilidad de estar en el 5 % de mayor riesgo · 2027", "%"]
+    ptop5:    ["Probabilidad de estar en el 5 % de mayor riesgo · 2027", "%"],
+    anillos:  ["Anillos por distancia al centro · 1 centro, 4 periferia", "periferia"]
   };
   for (var anio = 2019; anio <= 2024; anio++){
     TITULO_MAPA["a" + anio] = ["Accidentes por zona · " + anio, "accidentes"];
@@ -1156,8 +1126,9 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   var ETIQUETAS = {
     total: "accidentes 2019–2024", moto: "con motocicleta", peaton: "atropellamientos",
     ciclista: "con ciclista", victimas: "accidentes con víctimas",
-    heridos: "heridos 2019–2024", muertos: "muertos 2019–2024",
-    p2027: "esperados en 2027", ptop5: "% de probabilidad de estar en el 5 % peor"
+    heridos: "heridos 2019–2024", muertos: "defunciones 2019–2024",
+    p2027: "esperados en 2027", ptop5: "% de probabilidad de estar en el 5 % peor",
+    anillos: "· anillo (1 centro, 4 periferia)"
   };
   svg.addEventListener("mousemove", function(ev){
     var t = ev.target;
@@ -1197,7 +1168,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   var MARCOS = {
     llena:   "scale(1.72)",
     derecha: "translate(27%, 0) scale(1.24)",
-    zoom:    "translate(6%, 4%) scale(3.1)",
+    zoom:    "translate(24%, 2%) scale(2.7)",
     corredor:"translate(17%, 2%) scale(2.15)",
     mini:    "translate(31%, 3%) scale(.68)",
     fuera:   "translate(48%, 14%) scale(.8)"
@@ -1244,7 +1215,12 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     s.appendChild(et);
     s.appendChild(svgEl("text", {x: px(50), y: H - 6, "text-anchor": "middle",
       "font-family": "Montserrat, sans-serif", "font-size": 12, fill: "#2C2C2C",
-      "fill-opacity": .55})).textContent = "cruces, del peor al mejor";
+      "fill-opacity": .55})).textContent = "% de los cruces, del peor al mejor";
+    var ey = svgEl("text", {x: 14, y: py(50), "text-anchor": "middle",
+      "font-family": "Montserrat, sans-serif", "font-size": 12, fill: "#2C2C2C", "fill-opacity": .55,
+      transform: "rotate(-90 14 " + py(50) + ")"});
+    ey.textContent = "% acumulado de accidentes";
+    s.appendChild(ey);
     caja.appendChild(s);
     if (!quieto){
       var L = linea.getTotalLength();
@@ -1319,11 +1295,11 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
         "font-family": "Roboto Mono, monospace", "font-size": 11.5, fill: "#2C2C2C",
         "fill-opacity": .72})).textContent = milesTexto(t[1]);
     });
-    var cap = svgEl("text", {x: lx + 20, y: m.t + lalto / 2,
+    var cap = svgEl("text", {x: lx + 66, y: m.t + lalto / 2,
       "font-family": "Montserrat, sans-serif", "font-size": 11, "font-weight": 600,
       "letter-spacing": ".1em", fill: "#2C2C2C", "fill-opacity": .55});
     cap.textContent = "ACCIDENTES";
-    cap.setAttribute("transform", "rotate(-90 " + (lx + 20) + " " + (m.t + lalto / 2) + ")");
+    cap.setAttribute("transform", "rotate(-90 " + (lx + 66) + " " + (m.t + lalto / 2) + ")");
     cap.setAttribute("text-anchor", "middle");
     s.appendChild(cap);
 
@@ -1518,6 +1494,42 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     caja.appendChild(cont);
   }
 
+  function tendencia(caja){
+    // Total anual de la ZMM, con la pandemia marcada: el hueco de 2020-2021 no es
+    // menos siniestralidad, es menos circulación (y menos partes levantados).
+    var v = D.totalPorAnio, W = 520, H = 150, m = {t: 24, r: 18, b: 26, l: 18};
+    var tope = Math.max.apply(null, v), piso = Math.min.apply(null, v);
+    var s = svgEl("svg", {viewBox: "0 0 " + W + " " + H, style: "width:100%;height:auto"});
+    var px = function(i){ return m.l + i * (W - m.l - m.r) / 5; };
+    var py = function(y){ return H - m.b - ((y - piso * 0.85) / (tope - piso * 0.85)) * (H - m.t - m.b); };
+    // la franja de la pandemia: de 2020 a 2021
+    s.appendChild(svgEl("rect", {x: px(0.5), y: m.t - 8, width: px(2.5) - px(0.5), height: H - m.b - m.t + 8,
+      fill: "#B15E2E", "fill-opacity": .09}));
+    s.appendChild(svgEl("text", {x: (px(0.5) + px(2.5)) / 2, y: m.t - 12, "text-anchor": "middle",
+      "font-family": "Montserrat, sans-serif", "font-size": 11, "font-weight": 700, "letter-spacing": ".08em",
+      fill: "#B15E2E"})).textContent = "PANDEMIA";
+    s.appendChild(svgEl("line", {x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: "#003153", "stroke-opacity": .16}));
+    var d = v.map(function(y, i){ return (i ? "L" : "M") + px(i).toFixed(1) + " " + py(y).toFixed(1); }).join("");
+    var linea = svgEl("path", {d: d, fill: "none", stroke: "#005991", "stroke-width": 2.6, "stroke-linejoin": "round", "stroke-linecap": "round"});
+    s.appendChild(linea);
+    v.forEach(function(y, i){
+      s.appendChild(svgEl("circle", {cx: px(i), cy: py(y), r: 3.6, fill: "#005991"}));
+      s.appendChild(svgEl("text", {x: px(i), y: H - m.b + 16, "text-anchor": "middle",
+        "font-family": "Roboto Mono, monospace", "font-size": 11, fill: "#2C2C2C", "fill-opacity": .55})).textContent = 2019 + i;
+      if (i === 0 || i === 1 || i === 5){
+        s.appendChild(svgEl("text", {x: px(i), y: py(y) - 9, "text-anchor": "middle",
+          "font-family": "Roboto Mono, monospace", "font-size": 11.5, fill: "#005991"})).textContent = milesTexto(y);
+      }
+    });
+    caja.appendChild(s);
+    if (!quieto){
+      var L = linea.getTotalLength();
+      linea.style.strokeDasharray = L; linea.style.strokeDashoffset = L;
+      linea.style.transition = "stroke-dashoffset 1.4s cubic-bezier(.22,.68,.16,1) .4s";
+      requestAnimationFrame(function(){ linea.style.strokeDashoffset = 0; });
+    }
+  }
+
   function hexuno(caja){
     // Un solo hexágono, acotado: es la instrucción de lectura de todo el deck.
     var W = 232, H = 216, cx = 106, cy = 104, R = 84;
@@ -1541,7 +1553,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
       fill: "#B15E2E"})).textContent = "1 km";
     s.appendChild(svgEl("text", {x: cx, y: cy + 27, "text-anchor": "middle",
       "font-family": "Montserrat, sans-serif", "font-size": 16, "font-weight": 700,
-      fill: "#003153"})).textContent = "0,65 km²";
+      fill: "#003153"})).textContent = "una celda";
     s.appendChild(svgEl("text", {x: cx, y: H - 6, "text-anchor": "middle",
       "font-family": "Montserrat, sans-serif", "font-size": 10.5, "font-weight": 600,
       "letter-spacing": ".14em", fill: "#2C2C2C",
@@ -1602,7 +1614,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     caja.appendChild(s);
   }
 
-  var GRAFICAS = {lorenz: lorenz, horadia: horadia, tipos: tipos, series: series, municipios: municipios,
+  var GRAFICAS = {lorenz: lorenz, horadia: horadia, tipos: tipos, series: series, municipios: municipios, tendencia: tendencia,
                   hexdemo: hexdemo, hexuno: hexuno, modelo: modelo,
                   rasgos: rasgos, silueta: silueta};
 
@@ -1611,14 +1623,15 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     var t = document.querySelector('[data-tabla="hitos"]');
     D.cruces.hitos.forEach(function(h, idx){
       var tr = el("tr", idx === 2 ? "cima" : null);
-      tr.innerHTML = "<td>" + miles(h[0]) + " cruces</td>" +
+      var ultimo = idx === D.cruces.hitos.length - 1;
+      tr.innerHTML = "<td>" + (ultimo ? "Todos: " : "") + miles(h[0]) + " cruces</td>" +
         '<td class="n">' + coma(h[1].toFixed(2).replace(".", ",")) + "<i class='e'></i>%</td>" +
         '<td class="n">' + coma(h[2].toFixed(1).replace(".", ",")) + "<i class='e'></i>%</td>";
       t.appendChild(tr);
     });
 
     t = document.querySelector('[data-tabla="cruces"]');
-    D.cruces.top.slice(0, 8).forEach(function(c, idx){
+    D.cruces.top.slice(0, 10).forEach(function(c, idx){
       var tr = el("tr", idx < 2 ? "cima" : null);
       tr.innerHTML = '<td class="rango">' + (idx + 1) + "</td><td>" + c[0] +
         '</td><td class="sede">' + c[1].replace(" de los Garza", "").replace(" Garza García", "") +
@@ -1627,10 +1640,17 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
     });
 
     t = document.querySelector('[data-tabla="anillos"]');
-    var nombre = ["1.º · centro", "2.º", "3.º", "4.º · periferia"];
+    var nombre = ["Centro", "Primer anillo", "Segundo anillo", "Periferia"];
+    var quienes = ["Monterrey, San Nicolás, Guadalupe, San Pedro", "Apodaca, Escobedo",
+                   "Juárez, Pesquería, García", "Santiago, Cadereyta, Salinas Victoria"];
     D.anillos.forEach(function(a, idx){
-      var tr = el("tr", idx === 3 ? "cima" : null);
-      tr.innerHTML = "<td>" + nombre[idx] + '</td><td class="n">' + miles(a[2]) +
+      var tr = el("tr", idx === 2 ? "cima" : null);
+      var km = idx === 0 ? "hasta " + Math.round(a[3]) + " km" :
+               idx === 3 ? "más de " + Math.round(D.anillos[2][3]) + " km" :
+               Math.round(D.anillos[idx - 1][3]) + "–" + Math.round(a[3]) + " km";
+      tr.innerHTML = "<td>" + nombre[idx] + ' <span style="font-family:var(--cifra);font-size:12px;color:var(--tenue)">' + km + "</span>" +
+        '<div style="font-size:13px;color:var(--tenue);line-height:1.2">' + quienes[idx] + "</div></td>" +
+        '<td class="n">' + miles(a[2]) +
         '</td><td class="n">' + coma(a[1].toFixed(1).replace(".", ",")) + "<i class='e'></i>%</td>";
       t.appendChild(tr);
     });
@@ -1646,6 +1666,32 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
         '<div class="canal"><div class="relleno" style="--w:' + (v[1] / techo * 100).toFixed(1) + '%"></div></div>' +
         '<div class="val">' + miles(v[1]) + "</div>";
       caja.appendChild(b);
+    });
+
+    caja = document.querySelector('[data-barras="tipos"]');
+    var techoT = D.tiposAccidente[0][2];
+    D.tiposAccidente.slice(0, 8).forEach(function(v, idx){
+      var b = el("div", "barra" + (idx > 3 ? " b3" : idx > 1 ? " b2" : ""));
+      b.setAttribute("data-anim", ""); b.style.setProperty("--i", idx + 2);
+      b.innerHTML = '<div class="et">' + v[0] + "</div>" +
+        '<div class="canal"><div class="relleno" style="--w:' + (v[2] / techoT * 100).toFixed(1) + '%"></div></div>' +
+        '<div class="val" style="white-space:nowrap">' + coma(v[2].toFixed(1).replace(".", ",")) + "<i class='e'></i>% " +
+        '<span style="color:var(--tenue);font-weight:400">· ' + Math.round(v[3]) + "<i class='e'></i>% con víctimas</span></div>";
+      caja.appendChild(b);
+    });
+
+    // Las tres horas con más accidentes de la semana, de la misma tabla del calendario.
+    caja = document.querySelector('[data-tabla="horasTop"]');
+    var celdasHD = [];
+    D.horaDia.tabla.forEach(function(f, r){ f.forEach(function(v, c){ celdasHD.push([v, r, c]); }); });
+    celdasHD.sort(function(a, b){ return b[0] - a[0]; });
+    var DIA = {Lun: "Lunes", Mar: "Martes", Mié: "Miércoles", Jue: "Jueves", Vie: "Viernes", Sáb: "Sábado", Dom: "Domingo"};
+    celdasHD.slice(0, 3).forEach(function(o, idx){
+      var d = el("div");
+      d.innerHTML = '<div class="rotulo' + (idx ? "" : " calido") + '"><span style="font-family:var(--cifra);color:var(--tenue);font-size:15px;margin-right:10px">' + (idx + 1) + ".º</span>" +
+        (DIA[D.horaDia.dias[o[1]]] || D.horaDia.dias[o[1]]) + " " + String(o[2]).padStart(2, "0") + " h</div>" +
+        '<div class="pie" style="font-size:15px;font-family:var(--display);font-weight:500">' + miles(o[0]) + " accidentes en seis años</div>";
+      caja.appendChild(d);
     });
 
     caja = document.querySelector('[data-fichas="anios"]');
@@ -1665,8 +1711,8 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
                "El patrón más disperso y el de menor volumen: un problema que la base apenas alcanza a ver."],
     heridos: ["heridos en seis años",
               "Casi el mismo mapa que los choques: donde más se choca, más gente sale lastimada. Pero no la misma proporción: 6 heridos por cada cien accidentes en Monterrey, 23 en Juárez."],
-    muertos: ["muertos en seis años: uno cada dos días",
-              "Otro mapa. El 5 % de zonas con más choques tiene el 43 % de los accidentes y solo el 25 % de los muertos. Santiago: 18 muertos por cada mil accidentes; Monterrey, 2."]
+    muertos: ["defunciones en seis años",
+              "Otro mapa. El 5 % de zonas con más choques tiene el 43 % de los accidentes y solo el 25 % de las defunciones. Santiago: 18 defunciones por cada mil accidentes; Monterrey, 2."]
   };
   function actualizarFichas(slide, capa){
     slide.querySelectorAll(".ficha").forEach(function(f){
@@ -1708,7 +1754,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
       a = a === 2024 ? 2019 : a + 1;
       pintarCapa("a" + a, "fria");
       actualizarFichas(slide, "a" + a);
-    }, 1700);
+    }, 3200);
   }
 
   /* ============================================== navegación ============= */
@@ -1773,6 +1819,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 
     noche = s.classList.contains("hondo");
     lienzo.classList.toggle("noche", noche);
+    document.body.classList.toggle("noche", noche);
     var marco = s.dataset.marco || "fuera";
     var esMX = s.dataset.mapa === "mx";
     var mapaMX = document.getElementById("mapaMX");
@@ -1800,6 +1847,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
 
     var gc = document.getElementById("cruces");
     gc.classList.toggle("apagado", s.dataset.cruces !== "si" || hayCorredores);
+    gc.classList.toggle("etiquetas", s.dataset.etiquetas === "si");
     Array.prototype.forEach.call(gc.children, function(c, idx){
       c.setAttribute("fill", idx < 10 ? (noche ? "#E8A88F" : "#8B2C1A")
                                       : (noche ? "#9EC6E4" : "#003153"));
@@ -1852,7 +1900,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
         ? '<div class="titulo">Los 600 cruces con más accidentes</div>' +
           "<div>el área del círculo es el conteo · 2019–2024</div>"
         : '<div class="titulo">Rejilla de la ZMM</div>' +
-          "<div>2 241 zonas de 0,65 km²</div>";
+          "<div>2 241 zonas de 500 m de lado</div>";
       return;
     }
     var t = TITULO_MAPA[capa] || [capa, ""];
@@ -1880,6 +1928,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   }
   function escalar(){
     lienzo.style.setProperty("--k", Math.min(window.innerWidth / 1280, window.innerHeight / 720));
+    document.body.classList.toggle("sobreLamina", window.innerWidth / window.innerHeight >= 1280 / 720 - 0.01);
   }
   function cerrar(){ indice.classList.remove("abierto"); notas.classList.remove("abierto"); }
   function alternar(p){

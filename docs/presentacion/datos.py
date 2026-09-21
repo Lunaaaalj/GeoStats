@@ -127,7 +127,7 @@ def main() -> None:
     acum_cruce = np.cumsum(conteo_cruce) / conteo_cruce.sum()
     hitos = [[k, round(float(k) / len(conteo_cruce) * 100, 2),
               round(float(acum_cruce[k - 1]) * 100, 1)]
-             for k in (50, 250, 1000, 5000)]
+             for k in (50, 250, 1000, 5000, len(conteo_cruce))]
 
     # --- vialidades: los dos campos de calle cuentan igual -------------------
     calles = pd.concat([g.calle1_norm, g.calle2_norm]).dropna()
@@ -169,14 +169,29 @@ def main() -> None:
         np.hypot(centros.x - centro[0], centros.y - centro[1]).to_numpy(),
         index=orden.to_numpy())
     grupo = pd.qcut(d_celda, 4, labels=[1, 2, 3, 4])
+    capas["anillos"] = grupo.astype(int).tolist()
     victimas_celda = pd.Series(capas["victimas"], index=orden.to_numpy())
     total_celda = pd.Series(capas["total"], index=orden.to_numpy())
     anillos = []
     for k in (1, 2, 3, 4):
         m = grupo == k
+        # [anillo, % con víctimas, accidentes por celda, radio exterior en km]
         anillos.append([int(k),
                         round(float(victimas_celda[m].sum() / total_celda[m].sum()) * 100, 1),
-                        int(round(total_celda[m].mean()))])
+                        int(round(total_celda[m].mean())),
+                        round(float(d_celda[m].max()) / 1000, 1)])
+
+    # --- tipos de accidente: proporción y gravedad de cada uno ---------------
+    NOMBRES_TIPO = {1: "Colisión entre vehículos", 2: "Atropellamiento", 3: "Colisión con animal",
+                    4: "Colisión con objeto fijo", 5: "Volcadura", 6: "Caída de pasajero",
+                    7: "Salida del camino", 8: "Incendio", 9: "Colisión con ferrocarril",
+                    10: "Colisión con motocicleta", 11: "Colisión con ciclista", 12: "Otro"}
+    por_tipo = (g.groupby("TIPACCID", observed=True)
+                .agg(n=("hay_victimas", "size"), vic=("hay_victimas", "mean"))
+                .sort_values("n", ascending=False))
+    tipos_accidente = [[NOMBRES_TIPO.get(int(t), str(t)), int(r.n),
+                        round(float(r.n) / len(g) * 100, 1), round(float(r.vic) * 100, 1)]
+                       for t, r in por_tipo.iterrows()]
 
     # --- el país entero, en celdas de 0,1° -----------------------------------
     # No es un mapa de México con sus fronteras: es dónde están los accidentes
@@ -213,6 +228,7 @@ def main() -> None:
         "vialidades": vialidades,
         "corredores": corredores,
         "anillos": anillos,
+        "tiposAccidente": tipos_accidente,
         # Perfiles de cruce: salen del k-medias de `patrones_espaciales.qmd`.
         # Se copian porque reproducir el agrupamiento aquí costaría minutos y
         # el resultado es estable (99,8 % de los cruces conserva su tipo).
