@@ -4,7 +4,7 @@
 tiene ni una imagen. Los mapas, la curva de concentración, el calendario, la
 matriz de perfiles y las series se dibujan en el navegador desde `datos.json`, y
 las tipografías van embebidas, así que se abre con doble clic y se ve igual sin
-conexión. **33 láminas** en cuatro partes.
+conexión. **32 láminas** en cuatro partes.
 
 ## Presentar
 
