@@ -225,6 +225,8 @@ def main() -> None:
                              for px_, py_ in zip(puntos.x, puntos.y)]])
 
     # --- el árbol de costo humano -------------------------------------------
+    # Las ramas se reparten por hechos de tránsito; `heridos` y `defunciones`
+    # son personas y van solo como subtítulo de su rama.
     con_h = g.TOTHERIDOS > 0
     con_m = g.TOTMUERTOS > 0
     TOP4 = ["Monterrey", "Apodaca", "Guadalupe", "García"]
