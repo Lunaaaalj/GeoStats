@@ -1,3 +1,5 @@
+<div align="center">
+
 # GeoStats
 
 ### ¿Dónde es peligroso moverse en Monterrey?
@@ -6,18 +8,22 @@ Análisis geoestadístico de los **379,294 hechos de tránsito** registrados por
 el INEGI (ATUS) en la Zona Metropolitana de Monterrey entre 2019 y 2024 — y un
 modelo que dice dónde va a pasar en 2027.
 
-[**→ Ver la presentación interactiva**](docs/presentacion/) · [PDF de la presentación](docs/presentacion.pdf) · [Documentación técnica](docs/desarrollo.md)
+<img src="https://img.shields.io/badge/hechos%20de%20tránsito-379%2C294-005991?style=flat-square" alt="379,294 hechos de tránsito">
+<img src="https://img.shields.io/badge/heridos-25%2C642-005991?style=flat-square" alt="25,642 heridos">
+<img src="https://img.shields.io/badge/defunciones-1%2C167-8B2C1A?style=flat-square" alt="1,167 defunciones">
+<img src="https://img.shields.io/badge/municipios-18-005991?style=flat-square" alt="18 municipios">
+<img src="https://img.shields.io/badge/periodo-2019--2024-005991?style=flat-square" alt="2019–2024">
+<img src="https://img.shields.io/badge/pronóstico%202027-74%20mil-B15E2E?style=flat-square" alt="Pronóstico 2027: 74 mil hechos de tránsito">
+<img src="https://img.shields.io/badge/fuente-INEGI%20%C2%B7%20ATUS-2C2C2C?style=flat-square" alt="Fuente: INEGI · ATUS">
 
-<p align="center">
-  <img src="docs/mapa_calor_zmm.png" alt="Mapa de calor de hechos de tránsito en la Zona Metropolitana de Monterrey, 2019–2024" width="100%">
-</p>
+**[🖥️ Presentación interactiva](https://geo-stats-three.vercel.app/#1)** ·
+**[📈 App del modelo](https://app-geo-eosin.vercel.app)** ·
+[PDF de la presentación](docs/presentacion.pdf) ·
+[Documentación técnica](docs/desarrollo.md)
 
-<p align="center">
-  <img src="https://img.shields.io/badge/hechos%20de%20tránsito-379%2C294-005991?style=flat-square" alt="379,294 hechos de tránsito">
-  <img src="https://img.shields.io/badge/periodo-2019--2024-005991?style=flat-square" alt="2019–2024">
-  <img src="https://img.shields.io/badge/municipios-18-005991?style=flat-square" alt="18 municipios">
-  <img src="https://img.shields.io/badge/fuente-INEGI%20%C2%B7%20ATUS-2C2C2C?style=flat-square" alt="Fuente: INEGI · ATUS">
-</p>
+<img src="docs/mapa_calor_zmm.png" alt="Mapa de calor de hechos de tránsito en la Zona Metropolitana de Monterrey, 2019–2024" width="100%">
+
+</div>
 
 ## Qué es
 
@@ -134,9 +140,8 @@ jerárquico bayesiano entrenado con 2019–2023 y probado a ciegas contra
 mapas, el calendario y las gráficas se dibujan en el navegador. Se abre con
 doble clic, funciona sin conexión y guarda la lámina en la URL.
 
-```
-docs/presentacion/index.html
-```
+**[→ Abrir en vivo](https://geo-stats-three.vercel.app/#1)**, o local sin
+conexión con `docs/presentacion/index.html`.
 
 | Tecla | Qué hace |
 |---|---|
@@ -147,6 +152,15 @@ docs/presentacion/index.html
 
 Detalle de cómo está armada, qué representa cada mapa y cómo regenerarla en
 [`docs/presentacion/README.md`](docs/presentacion/README.md).
+
+## El visor interactivo
+
+Para que esto no termine en una presentación: un mapa en vivo de los ~2,200
+hexágonos de la ZMM, con el pronóstico de cada zona para 2027 y su
+incertidumbre. Se acerca hasta la esquina, se filtra por año, tipo de
+usuario y gravedad.
+
+**[→ Abrir el visor](https://app-geo-eosin.vercel.app)**
 
 ## Cómo está hecho
 
