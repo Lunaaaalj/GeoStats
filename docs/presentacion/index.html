@@ -247,6 +247,12 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   color:#FFFFFF; letter-spacing:-.01em}
 .pregunta .ctx{font-family:var(--texto); font-size:18px; line-height:1.3;
   color:#A9C8DD; margin-top:5px; max-width:52ch}
+.slide:not(.hondo) .pregunta .q{color:var(--ladrillo)}
+.slide:not(.hondo) .pregunta .ctx{color:var(--grafito)}
+
+/* Pasos: lo marcado con data-paso se revela de uno en uno con la misma tecla
+   que avanza; cuando ya no queda nada por decir, avanza la lámina. */
+.viva [data-anim][data-paso]:not(.dicho){opacity:0; transform:translateY(18px)}
 
 /* ------------------------------------------------------------- fichas ---- */
 .fichas{display:flex; gap:10px; flex:none}
@@ -349,6 +355,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
 @media (prefers-reduced-motion:reduce){
   #mapa,.hx,.slide,[data-anim],.barra .relleno,#cruces circle{transition-duration:.01ms!important}
   [data-anim]{opacity:1; transform:none}
+  .viva [data-anim][data-paso]:not(.dicho){opacity:1; transform:none}
 }
 
 @page{size:1280px 720px; margin:0}
@@ -363,6 +370,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   .mapaImpreso{display:block!important}
   #cruces.apagado circle{opacity:0}
   [data-anim]{opacity:1!important; transform:none!important}
+  .viva [data-anim][data-paso]:not(.dicho){opacity:1!important; transform:none!important}
   .barra .relleno{width:var(--w)!important}
   #cadena,#reloj,#ayuda,.panel,#lupa{display:none!important}
 }
@@ -905,7 +913,66 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 31 · CIERRE ============ -->
+<!-- ============ 31 · CONCLUSIONES ============ -->
+<section class="slide" data-t="Conclusiones" data-parte="Parte 4"
+  data-capa="ptop5" data-rampa="calida" data-marco="derecha" data-velo="claro"
+  data-notas="Tres ideas para llevarse. Primera: el problema es real y se puede medir; el 5 % de los hexágonos concentra más del 40 % de los hechos de tránsito de toda la ZMM. Segunda: no es mala suerte, se concentra en lugares y horarios concretos, y eso es una buena noticia porque permite priorizar dónde intervenir primero y dónde después. Tercera: si la infraestructura no cambia, el problema crece; el modelo proyecta más hechos de tránsito para 2027, pero no es una predicción del destino, es el escenario si no hacemos nada.">
+  <div class="ceja" data-anim style="--i:0">Conclusiones</div>
+  <h2 data-anim style="--i:1">Tres cosas que sí sabemos</h2>
+  <div class="marco">
+    <div class="col" style="flex:0 0 640px">
+      <div class="foro" style="gap:26px;margin-top:10px">
+        <div class="pregunta" data-anim style="--i:2">
+          <div class="np">01</div>
+          <div><div class="q">El problema es real y se puede medir.</div>
+          <div class="ctx">El <b>5 % de los hexágonos</b> concentra más del <b>40 %</b> de los hechos de tránsito de toda la Zona Metropolitana.</div></div>
+        </div>
+        <div class="pregunta" data-anim style="--i:3">
+          <div class="np">02</div>
+          <div><div class="q">No es mala suerte.</div>
+          <div class="ctx">Se concentra en <b>lugares y horarios concretos</b>. Y esa es la buena noticia: se puede priorizar dónde intervenir primero y dónde después.</div></div>
+        </div>
+        <div class="pregunta" data-anim style="--i:4">
+          <div class="np">03</div>
+          <div><div class="q">Si la infraestructura no cambia, el problema crece.</div>
+          <div class="ctx">El modelo proyecta <b>más hechos de tránsito para 2027</b>. No es una predicción del destino: es el escenario si no hacemos nada.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 32 · REFLEXIÓN ============ -->
+<section class="slide hondo" data-t="Reflexión" data-parte="Parte 4"
+  data-capa="total" data-marco="derecha" data-velo="tinta"
+  data-notas="Las preguntas aparecen una por una con la misma tecla que avanza. Dejar silencio después de cada una; no hay que contestarlas desde el atril.">
+  <div class="ceja" data-anim style="--i:0">Reflexión</div>
+  <h2 data-anim style="--i:1">Cuatro preguntas para llevarse</h2>
+  <div class="marco">
+    <div class="col" style="flex:0 0 660px">
+      <div class="foro" style="gap:26px;margin-top:10px">
+        <div class="pregunta" data-anim data-paso style="--i:0">
+          <div class="np">01</div>
+          <div class="q">¿En qué momento nos acostumbramos a ver estas cifras año tras año como si fueran inevitables?</div>
+        </div>
+        <div class="pregunta" data-anim data-paso style="--i:0">
+          <div class="np">02</div>
+          <div class="q">Si ya sabemos dónde se concentran tantos hechos de tránsito, ¿qué nos impide mirar esos lugares como una responsabilidad compartida entre ciudadanía activa y autoridades?</div>
+        </div>
+        <div class="pregunta" data-anim data-paso style="--i:0">
+          <div class="np">03</div>
+          <div class="q">Cuando una persona sale de casa y no vuelve, ¿nos basta con decir que fue un accidente?</div>
+        </div>
+        <div class="pregunta" data-anim data-paso style="--i:0">
+          <div class="np">04</div>
+          <div class="q">Dentro de un año, cuando volvamos a mirar este mapa, ¿qué nos gustaría poder decirles a las personas que hoy transitan por esas zonas?</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 33 · CIERRE ============ -->
 <section class="slide hondo" data-t="Cierre" data-parte="Parte 4"
   data-capa="total" data-marco="llena" data-velo="tinta">
   <div class="ceja" data-anim style="--i:0">GeoStats</div>
@@ -2147,7 +2214,22 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
 
   function ir(n){
     var previo = i;
+    // Un paso a la vez: la lámina retiene la tecla mientras tenga algo por decir.
+    if (!quieto && Math.abs(n - previo) === 1){
+      var pasos = laminas[previo].querySelectorAll("[data-paso]");
+      if (n > previo){
+        var pendiente = Array.prototype.find.call(pasos, function(p){ return !p.classList.contains("dicho"); });
+        if (pendiente){ pendiente.classList.add("dicho"); return; }
+      } else {
+        var dichos = laminas[previo].querySelectorAll("[data-paso].dicho");
+        if (dichos.length){ dichos[dichos.length - 1].classList.remove("dicho"); return; }
+      }
+    }
     i = Math.max(0, Math.min(laminas.length - 1, n));
+    if (i !== previo){
+      // Llegando de atrás empieza sin decir nada; llegando de adelante, ya dicho todo.
+      laminas[i].querySelectorAll("[data-paso]").forEach(function(p){ p.classList.toggle("dicho", previo > i); });
+    }
     if (i !== previo || !laminas[i].classList.contains("viva")) pintar();
   }
   function desdeHash(){

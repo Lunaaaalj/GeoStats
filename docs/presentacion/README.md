@@ -4,7 +4,7 @@
 tiene ni una imagen. Los mapas, la curva de concentración, el calendario, la
 matriz de perfiles y las series se dibujan en el navegador desde `datos.json`, y
 las tipografías van embebidas, así que se abre con doble clic y se ve igual sin
-conexión. **31 láminas** en cuatro partes.
+conexión. **33 láminas** en cuatro partes.
 
 ## Presentar
 
@@ -48,6 +48,7 @@ el hilo que une las cuatro partes. Cada lámina lo configura con atributos:
 | `data-cruces` | `si` para superponer los 600 cruces con más accidentes |
 | `data-etiquetas` | `si` numera los diez peores cruces sobre el mapa y atenúa el resto |
 | `data-notas` | el texto que muestra la tecla `N` |
+| `data-paso` | (en un elemento con `data-anim`) se revela de uno en uno con la tecla de avanzar; la lámina cambia hasta que no queda nada por decir |
 
 Sobre fondo azul la rampa se invierte (`friaNoche`, `calidaNoche`): con la
 rampa clara el mapa desaparecería dentro del fondo.
