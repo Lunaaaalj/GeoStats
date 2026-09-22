@@ -44,7 +44,7 @@ el hilo que une las cuatro partes. Cada lámina lo configura con atributos:
 | `data-corredores` | `si` apaga la rejilla y dibuja las seis avenidas con sus propios cruces |
 | `data-rampa` | `fria` (lo observado) · `calida` (lo estimado) |
 | `data-marco` | `llena`, `derecha`, `zoom`, `corredor`, `mini`, `fuera` |
-| `data-velo` | `claro` (degradado), `lleno` (sólido), `tinta` (sobre azul) |
+| `data-velo` | `claro` (degradado), `lleno` (sólido), `tinta` (degradado sobre azul), `noche` (azul sólido, sin mapa) |
 | `data-cruces` | `si` para superponer los 600 cruces con más accidentes |
 | `data-etiquetas` | `si` numera los diez peores cruces sobre el mapa y atenúa el resto |
 | `data-notas` | el texto que muestra la tecla `N` |

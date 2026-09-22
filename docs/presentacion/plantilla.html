@@ -94,6 +94,7 @@ body{margin:0; background:#071722; color:var(--grafito); font-family:var(--displ
    llegar más lejos o la cifra se lee encima de los puntos del mapa. */
 .velo.ancho{background:linear-gradient(97deg,var(--niebla) 0%,var(--niebla) 50%,rgba(242,242,242,.90) 66%,rgba(242,242,242,0) 84%)}
 .velo.tinta{background:linear-gradient(97deg,#003153 0%,#003153 30%,rgba(0,49,83,.88) 44%,rgba(0,49,83,.10) 68%,rgba(0,49,83,0) 82%)}
+.velo.noche{background:var(--prusia)}
 
 [data-anim]{opacity:0; transform:translateY(18px);
   transition:opacity .55s var(--curva), transform .55s var(--curva);
@@ -247,6 +248,7 @@ tr.cima td.n{color:var(--ladrillo); font-weight:700}
   color:#FFFFFF; letter-spacing:-.01em}
 .pregunta .ctx{font-family:var(--texto); font-size:18px; line-height:1.3;
   color:#A9C8DD; margin-top:5px; max-width:52ch}
+.foro.amplio .pregunta .q{font-size:28px; max-width:34ch}
 .slide:not(.hondo) .pregunta .q{color:var(--ladrillo)}
 .slide:not(.hondo) .pregunta .ctx{color:var(--grafito)}
 
@@ -915,13 +917,13 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
 
 <!-- ============ 31 · REFLEXIÓN ============ -->
 <section class="slide hondo" data-t="Reflexión" data-parte="Parte 4"
-  data-capa="total" data-marco="derecha" data-velo="tinta"
+  data-capa="ninguna" data-marco="fuera" data-velo="noche"
   data-notas="Las preguntas aparecen una por una con la misma tecla que avanza. Dejar silencio después de cada una; no hay que contestarlas desde el atril.">
   <div class="ceja" data-anim style="--i:0">Reflexión</div>
   <h2 data-anim style="--i:1">Cuatro preguntas para llevarse</h2>
   <div class="marco">
-    <div class="col" style="flex:0 0 660px">
-      <div class="foro" style="gap:26px;margin-top:10px">
+    <div class="col" style="flex:0 0 940px">
+      <div class="foro amplio" style="gap:30px;margin-top:10px">
         <div class="pregunta" data-anim data-paso style="--i:0">
           <div class="np">01</div>
           <div class="q">¿En qué momento nos acostumbramos a ver estas cifras año tras año como si fueran inevitables?</div>
