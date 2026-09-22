@@ -1,226 +1,205 @@
-# GeoStats — Accidentes de tránsito en México (ATUS, INEGI)
+<div align="center">
 
-Análisis geoestadístico de los accidentes de tránsito urbanos y suburbanos
-registrados por el INEGI.
+# GeoStats
 
-## Estructura
+### ¿Dónde es peligroso moverse en Monterrey?
 
+Análisis geoestadístico de los **379,294 hechos de tránsito** registrados por
+el INEGI (ATUS) en la Zona Metropolitana de Monterrey entre 2019 y 2024 — y un
+modelo que dice dónde va a pasar en 2027.
+
+<img src="https://img.shields.io/badge/hechos%20de%20tránsito-379%2C294-005991?style=flat-square" alt="379,294 hechos de tránsito">
+<img src="https://img.shields.io/badge/heridos-25%2C642-005991?style=flat-square" alt="25,642 heridos">
+<img src="https://img.shields.io/badge/defunciones-1%2C167-8B2C1A?style=flat-square" alt="1,167 defunciones">
+<img src="https://img.shields.io/badge/municipios-18-005991?style=flat-square" alt="18 municipios">
+<img src="https://img.shields.io/badge/periodo-2019--2024-005991?style=flat-square" alt="2019–2024">
+<img src="https://img.shields.io/badge/pronóstico%202027-74%20mil-B15E2E?style=flat-square" alt="Pronóstico 2027: 74 mil hechos de tránsito">
+<img src="https://img.shields.io/badge/fuente-INEGI%20%C2%B7%20ATUS-2C2C2C?style=flat-square" alt="Fuente: INEGI · ATUS">
+
+**[🖥️ Presentación interactiva](https://geo-stats-three.vercel.app/#1)** ·
+**[📈 App del modelo](https://app-geo-eosin.vercel.app)** ·
+[PDF de la presentación](docs/presentacion.pdf) ·
+[Documentación técnica](docs/desarrollo.md)
+
+<img src="docs/mapa_calor_zmm.png" alt="Mapa de calor de hechos de tránsito en la Zona Metropolitana de Monterrey, 2019–2024" width="100%">
+
+</div>
+
+## Qué es
+
+Un pipeline de datos + notebooks (no una aplicación) que toma el censo de
+accidentes de tránsito del INEGI, lo recorta a los 18 municipios de la Zona
+Metropolitana de Monterrey, lo divide en una rejilla de **2,241 hexágonos de
+un kilómetro** y responde tres preguntas: **dónde** se concentra el riesgo,
+**a quién** le cuesta más caro, y **qué tan bien se puede anticipar**.
+
+Proyecto de la Semana de la Movilidad, por Angel Eduardo Luna, Jenaro Alcaraz,
+Roberto Pérez, Damián Yul Reynoso y Mateo Rodolfo Flores.
+
+## Lo que encontramos
+
+<table>
+<tr>
+<td width="45%">
+
+**Siete de cada diez son colisiones entre vehículos**
+
+Pero el tipo más común es el que menos daño hace por hecho. Un
+atropellamiento deja afectados el 100 % de las veces; una colisión entre
+vehículos, el 1 %.
+
+</td>
+<td width="55%"><img src="docs/imagenes/tipos_accidente.png" alt="Barras: porcentaje de hechos de tránsito por tipo, con el porcentaje que deja afectados"></td>
+</tr>
+<tr>
+<td width="45%">
+
+**Cuatro tipos concentran el 80 % de las defunciones**
+
+Atropellamiento, colisión con objeto fijo, colisión entre vehículos y
+colisión con motocicleta. En los cuatro, la causa que quedó registrada en
+el parte fue la misma: un conductor distraído.
+
+</td>
+<td width="55%"><img src="docs/imagenes/defunciones_por_tipo.png" alt="Barras: los cuatro tipos de hecho de tránsito con más defunciones"></td>
+</tr>
+<tr>
+<td width="45%">
+
+**El costo humano es la excepción, no la regla — pero cuando cuesta, cuesta caro**
+
+El 92.9 % de los hechos de tránsito son solo daños materiales. Del 0.28 %
+que dejó alguna defunción, el 64.4 % de las 1,167 muertes se concentra en
+intersecciones de solo cuatro municipios: Monterrey, Apodaca, Guadalupe y
+García.
+
+</td>
+<td width="55%"><img src="docs/imagenes/arbol_costo_humano.png" alt="Diagrama de flujo: de todos los hechos de tránsito a solo daños materiales, heridos y defunciones, y dónde se concentran las defunciones"></td>
+</tr>
+<tr>
+<td width="45%">
+
+**El pico no es de madrugada: es la hora pico**
+
+Martes 8 h, sábado 14 h y viernes 15 h son las horas más cargadas de la
+semana — casi empatadas. Solo el 8.6 % de los hechos ocurre entre
+medianoche y las cinco de la mañana: es exposición, no imprudencia
+nocturna.
+
+</td>
+<td width="55%"><img src="docs/imagenes/hora_dia.png" alt="Mapa de calor de hechos de tránsito por hora del día y día de la semana"></td>
+</tr>
+<tr>
+<td width="45%">
+
+**Donde hay más hechos no es donde más se pierde**
+
+En el centro de la ciudad hay 498 hechos de tránsito por zona y el 4.7 %
+deja afectados. En la periferia hay 29 por zona, pero el 8.4 % deja
+afectados. Un ranking hecho solo con el conteo pone a la periferia hasta
+abajo, y ahí es donde la gente sale peor parada.
+
+</td>
+<td width="55%"><img src="docs/imagenes/gravedad.png" alt="Tabla y mapa: hechos de tránsito y porcentaje con afectados por anillo de distancia al centro"></td>
+</tr>
+<tr>
+<td width="45%">
+
+**Los cruces se agrupan en cuatro perfiles**
+
+De los 2,302 cruces con 30 o más hechos, uno agrupa por moto, otro por
+pérdida de control nocturna contra objetos fijos, otro por peatones y
+ciclistas. El grupo más grande es el menos dañino por hecho; el más chico
+es el que manda gente al hospital.
+
+</td>
+<td width="55%"><img src="docs/imagenes/cuatro_perfiles.png" alt="Tabla de los cuatro perfiles de cruce según sus rasgos"></td>
+</tr>
+<tr>
+<td width="45%">
+
+**El mapa casi no se mueve — y eso se puede anticipar**
+
+De los 200 peores cruces, 155 aparecen en los seis años. Un modelo
+jerárquico bayesiano entrenado con 2019–2023 y probado a ciegas contra
+2024 falló el total metropolitano por solo 0.6 %. Para 2027 espera
+**74 mil** hechos de tránsito en la Zona Metropolitana.
+
+</td>
+<td width="55%"><img src="docs/imagenes/pronostico_2027.png" alt="Mapa del pronóstico de hechos de tránsito esperados por zona en 2027"></td>
+</tr>
+</table>
+
+## La presentación
+
+<p align="center">
+  <img src="docs/imagenes/portada.png" alt="Portada de la presentación: ¿Dónde es peligroso moverse en Monterrey?" width="70%">
+</p>
+
+31 láminas en un solo archivo HTML de media megabyte, sin imágenes: los
+mapas, el calendario y las gráficas se dibujan en el navegador. Se abre con
+doble clic, funciona sin conexión y guarda la lámina en la URL.
+
+**[→ Abrir en vivo](https://geo-stats-three.vercel.app/#1)**, o local sin
+conexión con `docs/presentacion/index.html`.
+
+| Tecla | Qué hace |
+|---|---|
+| `←` `→` `espacio` | avanzar y retroceder |
+| `O` | índice navegable |
+| `N` | notas del presentador |
+| `F` | pantalla completa |
+
+Detalle de cómo está armada, qué representa cada mapa y cómo regenerarla en
+[`docs/presentacion/README.md`](docs/presentacion/README.md).
+
+## El visor interactivo
+
+Para que esto no termine en una presentación: un mapa en vivo de los ~2,200
+hexágonos de la ZMM, con el pronóstico de cada zona para 2027 y su
+incertidumbre. Se acerca hasta la esquina, se filtra por año, tipo de
+usuario y gravedad.
+
+**[→ Abrir el visor](https://app-geo-eosin.vercel.app)**
+
+## Cómo está hecho
+
+```mermaid
+flowchart LR
+    A["data/raw/<br/>CSV + shapefile<br/>INEGI · ATUS 2019–2024"] -->|"consolidar-atus"| B[("atus_georreferenciado<br/>.parquet<br/>1.3M filas · nacional")]
+    B -->|"zona-atus"| C[("atus_zmm.parquet<br/>379K filas · ZMM<br/>18 municipios")]
+    C -->|"limpieza"| D[("atus_zmm_limpio.parquet<br/>+20 columnas derivadas")]
+    D --> E["notebooks/*.qmd<br/>análisis espacial,<br/>modelo jerárquico"]
+    D --> F["docs/presentacion/<br/>datos.json → index.html"]
+    E --> G["docs/*.pdf<br/>reporte técnico"]
+
+    style A fill:#F2F2F2,stroke:#2C2C2C,color:#2C2C2C
+    style B fill:#DCE9F2,stroke:#005991,color:#003153
+    style C fill:#DCE9F2,stroke:#005991,color:#003153
+    style D fill:#DCE9F2,stroke:#005991,color:#003153
+    style E fill:#FBF1EA,stroke:#B15E2E,color:#8B2C1A
+    style F fill:#FBF1EA,stroke:#B15E2E,color:#8B2C1A
+    style G fill:#F2F2F2,stroke:#2C2C2C,color:#2C2C2C
 ```
-data/                  ← qué se versiona y qué no, abajo
-  raw/                 descargas del INEGI, tal cual llegaron; solo lectura
-    ATUS_2019..2024/   base georreferenciada anual (CSV + shapefile)
-    ATUS_anual_csv/    serie anual 1997-2025, sin coordenadas
-    rativ_abierto_22-26.csv
-    _zips/             los comprimidos originales
-  processed/           lo que genera este repo; borrable y regenerable
-    atus_georreferenciado.parquet       nacional, 2019-2024
-    atus_zmm.parquet                    Zona Metropolitana de Monterrey
-    atus_zmm_limpio.parquet             la ZMM más 20 columnas derivadas
-docs/
-  diccionario_de_datos.md   los 50 campos, sus catálogos y sus centinelas
-  seleccion_datos.md        qué columnas conservar y con qué papel
-  limpieza.md               las 20 derivadas, y lo que la limpieza no hace
-  *.pdf                     el render de cada notebook, para leer sin entorno
-notebooks/
-  revisiones.ipynb              exploración
-  calidad_datos.qmd             reporte de faltantes (no modifica nada)
-  analisis_multivariado.qmd     covarianza, correlación, factorial y STL
-src/geostats/
-  rutas.py             rutas del proyecto (nada de rutas relativas)
-  consolidar.py        raw/ATUS_20XX → processed/*.parquet
-  zonas.py             recortes geográficos (ZMM de Monterrey)
-  limpieza.py          columnas derivadas y validación; no borra ni imputa
-```
 
-La separación `raw/` vs `processed/` es la regla del proyecto: **nunca se
-escribe en `raw/`**. Si algo en `processed/` se corrompe, se borra y se
-regenera; si algo en `raw/` se pierde, hay que volver a bajarlo del INEGI.
-
-**Qué se versiona.** `raw/` nunca: son ~5 GB de descargas del INEGI que se
-vuelven a bajar. De `processed/` sí van al repo las bases consolidadas
-(`atus_georreferenciado*`, `atus_zmm*`), para que un clon tenga datos sin
-repetir esa descarga. Los artefactos de limpieza (`*_limpio*`) quedan fuera: se
-regeneran en segundos con `uv run limpiar-atus`, y como Parquet es binario
-comprimido git no puede hacer delta — cada versión commiteada se guardaría
-entera y se quedaría en el historial para siempre.
-
-## Preparar el entorno
+Python + `uv`, con una regla fija: **nunca se escribe en `data/raw/`**.
+`processed/` es borrable y regenerable con tres comandos:
 
 ```bash
 uv sync
+uv run consolidar-atus   # raw/ → atus_georreferenciado.parquet (nacional)
+uv run zona-atus         # → atus_zmm.parquet (Zona Metropolitana de Monterrey)
+uv run limpiar-atus      # → atus_zmm_limpio.parquet (+20 columnas derivadas)
 ```
 
-### Si `import geostats` falla
+El resto — estructura de carpetas, cómo se limpia el encoding, por qué `ID`
+no es llave única, la identidad visual de las gráficas y todo lo que no es
+obvio de estos datos — está en
+[**`docs/desarrollo.md`**](docs/desarrollo.md).
 
-Choque conocido entre uv y Python 3.14 en macOS: el `.pth` de la instalación
-editable queda con el flag `UF_HIDDEN`, y **Python 3.14 ignora en silencio los
-`.pth` ocultos**. Reaparece de forma intermitente, cuando uv reescribe ese
-archivo:
+## Fuente de los datos
 
-```bash
-chflags nohidden .venv/lib/python3.14/site-packages/*.pth
-```
-
-El archivo `.env` de la raíz (`PYTHONPATH=src`) es la red de seguridad: VS Code
-lo aplica al kernel de Jupyter, así que los notebooks siguen funcionando aunque
-el `.pth` esté oculto. Por eso ese `.env` sí se versiona — no contiene secretos.
-
-## Los notebooks
-
-Van en **Quarto** (`.qmd`), no en `.ipynb`. El `.qmd` es texto plano: git puede
-hacer diff y merge de verdad, y el archivo no carga con las salidas embebidas
-que hacen ilegible el historial de un notebook de Jupyter.
-
-```bash
-uv sync --group dev                        # nbclient y nbformat, que Quarto usa
-quarto render notebooks/calidad_datos.qmd --to html
-```
-
-Si `quarto` no encuentra el intérprete, apúntalo al del proyecto:
-`QUARTO_PYTHON=.venv/Scripts/python.exe` (Windows) o `.venv/bin/python`.
-
-**Cada notebook tiene su PDF en `docs/`.** Se genera del HTML, porque en estas
-máquinas no hay LaTeX:
-
-```bash
-chrome --headless --no-pdf-header-footer   --print-to-pdf=docs/calidad_datos.pdf notebooks/calidad_datos.html
-```
-
-El HTML intermedio y todo lo que Quarto deja en `notebooks/` está en
-`.gitignore`; al repo solo van el `.qmd` y el PDF de `docs/`.
-
-## Reconstruir los datos procesados
-
-Los datos crudos no están en el repo. Bajar de INEGI las bases ATUS
-georreferenciadas por año, descomprimirlas en `data/raw/ATUS_<año>/`, y correr:
-
-```bash
-uv run consolidar-atus              # parquet tabular (31 MB)
-uv run consolidar-atus --geo        # además GeoParquet con geometría (43 MB)
-uv run consolidar-atus --verificar  # contrasta los .shp contra los CSV
-```
-
-Produce 1,317,810 filas × 50 columnas (2019-2024) en 31 MB de Parquet, contra
-219 MB de CSV.
-
-### Recorte a la Zona Metropolitana de Monterrey
-
-```bash
-uv run zona-atus          # data/processed/atus_zmm.parquet
-uv run zona-atus --geo    # además el GeoParquet
-```
-
-379,294 registros (28.8 % del total nacional) en los 18 municipios de la ZMM
-según el Sistema Urbano Nacional. Agrega la columna `NOM_MUN`.
-
-**Esos 18 municipios son exactamente los únicos de Nuevo León que trae ATUS**:
-la cobertura estatal de la encuesta coincide con la zona metropolitana, así que
-filtrar por `EDO == 19` da el mismo resultado. `geostats.zonas` mantiene la lista
-explícita de todos modos, y falla si algún municipio de la zona no aparece en los
-datos, para que el recorte no dependa de esa coincidencia.
-
-Ventaja sobre la base nacional: **el panel está balanceado**, los 18 municipios
-están presentes los seis años. Las series de tiempo de la ZMM sí son comparables
-entre años, cosa que a nivel nacional no ocurre (la cobertura va de 91 a 198
-municipios).
-
-### Limpieza
-
-```bash
-uv run limpiar-atus          # data/processed/atus_zmm_limpio.parquet (12 MB)
-uv run limpiar-atus --geo    # además el GeoParquet (15 MB)
-```
-
-Agrega 20 columnas derivadas a las 51 del recorte, y **nunca borra filas ni
-imputa**. No es estilo: el faltante de esta base es MNAR —en accidentes fatales
-el aliento alcohólico se ignora 2.4 veces más seguido que en los de solo daños—,
-así que `dropna()` sesga contra los accidentes graves e imputar bajo supuesto
-MAR mete sesgo en silencio. Si la etapa no puede borrar ni imputar, ninguna de
-las dos cosas puede pasar por descuido más adelante.
-
-Convención: **mayúsculas** es lo que llegó del INEGI y no se toca, incluidos los
-códigos centinela; **minúsculas** es lo que construye este repo. Así en cualquier
-`groupby` se sabe de un vistazo de dónde viene el dato.
-
-`validar()` recorre 21 invariantes y falla con la lista completa de las que se
-rompan; `diagnostico()` imprime las doce cifras que cambian la lectura del
-análisis. El detalle de cada columna está en [`docs/limpieza.md`](docs/limpieza.md).
-
-> Las coordenadas traen **hasta ocho decimales**, no seis como sugiere el
-> ejemplo del diccionario. Formatearlas a seis fusiona 8,115 puntos distintos en
-> silencio, así que `id_punto` no usa formato fijo y una invariante lo comprueba
-> en cada corrida.
-
-### Por qué no se consolidan los shapefiles
-
-Los `.shp` traen los mismos registros que los CSV. `--verificar` lo comprueba
-año por año: coinciden las 1,317,810 filas por la llave `(ANIO, EDO, MPIO, ID)`,
-sin sobrantes de ningún lado, y la geometría del shapefile es **idéntica** a las
-columnas `LONGITUD`/`LATITUD` (desfase máximo: 0.0 grados en los seis años).
-
-Por eso `--geo` construye la geometría desde esas columnas en vez de releer 5 GB
-de shapefiles: el resultado es el mismo punto por punto. Ojo: en 2019-2023 el
-orden de las filas difiere entre `.shp` y CSV, así que compararlos por posición
-da resultados sin sentido — hay que unirlos por la llave.
-
-## Identidad visual en las gráficas
-
-Las gráficas siguen el manual de GeoStats, pero los colores de marca están
-pensados para impresión y no todos sirven como marcas de datos sobre fondo
-claro. Se validaron antes de usarlos (banda de luminosidad OKLCH 0.43–0.77,
-piso de croma 0.10, separación bajo simulación de daltonismo, contraste WCAG):
-
-| Color de marca | Uso en gráficas | Resultado |
-|---|---|---|
-| Azul Prusia `#003153` | datos | **No pasa**: L=0.304 (banda 0.43–0.77) y croma 0.078 (piso 0.10, lee como gris). Se conserva el tono 246° y se sube L a 0.45 → `#005991` |
-| Rojo profundo `#8B2C1A` | títulos, énfasis | Pasa sin cambios (L=0.434, croma 0.133) |
-| Rojo óxido `#B15E2E` | detalle cálido | Pasa sin cambios (L=0.571, croma 0.124) |
-| Gris grafito `#2C2C2C` | texto, ejes | Croma 0 — correcto para texto, nunca como serie |
-| Gris claro `#F2F2F2` | rejilla, fondos | — |
-
-**Los dos rojos nunca van como series contiguas:** entre sí quedan en ΔE 14.1
-sobre un piso de 15, así que un lector con visión de color plena no los
-distingue bien lado a lado.
-
-Como la marca solo aporta un tono de datos, las gráficas con más de dos series
-usan **paneles pequeños** (una serie por panel) o la **rampa ordinal** de Azul
-Prusia `#005991 → #1b77b8 → #4195d9` cuando la dimensión tiene orden, en vez de
-inventar colores fuera del manual.
-
-Tipografías: Montserrat (títulos), Cormorant Garamond (texto), Roboto Mono
-(cifras). No están instaladas en el sistema, así que matplotlib usa respaldos.
-Para el renderizado exacto:
-
-```bash
-brew install --cask font-montserrat font-cormorant-garamond font-roboto-mono
-```
-
-## Notas sobre los datos
-
-El significado de cada campo, sus catálogos de códigos y sus valores centinela
-están en [`docs/diccionario_de_datos.md`](docs/diccionario_de_datos.md), que
-consolida los tres diccionarios del INEGI y los contrasta contra los datos.
-
-Tres cosas que no son obvias y que rompen el análisis si se ignoran:
-
-**Encoding: CP1252 con respaldo, no lo que diga `chardet`.** Sobre estos
-archivos chardet reporta `CP874`/`TIS-620` con confianza `0.00`, porque apenas
-~1 de cada 250 bytes es no-ASCII. El `.cpg` del INEGI declara CP1252 y tiene
-razón: en el rango `0x80-0x9F` CP1252 pone guiones y comillas tipográficas que
-`latin-1` convierte en caracteres de control (719 caracteres mal leídos, en
-silencio). Pero 740 bytes del origen caen en los cinco huecos que CP1252 no
-define. `consolidar` registra un manejador de errores que lee esos cinco bytes
-con semántica latin-1: texto correcto y cero bytes perdidos (ningún U+FFFD).
-
-**`ID` no es llave única.** En 2019-2020 es un folio consecutivo *por
-municipio* y se repite 268,920 veces; desde 2021 es un identificador compuesto.
-La llave real es `(ANIO, EDO, MPIO, ID)`. `consolidar` lo valida y falla si no
-se cumple.
-
-**La cobertura crece: el panel está desbalanceado.** De 91 municipios en 2019 a
-198 en 2024. El salto de +52% en accidentes entre 2020 y 2021 es en buena parte
-*más municipios medidos*, no más accidentes. Cualquier serie de tiempo hay que
-normalizarla (tasa por municipio, o restringir al panel balanceado).
-
-`consolidar` agrega `CVE_MUN` (2 dígitos de estado + 3 de municipio), que es la
-llave para unir con el marco geoestadístico del INEGI.
+INEGI, *Accidentes de Tránsito Terrestre en Zonas Urbanas y Suburbanas*
+(ATUS), 2019–2024. Censo, no encuesta: no estima, cuenta, a partir de los
+partes que levantan las policías de tránsito de cada municipio.
+[inegi.org.mx/programas/accidentes](https://www.inegi.org.mx/programas/accidentes/)

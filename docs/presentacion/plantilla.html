@@ -402,14 +402,14 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 2 · CORTE I ============ -->
+<!-- ============ 3 · CORTE I ============ -->
 <section class="slide hondo corte" data-t="Parte 1 · El problema" data-parte="Parte 1"
   data-capa="ninguna" data-cruces="si" data-marco="llena" data-velo="tinta">
   <div class="num" data-anim style="--i:0">PARTE 1</div>
   <h1 data-anim style="--i:1">El problema<br>y los datos</h1>
 </section>
 
-<!-- ============ 3 · LA PROBLEMÁTICA ============ -->
+<!-- ============ 4 · LA PROBLEMÁTICA ============ -->
 <section class="slide" data-t="Un hecho de tránsito cada dos minutos" data-parte="Parte 1"
   data-capa="total" data-mapa="mx" data-marco="llena" data-velo="claro"
   data-notas="El mapa es el país: cada celda son once kilómetros y el color es cuántos hechos de tránsito registra ATUS ahí. En todo el país son 1,3 millones de hechos de tránsito en seis años: 601 al día, uno cada 2,4 minutos. En la Zona Metropolitana de Monterrey, 379 294: 173 al día, cerca de uno cada ocho minutos. Y en la metrópoli uno de cada dieciocho deja afectados: heridos o defunciones; en el país es uno de cada siete, porque muchos municipios solo levantan el parte cuando hay heridos. Ojo con leer mal el mapa: los huecos del noroeste no son ausencia de hechos de tránsito, son ausencia de reporte.">
@@ -447,26 +447,22 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
       <dl class="especificaciones">
         <div class="especificacion" data-anim style="--i:3">
           <dt>Tamaño</dt>
-          <dd><b>Un kilómetro de punta a punta</b>, más o menos un barrio.</dd>
+          <dd><b>Un kilómetro de punta a punta</b>: más o menos un barrio. <b>2 241 celdas</b> cubren la metrópoli donde hay calles.</dd>
         </div>
         <div class="especificacion" data-anim style="--i:4">
-          <dt>Cuántos</dt>
-          <dd><b>2 241 celdas</b> cubren todo el territorio de la metrópoli donde hay calles: es la división de la ciudad hecha para el modelo predictivo. Las vacías se descartan: no tienen red vial.</dd>
-        </div>
-        <div class="especificacion" data-anim style="--i:5">
           <dt>Cómo se lee</dt>
           <dd>El color es <b>cuántos hechos de tránsito cayeron dentro</b>. Como todas miden igual, dos celdas se comparan sin corregir nada.</dd>
         </div>
-        <div class="especificacion" data-anim style="--i:6">
-          <dt>Y no colonias (AGEB)</dt>
-          <dd>Las fronteras de una colonia &#8212;las AGEB del INEGI&#8212; van <b>por en medio de las avenidas</b>, justo donde ocurren los hechos de tránsito: cada hecho de tránsito caería en el límite entre dos polígonos. La rejilla no sabe dónde están las calles.</dd>
+        <div class="especificacion" data-anim style="--i:5">
+          <dt>Y no colonias</dt>
+          <dd>Las fronteras de una AGEB van <b>por en medio de las avenidas</b>, justo donde ocurren los hechos. La rejilla no sabe dónde están las calles.</dd>
         </div>
       </dl>
     </div>
   </div>
 </section>
 
-<!-- ============ 4 · LA BASE ============ -->
+<!-- ============ 6 · LA BASE ============ -->
 <section class="slide" data-t="ATUS: el censo del INEGI" data-parte="Parte 1"
   data-capa="total" data-marco="mini" data-velo="claro"
   data-fuente="INEGI · <i>Accidentes de tránsito terrestre en zonas urbanas y suburbanas</i> (ATUS), georreferenciado 2019–2024<br><a href=&quot;https://www.inegi.org.mx/programas/accidentes/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;>inegi.org.mx/programas/accidentes</a>"
@@ -500,30 +496,45 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 5b · HERIDOS Y DEFUNCIONES ============ -->
-<section class="slide" data-t="Heridos y defunciones" data-parte="Parte 1"
+<!-- ============ 7 · HERIDOS ============ -->
+<section class="slide" data-t="Heridos" data-parte="Parte 1"
   data-capa="heridos" data-marco="derecha" data-velo="claro"
-  data-notas="Aquí el mapa cambia de unidad: ya no cuenta hechos de tránsito sino personas. Los heridos siguen casi el mismo dibujo que los hechos de tránsito: donde hay más, más gente sale herida. Las defunciones no: el 5 % de zonas con más hechos de tránsito concentra el 43 % de los hechos de tránsito y solo el 25 % de las defunciones. Están en las vías rápidas y en la periferia. Santiago tiene 18 defunciones por cada mil hechos de tránsito, Monterrey 2, San Pedro menos de 1. Son 1 162 defunciones en seis años. A esa escala el mapa se lee por corredor y por municipio, no por zona: con una defunción cada dos celdas en seis años, una celda sola no dice nada.">
-  <div class="ceja" data-anim style="--i:0">Afectados</div>
+  data-notas="Aquí el mapa cambia de unidad: ya no cuenta hechos de tránsito sino personas. Los heridos siguen casi el mismo dibujo que los hechos de tránsito: donde hay más, más gente sale herida, aunque no en la misma proporción: 6 heridos por cada cien hechos de tránsito en Monterrey, 23 en Juárez.">
+  <div class="ceja" data-anim style="--i:0">Afectados · Heridos</div>
   <h2 data-anim style="--i:1">Las personas detrás de los registros</h2>
   <div class="marco">
     <div class="col media">
-      <div class="fichas" data-anim style="--i:2">
-        <button class="ficha puesta" data-capa="heridos">Heridos</button>
-        <button class="ficha" data-capa="muertos">Defunciones</button>
-      </div>
       <div class="pila" style="margin-top:14px">
-        <div data-anim style="--i:3">
-          <div class="l"><span data-cifra-capa="suma">25<i class="e"></i>616</span></div>
-          <div class="pie" data-cifra-capa="pie">heridos en seis años</div>
+        <div data-anim style="--i:2">
+          <div class="l"><span>25<i class="e"></i>616</span></div>
+          <div class="pie">heridos en seis años</div>
         </div>
-        <div class="dato" data-anim style="--i:4"><div class="txt" data-cifra-capa="txt">Casi el mismo mapa que los hechos de tránsito: donde hay más, más gente sale herida. Pero no la misma proporción: 6 heridos por cada cien hechos de tránsito en Monterrey, 23 en Juárez.</div></div>
+        <div class="dato" data-anim style="--i:3"><div class="txt">Casi el mismo mapa que los hechos de tránsito: donde hay más, más gente sale herida. Pero no la misma proporción: 6 heridos por cada cien hechos de tránsito en Monterrey, 23 en Juárez.</div></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============ 6 · CORTE II ============ -->
+<!-- ============ 8 · DEFUNCIONES ============ -->
+<section class="slide" data-t="Defunciones" data-parte="Parte 1"
+  data-capa="muertos" data-marco="derecha" data-velo="claro"
+  data-notas="Las defunciones no siguen el mismo mapa que los hechos de tránsito: el 5 % de zonas con más hechos de tránsito concentra el 43 % de los hechos de tránsito y solo el 25 % de las defunciones. Están en las vías rápidas y en la periferia. Santiago tiene 18 defunciones por cada mil hechos de tránsito, Monterrey 2, San Pedro menos de 1. A esa escala el mapa se lee por corredor y por municipio, no por zona: con una defunción cada dos celdas en seis años, una celda sola no dice nada.">
+  <div class="ceja" data-anim style="--i:0">Afectados · Defunciones</div>
+  <h2 data-anim style="--i:1">Las defunciones no siguen el mismo mapa</h2>
+  <div class="marco">
+    <div class="col media">
+      <div class="pila" style="margin-top:14px">
+        <div data-anim style="--i:2">
+          <div class="l"><span>1<i class="e"></i>162</span></div>
+          <div class="pie">defunciones en seis años</div>
+        </div>
+        <div class="dato" data-anim style="--i:3"><div class="txt">Otro mapa. El 5 % de zonas con más hechos de tránsito tiene el 43 % de los hechos de tránsito y solo el 25 % de las defunciones. Santiago: 18 defunciones por cada mil hechos de tránsito; Monterrey, 2.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9 · CORTE II ============ -->
 <section class="slide hondo corte" data-t="Parte 2 · El mapa" data-parte="Parte 2"
   data-capa="total" data-marco="llena" data-velo="tinta">
   <div class="num" data-anim style="--i:0">PARTE 2</div>
@@ -531,57 +542,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   <p class="entrada" data-anim style="--i:2">Análisis descriptivo de los datos.</p>
 </section>
 
-<!-- ============ 10 · CORREDORES ============ -->
-<section class="slide" data-t="Corredores, no esquinas" data-parte="Parte 2"
-  data-capa="ninguna" data-corredores="si" data-marco="corredor" data-velo="claro"
-  data-notas="Los cruces peores se encadenan sobre las mismas avenidas. Seis avenidas reúnen 43 mil hechos de tránsito, el 11 % de toda la metrópoli. Atender una esquina mueve poco; atender un corredor mueve el mapa.">
-  <div class="ceja" data-anim style="--i:0">La forma del riesgo</div>
-  <h2 data-anim style="--i:1">Es de corredor, no de esquina</h2>
-  <div class="marco">
-    <div class="col media">
-      <div class="barras" data-barras="vialidades" style="--et:178px"></div>
-      <p class="pie" data-anim style="--i:9" style="max-width:40ch">Hechos de tránsito 2019–2024 sobre cada vialidad, sumando todos sus cruces.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 11 · HORA × DÍA ============ -->
-<section class="slide" data-t="Hora y día" data-parte="Parte 2"
-  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="168 celdas: cada hora de cada día. Las tres más altas son el martes a las ocho de la mañana, el sábado a las dos de la tarde y el viernes a las tres: entre la primera y la tercera hay apenas un 3 %, así que no hay un pico sino dos, la hora pico entre semana y la tarde del fin de semana. Solo el 8,6 % ocurre entre medianoche y las cinco. Es un fenómeno de exposición, no de imprudencia nocturna.">
-  <div class="ceja" data-anim style="--i:0">El calendario</div>
-  <h2 data-anim style="--i:1" style="max-width:26ch">El pico no es de madrugada: es la hora pico</h2>
-  <div class="marco" style="flex-direction:column;align-items:stretch;gap:18px">
-    <div class="grafica" data-g="horadia" style="width:100%;flex:1;min-height:0"></div>
-    <div class="tira" data-anim style="--i:2" data-tabla="horasTop"></div>
-  </div>
-</section>
-
-<!-- ============ 12 · QUIÉN PIERDE ============ -->
-<section class="slide" data-t="Quién pierde" data-parte="Parte 2"
-  data-capa="moto" data-marco="derecha" data-velo="claro"
-  data-notas="El mismo mapa, ahora solo con los hechos de tránsito de cada tipo de usuario. La moto sigue los corredores grandes. El atropellamiento se concentra en el primer cuadro y sobre las avenidas que cruzan colonias densas, no en las vías rápidas. El ciclista es el patrón más disperso y el de menor volumen: 1 509 en seis años, un problema que la base apenas alcanza a ver. Un peatón no elige la avenida por la que camina.">
-  <div class="ceja" data-anim style="--i:0">Quién</div>
-  <h2 data-anim style="--i:1">El agregado esconde a quien más pierde</h2>
-  <div class="marco">
-    <div class="col media">
-      <div class="fichas" data-anim style="--i:2">
-        <button class="ficha puesta" data-capa="moto">Motocicleta</button>
-        <button class="ficha" data-capa="peaton">Peatón</button>
-        <button class="ficha" data-capa="ciclista">Ciclista</button>
-      </div>
-      <div class="pila" style="margin-top:14px">
-        <div data-anim style="--i:3">
-          <div class="l"><span data-cifra-capa="suma">24<i class="e"></i>264</span></div>
-          <div class="pie" data-cifra-capa="pie">colisiones con motocicleta en seis años</div>
-        </div>
-        <div class="dato" data-anim style="--i:4"><div class="txt" data-cifra-capa="txt">Sigue los corredores grandes, igual que el automóvil, con consecuencias que no se parecen.</div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 12b · TIPOS DE ACCIDENTE ============ -->
+<!-- ============ 10 · TIPOS DE ACCIDENTE ============ -->
 <section class="slide" data-t="Tipos de hecho de tránsito" data-parte="Parte 2"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
   data-notas="De qué tipo son los hechos de tránsito, según el catálogo del INEGI. Siete de cada diez son colisiones entre vehículos; uno de cada siete, contra un objeto fijo: un poste, una guarnición, un vehículo estacionado. La motocicleta ya es el tercer tipo, con el 6,4 %. Lo importante está en la segunda columna: el tipo más común es el que menos daño hace por hecho, el 1,3 % deja afectados; una volcadura deja afectados en uno de cada cuatro casos, una colisión con motocicleta en uno de cada cinco, y un atropellamiento siempre, porque el atropellado es el afectado.">
@@ -595,16 +556,140 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 8b · EL ÁRBOL DEL COSTO HUMANO ============ -->
+<!-- ============ 11 · DEFUNCIONES POR TIPO ============ -->
+<section class="slide" data-t="Tipos con más defunciones" data-parte="Parte 2"
+  data-capa="muertos" data-marco="derecha" data-velo="claro"
+  data-fuente="Porcentaje de las 1&#8239;167 defunciones de la Zona Metropolitana, 2019&#8211;2024, según el tipo de hecho de tránsito que las produjo."
+  data-notas="El tipo más frecuente no es el que más vidas cuesta. Cuatro tipos reúnen el 80 % de las defunciones, y el primero es el atropellamiento, que en la lámina anterior apenas figuraba por volumen. La colisión entre vehículos, siete de cada diez hechos de tránsito, aporta aquí el 15,59 %. Y en los cuatro la causa asentada en el parte es la misma: el conductor. No hay cuatro problemas distintos, hay uno solo con cuatro desenlaces.">
+  <div class="ceja" data-anim style="--i:0">Qué tipo cuesta vidas</div>
+  <h2 data-anim style="--i:1">Tipos de hecho de tránsito con más defunciones</h2>
+  <div class="marco">
+    <div class="col media">
+      <p class="entrada" data-anim style="--i:2;margin-bottom:6px">Estos cuatro tipos concentran el <b>80 %</b> de las defunciones.</p>
+      <div class="barras anchas" style="--et:236px">
+        <div class="barra calida" data-anim style="--i:3">
+          <div class="et">Atropellamiento</div>
+          <div class="canal"><div class="relleno" style="--w:100%"></div></div>
+          <div class="val">31,53<i class="e"></i>%</div>
+        </div>
+        <div class="barra calida" data-anim style="--i:4">
+          <div class="et">Colisión con objeto fijo</div>
+          <div class="canal"><div class="relleno" style="--w:65.5%"></div></div>
+          <div class="val">20,65<i class="e"></i>%</div>
+        </div>
+        <div class="barra calida" data-anim style="--i:5">
+          <div class="et">Colisión entre vehículos</div>
+          <div class="canal"><div class="relleno" style="--w:49.4%"></div></div>
+          <div class="val">15,59<i class="e"></i>%</div>
+        </div>
+        <div class="barra calida" data-anim style="--i:6">
+          <div class="et">Colisión con motocicleta</div>
+          <div class="canal"><div class="relleno" style="--w:38.3%"></div></div>
+          <div class="val">12,08<i class="e"></i>%</div>
+        </div>
+      </div>
+      <div class="aviso" data-anim style="--i:7;margin-top:20px">
+        <div class="t">Y la misma causa en los cuatro</div>
+        <div class="c">En los cuatro tipos, la causa que quedó registrada en el parte fue <b>un conductor distraído</b>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12 · MOTOCICLETA ============ -->
+<section class="slide" data-t="Motocicleta" data-parte="Parte 2"
+  data-capa="moto" data-marco="derecha" data-velo="claro"
+  data-notas="El mismo mapa, ahora solo con los hechos de tránsito de cada tipo de usuario. La moto sigue los corredores grandes, igual que el automóvil, con consecuencias que no se parecen.">
+  <div class="ceja" data-anim style="--i:0">Quién · Motocicleta</div>
+  <h2 data-anim style="--i:1">Los grupos vulnerables de la ciudad</h2>
+  <div class="marco">
+    <div class="col media">
+      <div class="pila" style="margin-top:14px">
+        <div data-anim style="--i:2">
+          <div class="l"><span>24<i class="e"></i>264</span></div>
+          <div class="pie">colisiones con motocicleta en seis años</div>
+        </div>
+        <div class="dato" data-anim style="--i:3"><div class="txt">Sigue los corredores grandes, igual que el automóvil, con consecuencias que no se parecen.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13 · PEATÓN ============ -->
+<section class="slide" data-t="Peatón" data-parte="Parte 2"
+  data-capa="peaton" data-marco="derecha" data-velo="claro"
+  data-notas="El atropellamiento se concentra en el primer cuadro y sobre las avenidas que cruzan colonias densas, no en las vías rápidas. Un peatón no elige la avenida por la que camina.">
+  <div class="ceja" data-anim style="--i:0">Quién · Peatón</div>
+  <h2 data-anim style="--i:1">Los grupos vulnerables de la ciudad</h2>
+  <div class="marco">
+    <div class="col media">
+      <div class="pila" style="margin-top:14px">
+        <div data-anim style="--i:2">
+          <div class="l"><span>8<i class="e"></i>550</span></div>
+          <div class="pie">atropellamientos en seis años</div>
+        </div>
+        <div class="dato" data-anim style="--i:3"><div class="txt">Se concentra en el primer cuadro y en las avenidas que cruzan colonias densas, no en las vías rápidas.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 14 · CICLISTA ============ -->
+<section class="slide" data-t="Ciclista" data-parte="Parte 2"
+  data-capa="ciclista" data-marco="derecha" data-velo="claro"
+  data-notas="El ciclista es el patrón más disperso y el de menor volumen: 1 509 en seis años, un problema que la base apenas alcanza a ver.">
+  <div class="ceja" data-anim style="--i:0">Quién · Ciclista</div>
+  <h2 data-anim style="--i:1">Los grupos vulnerables de la ciudad</h2>
+  <div class="marco">
+    <div class="col media">
+      <div class="pila" style="margin-top:14px">
+        <div data-anim style="--i:2">
+          <div class="l"><span>1<i class="e"></i>509</span></div>
+          <div class="pie">colisiones con ciclista en seis años</div>
+        </div>
+        <div class="dato" data-anim style="--i:3"><div class="txt">El patrón más disperso y el de menor volumen: un problema que la base apenas alcanza a ver.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 15 · HORA × DÍA ============ -->
+<section class="slide" data-t="Hora y día" data-parte="Parte 2"
+  data-capa="ninguna" data-marco="fuera" data-velo="lleno"
+  data-notas="168 celdas: cada hora de cada día. Las tres más altas son el martes a las ocho de la mañana, el sábado a las dos de la tarde y el viernes a las tres: entre la primera y la tercera hay apenas un 3 %, así que no hay un pico sino dos, la hora pico entre semana y la tarde del fin de semana. Solo el 8,6 % ocurre entre medianoche y las cinco. Es un fenómeno de exposición, no de imprudencia nocturna.">
+  <div class="ceja" data-anim style="--i:0">El calendario</div>
+  <h2 data-anim style="--i:1" style="max-width:26ch">El pico no es de madrugada: es la hora pico</h2>
+  <div class="marco" style="flex-direction:column;align-items:stretch;gap:18px">
+    <div class="grafica" data-g="horadia" style="width:100%;flex:1;min-height:0"></div>
+    <div class="tira" data-anim style="--i:2" data-tabla="horasTop"></div>
+  </div>
+</section>
+
+<!-- ============ 16 · CORREDORES ============ -->
+<section class="slide" data-t="Corredores, no esquinas" data-parte="Parte 2"
+  data-capa="ninguna" data-corredores="si" data-marco="corredor" data-velo="claro"
+  data-notas="Los cruces peores se encadenan sobre las mismas avenidas. Seis avenidas reúnen 43 mil hechos de tránsito, el 11 % de toda la metrópoli. Atender una esquina mueve poco; atender un corredor mueve el mapa.">
+  <div class="ceja" data-anim style="--i:0">La forma del riesgo</div>
+  <h2 data-anim style="--i:1">Es de corredor, no de esquina</h2>
+  <div class="marco">
+    <div class="col media">
+      <div class="barras" data-barras="vialidades" style="--et:178px"></div>
+      <p class="pie" data-anim style="--i:9" style="max-width:40ch">Hechos de tránsito 2019–2024 sobre cada vialidad, sumando todos sus cruces.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 17 · EL ÁRBOL DEL COSTO HUMANO ============ -->
 <section class="slide" data-t="El costo humano" data-parte="Parte 2"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-notas="Se lee de izquierda a derecha. De los 379 294 hechos de tránsito, el 94 % fue solo daños materiales. El 5,7 % tuvo costo humano: 21 523 hechos de tránsito. De esos, la gran mayoría dejó heridos, 25 642 personas en seis años. Solo el 0,28 % de todos los hechos de tránsito, 1 075, tuvo alguna defunción; pero entre ellos suman 1 167 defunciones, que no es poco: una cada dos días. Y de esas 1 167, el 64 % ocurrió en intersecciones de cuatro municipios: Monterrey, Apodaca, Guadalupe y García. El otro 36 % se reparte entre los demás municipios y los tramos que no son intersección.">
+  data-fuente="Cada rama se reparte por <b>hechos de tránsito</b> sobre los 379&#8239;294 de la Zona Metropolitana, 2019&#8211;2024. Los heridos y las defunciones del subtítulo son personas."
+  data-notas="Se lee de izquierda a derecha, y lo que se reparte son hechos de tránsito. De los 379 294, el 94,33 % fue solo daños materiales. El 5,67 % tuvo costo humano: 21 523 hechos. Casi todos dejaron heridos y nada más, el 5,39 %, pero eso son 25 642 personas heridas en seis años, porque un hecho puede herir a varias. Y el 0,28 % —1 075 hechos— dejó alguna defunción: 1 167 en total, una cada dos días. De esas 1 167, el 64,4 % —752 defunciones— se concentra en las intersecciones urbanas de Monterrey, Apodaca, Guadalupe y García. El 35,6 % restante se acumula en diversas vialidades de los otros municipios.">
   <div class="ceja" data-anim style="--i:0">El costo humano</div>
   <h2 data-anim style="--i:1;max-width:none">Dónde cuestan vidas los hechos de tránsito</h2>
   <div class="marco" style="align-items:stretch;margin-top:10px"><div class="grafica" data-g="arbol" style="width:100%;height:100%"></div></div>
 </section>
 
-<!-- ============ 8 · CONCENTRACIÓN ============ -->
+<!-- ============ 18 · CONCENTRACIÓN ============ -->
 <section class="slide" data-t="La concentración" data-parte="Parte 2"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
   data-notas="La curva de concentración: los cruces ordenados de mayor a menor contra el porcentaje acumulado de hechos de tránsito. Los 50 peores, que son el 0,1 % de los cruces, concentran el 7,5 %. Mil cruces, el 1,8 %, concentran el 40 %. Al revés: el 91 % de los cruces aporta menos de un tercio. Repartir el presupuesto parejo por la ciudad es repartirlo donde casi no pasa nada.">
@@ -622,7 +707,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 9 · LOS DIEZ PEORES ============ -->
+<!-- ============ 19 · LOS DIEZ PEORES ============ -->
 <section class="slide" data-t="Los diez peores cruces" data-parte="Parte 2"
   data-capa="ninguna" data-cruces="si" data-etiquetas="si" data-marco="zoom" data-velo="claro"
   data-notas="Cualquiera de estos diez se puede visitar mañana: esa es la diferencia entre un mapa de calor y una lista de trabajo. Los números del mapa son los de la tabla. Fidel Velázquez con Fray Luis de León, en San Nicolás, acumula 1 024 hechos de tránsito en seis años.">
@@ -636,7 +721,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 13 · GRAVEDAD ============ -->
+<!-- ============ 20 · GRAVEDAD ============ -->
 <section class="slide" data-t="Gravedad" data-parte="Parte 2"
   data-capa="anillos" data-marco="derecha" data-velo="claro"
   data-notas="Los anillos se construyen así: se toma el centro de masa de los hechos de tránsito, que cae en el centro de Monterrey, se mide la distancia de cada una de las 2 241 zonas a ese punto, y se reparten en cuatro grupos con el mismo número de zonas. El mapa de la derecha los pinta. Centro: hasta 11 kilómetros, Monterrey, San Nicolás, Guadalupe y San Pedro. Primer anillo: de 11 a 18, Apodaca y Escobedo. Segundo: de 18 a 27, Juárez, Pesquería y García. Periferia: más allá, Santiago, Cadereyta y Salinas Victoria. Con eso: en el centro hay 498 hechos de tránsito por zona y el 4,7 % deja afectados; en el tercer anillo hay 39 por zona y el 10,3 % deja afectados. En el centro hay muchos hechos y poco daño; hacia afuera, pocos y graves. Un ranking hecho solo con el conteo pone la periferia hasta abajo, y ahí es donde la gente sale peor.">
@@ -657,7 +742,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 14 · LOS CUATRO PERFILES ============ -->
+<!-- ============ 21 · LOS CUATRO PERFILES ============ -->
 <section class="slide" data-t="Los cuatro perfiles" data-parte="Parte 2"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
   data-notas="Esta es la tabla que conviene leer en voz alta. Cada columna es un grupo y cada renglón uno de los siete rasgos; el color dice si ese grupo está por encima o por debajo del promedio de todos. Alto flujo es el grupo más grande, 1 163 cruces, y no destaca en nada salvo en tener el promedio de vehículos más alto y la tasa de afectados más baja, 2,8 %: son alcances, fierros y no personas. Corredor de motocicleta: 9,6 % de sus hechos de tránsito involucra moto, casi el triple del anterior, y casi tres de cada diez ocurren en fin de semana. Pérdida de control nocturna: 14,4 % de madrugada y 25,4 % contra objeto fijo, con el promedio de vehículos más bajo, 1,77 — un solo vehículo que se sale del camino y pega contra algo. Exposición de peatón y ciclista: 7,7 % de sus hechos de tránsito arrolla a alguien y 13,2 % deja afectados, casi cinco veces el primer grupo. El giro está ahí: el grupo más grande es el menos dañino por hecho de tránsito, y el más chico es el que manda gente al hospital.">
@@ -667,7 +752,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   <div class="marco"><div class="grafica" data-g="tipos" style="width:100%"></div></div>
 </section>
 
-<!-- ============ 15 · PERSISTENCIA ============ -->
+<!-- ============ 22 · PERSISTENCIA ============ -->
 <section class="slide" data-t="El mapa se repite" data-parte="Parte 2"
   data-capa="a2019" data-marco="derecha" data-velo="claro" data-ciclo="anios"
   data-notas="El mismo mapa, año por año, con la misma escala de color. Cambia el nivel, no el dibujo: de los 200 peores cruces, 155 aparecen en los seis años, con una pandemia en medio. Y 53 de los 100 peores de 2019-20 siguen entre los peores de 2023-24. Un problema que se queda quieto es un problema que se puede planear: esto es lo que hace posible la Parte 3.">
@@ -692,7 +777,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 16 · CORTE III ============ -->
+<!-- ============ 23 · CORTE III ============ -->
 <section class="slide hondo corte" data-t="Parte 3 · El modelo" data-parte="Parte 3"
   data-capa="total" data-marco="llena" data-velo="tinta"
   data-notas="Antes de enseñar el resultado conviene decir qué clase de cosa es. Nadie puede predecir un hecho de tránsito: a escala de una esquina y un martes, un hecho de tránsito es prácticamente azar. Lo que sí se puede estimar es la tasa esperada de cada zona, qué tan cargada está la moneda de cada lugar. Es la diferencia entre adivinar un volado y saber que la moneda está cargada: la moneda cargada se puede medir, el volado no. Y con esa tasa salen las tres cosas de un jalón: la suma da el total de la ciudad, el orden da la lista de prioridades y el mapa da el dónde.">
@@ -705,29 +790,39 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
 
 
 
-<!-- ============ 22 · 2027 ============ -->
-<section class="slide" data-t="Pronóstico 2027" data-parte="Parte 3"
+<!-- ============ 24 · 2027 · ESPERADOS ============ -->
+<section class="slide" data-t="Hechos de tránsito esperados" data-parte="Parte 3"
   data-capa="p2027" data-rampa="calida" data-marco="derecha" data-velo="claro"
-  data-notas="El pronóstico central para 2027 es 73 577 hechos de tránsito con un margen del 3 %. Lo robusto es el dónde: el 5 % de zonas con más riesgo concentra el 43 % del total, y de esas 112 zonas, 89 están ahí con probabilidad mayor a 0,9. Por dentro, el modelo separa dos cosas: el nivel de cada municipio, que dice cuánto se reporta y cambia año con año, y el perfil de cada zona, que dice dónde se concentra el riesgo dentro de ese municipio y es estable. El producto de los dos da los hechos de tránsito esperados. Además cada zona aprende de sus seis vecinas, y en las 618 zonas con cinco hechos de tránsito o menos el modelo triplica el margen que reporta: admite lo que no sabe. Si preguntan qué tan bien funciona: se entrenó solo con 2019-2023 y se le pidió el 2024, que nunca había visto; falló el total metropolitano por 0,6 por ciento, y el 5 por ciento del territorio que señaló de antemano capturó el 42 por ciento de los hechos de tránsito de ese año.">
-  <div class="ceja" data-anim style="--i:0">Pronóstico</div>
-  <h2 data-anim style="--i:1">2027</h2>
+  data-notas="El pronóstico central para 2027 es 73 577 hechos de tránsito con un margen del 3 %. Por dentro, el modelo separa dos cosas: el nivel de cada municipio, que dice cuánto se reporta y cambia año con año, y el perfil de cada zona, que dice dónde se concentra el riesgo dentro de ese municipio y es estable. El producto de los dos da los hechos de tránsito esperados. Además cada zona aprende de sus seis vecinas, y en las 618 zonas con cinco hechos de tránsito o menos el modelo triplica el margen que reporta: admite lo que no sabe. Si preguntan qué tan bien funciona: se entrenó solo con 2019-2023 y se le pidió el 2024, que nunca había visto; falló el total metropolitano por 0,6 por ciento.">
+  <div class="ceja" data-anim style="--i:0">Pronóstico · 2027</div>
+  <h2 data-anim style="--i:1">Hechos de tránsito esperados</h2>
   <div class="marco">
     <div class="col media">
-      <div class="fichas" data-anim style="--i:2">
-        <button class="ficha puesta" data-capa="p2027" data-rampa="calida">Hechos de tránsito esperados</button>
-        <button class="ficha" data-capa="ptop5" data-rampa="calida">¿Está en el 5 % peor?</button>
-      </div>
       <div class="pila" style="margin-top:16px">
-        <div data-anim style="--i:3"><div class="l"><span class="cuenta" data-v="74">74</span> mil</div>
+        <div data-anim style="--i:2"><div class="l"><span class="cuenta" data-v="74">74</span> mil</div>
           <div class="pie">hechos de tránsito esperados en 2027 en la Zona Metropolitana</div></div>
-        <div data-anim style="--i:4"><div class="l arde">42,9<i class="e"></i>%</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 25 · 2027 · TOP 5% ============ -->
+<section class="slide" data-t="¿Está en el 5 % peor?" data-parte="Parte 3"
+  data-capa="ptop5" data-rampa="calida" data-marco="derecha" data-velo="claro"
+  data-notas="Lo robusto del pronóstico es el dónde: el 5 % de zonas con más riesgo concentra el 43 % del total, y de esas 112 zonas, 89 están ahí con probabilidad mayor a 0,9. El 5 por ciento del territorio que señaló de antemano capturó el 42 por ciento de los hechos de tránsito de 2024, el año que el modelo nunca había visto.">
+  <div class="ceja" data-anim style="--i:0">Pronóstico · 2027</div>
+  <h2 data-anim style="--i:1">¿Está en el 5 % peor?</h2>
+  <div class="marco">
+    <div class="col media">
+      <div class="pila" style="margin-top:16px">
+        <div data-anim style="--i:2"><div class="l arde">42,9<i class="e"></i>%</div>
           <div class="pie">caerá en el 5 % de zonas con más riesgo. El <i>dónde</i> no cambia de escenario a escenario</div></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============ 22b · 2027 POR MUNICIPIO ============ -->
+<!-- ============ 26 · 2027 POR MUNICIPIO ============ -->
 <section class="slide" data-t="2027 por municipio" data-parte="Parte 3"
   data-capa="p2027" data-rampa="calida" data-marco="fuera" data-velo="lleno"
   data-notas="Cada municipio con lo que registró en 2024 y lo que el modelo espera para 2027. Fuera de Abasolo, ningún municipio se mueve más de un 13 %: el modelo no tiene tendencia, proyecta el nivel reciente de cada uno suavizado por sus zonas y sus vecinas. Los municipios chicos tienen el margen más ancho porque son pocas zonas. Si alguien pregunta por Santa Catarina o Guadalupe: Santa Catarina registró 46 hechos de tránsito en 2021 y 1 813 en 2022, Guadalupe 7 868 en 2020 y 2 770 en 2024. Ninguna ciudad cambia así en un año; lo que cambió fue qué tantos partes llegan al INEGI con coordenadas. El modelo estima el nivel de cada municipio por separado justamente para que eso no contamine el mapa.">
@@ -744,7 +839,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 23 · CORTE IV ============ -->
+<!-- ============ 27 · CORTE IV ============ -->
 <section class="slide hondo corte" data-t="Parte 4 · El visor" data-parte="Parte 4"
   data-capa="ptop5" data-rampa="calida" data-marco="llena" data-velo="tinta">
   <div class="num" data-anim style="--i:0">PARTE 4</div>
@@ -752,7 +847,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   <p class="entrada" data-anim style="--i:2">Todo esto cabe en una pantalla que cualquiera puede abrir y explorar.</p>
 </section>
 
-<!-- ============ 24 · EL VISOR ============ -->
+<!-- ============ 28 · EL VISOR ============ -->
 <section class="slide" data-t="El visor interactivo" data-parte="Parte 4"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
   data-notas="El visor deja acercarse hasta la esquina, filtrar por año, tipo de usuario y gravedad, y ver el pronóstico de cada zona con su incertidumbre. Es la forma de que esto no termine en una presentación.">
@@ -775,7 +870,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 24b · EL VISOR, EMBEBIDO ============ -->
+<!-- ============ 29 · EL VISOR, EMBEBIDO ============ -->
 <section class="slide" data-t="El visor, en vivo" data-parte="Parte 4"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
   data-notas="El visor corre aquí mismo, dentro de la presentación; necesita conexión. Mientras el cursor esté sobre el mapa las teclas van al visor, no a la presentación: para avanzar hay que hacer clic fuera del marco o usar la cadena de abajo. Si la red falla, el QR de la lámina anterior lleva a la misma app.">
@@ -789,7 +884,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   <div class="pie" data-anim style="--i:2;font-family:var(--cifra);font-size:11px;margin-top:8px;max-width:none">app-geo-eosin.vercel.app · para avanzar la presentación, clic fuera del mapa o en la cadena de abajo</div>
 </section>
 
-<!-- ============ 25 · SABEMOS / NO SABEMOS ============ -->
+<!-- ============ 30 · SABEMOS / NO SABEMOS ============ -->
 <section class="slide" data-t="Lo que sabemos y lo que no" data-parte="Parte 4"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
   data-notas="Lo robusto: la concentración, los corredores, la persistencia y la capacidad de anticipar el mapa. Lo que no podemos afirmar: que un municipio con menos registros sea más seguro, que un cruce con muchos hechos de tránsito sea más peligroso que otro con pocos —sin aforo no lo sabemos—, ni cuándo un municipio va a cambiar su forma de capturar. El siguiente paso ya está identificado: kilómetros de vialidad por zona, de OpenStreetMap.">
@@ -815,7 +910,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   </div>
 </section>
 
-<!-- ============ 26 · CIERRE ============ -->
+<!-- ============ 31 · CIERRE ============ -->
 <section class="slide hondo" data-t="Cierre" data-parte="Parte 4"
   data-capa="total" data-marco="llena" data-velo="tinta">
   <div class="ceja" data-anim style="--i:0">GeoStats</div>
@@ -1573,7 +1668,10 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     // la caja siguiente, que se dibuja a tamaño legible. La rama que termina en
     // las intersecciones de cuatro municipios va en cálido.
     var A = D.arbol, W = 1140, H = 420;
-    var pct = function(n, d){ var q = n / d * 100; return q.toFixed(q < 1 ? 2 : 1).replace(".", ",") + " %"; };
+    // Todas las ramas se reparten por hechos de tránsito, que es lo que cuenta la
+    // base. Los heridos y las defunciones son personas y van como subtítulo: hay
+    // más heridos que hechos con heridos, y no se pueden sumar a la misma torta.
+    var pct = function(n, d, dec){ return (n / d * 100).toFixed(dec === undefined ? 2 : dec).replace(".", ",") + " %"; };
     var FRIO = "#005991", CALIDO = "#B15E2E", LADRILLO = "#8B2C1A";
     var s = svgEl("svg", {viewBox: "0 0 " + W + " " + H, style: "width:100%;height:100%"});
     var animados = [];
@@ -1630,7 +1728,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     var c1 = {danos: [16, 120], costo: [236, 168]};       // [y, alto]
     flujo(x0 + w0, yT, yT + hT - hCosto0, x1, c1.danos[0], c1.danos[0] + c1.danos[1], FRIO, .10);
     flujo(x0 + w0, yT + hT - hCosto0, yT + hT, x1, c1.costo[0], c1.costo[0] + c1.costo[1], CALIDO, .28);
-    cajaTexto(x1, c1.danos[0], w1, c1.danos[1], {t: "Solo daños materiales", v: pct(A.danos, A.total), sub: milesTexto(A.danos) + " hechos de tránsito"}, 1);
+    cajaTexto(x1, c1.danos[0], w1, c1.danos[1], {t: "Solo daños materiales", v: pct(A.danos, A.total) + " del total", sub: milesTexto(A.danos) + " hechos de tránsito"}, 1);
     cajaTexto(x1, c1.costo[0], w1, c1.costo[1], {t: "Con costo humano", v: pct(A.costo, A.total) + " del total", sub: milesTexto(A.costo) + " hechos de tránsito", calido: true}, 1);
     // dentro de "costo humano": la rebanada de los que tuvieron defunciones
     var hDef1 = c1.costo[1] * A.con_defunciones / A.costo;
@@ -1654,9 +1752,9 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     var c3 = {top4: [222, 108], resto: [344, 76]};
     flujo(x2 + w2, c2.def[0], c2.def[0] + hTop, x3, c3.top4[0], c3.top4[0] + c3.top4[1], LADRILLO, .42);
     flujo(x2 + w2, c2.def[0] + hTop, c2.def[0] + c2.def[1], x3, c3.resto[0], c3.resto[0] + c3.resto[1], LADRILLO, .16);
-    cajaTexto(x3, c3.top4[0], w3, c3.top4[1], {t: "Intersecciones de " + A.top4_municipios.join(", "), v: pct(A.top4, A.defunciones) + " de las defunciones",
+    cajaTexto(x3, c3.top4[0], w3, c3.top4[1], {t: "Intersecciones de " + A.top4_municipios.join(", "), v: pct(A.top4, A.defunciones, 1) + " de las defunciones",
       sub: milesTexto(A.top4) + " de las " + milesTexto(A.defunciones) + " defunciones", calido: true, fuerte: true}, 3);
-    cajaTexto(x3, c3.resto[0], w3, c3.resto[1], {t: "Demás municipios e intersecciones", v: pct(A.defunciones - A.top4, A.defunciones) + " de las defunciones",
+    cajaTexto(x3, c3.resto[0], w3, c3.resto[1], {t: "Vialidades de los demás municipios", v: pct(A.defunciones - A.top4, A.defunciones, 1) + " de las defunciones",
       sub: milesTexto(A.defunciones - A.top4) + " de las " + milesTexto(A.defunciones) + " defunciones", calido: true}, 3);
 
     caja.appendChild(s);
