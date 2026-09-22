@@ -225,17 +225,15 @@ def main() -> None:
                              for px_, py_ in zip(puntos.x, puntos.y)]])
 
     # --- el árbol de costo humano -------------------------------------------
-    con_h = g.TOTHERIDOS > 0
+    # Las ramas se miden en personas, no en hechos: la lámina reparte el total
+    # entre los heridos y las defunciones que deja cada cien hechos de tránsito,
+    # y lo que queda es la rama de solo daños materiales.
     con_m = g.TOTMUERTOS > 0
     TOP4 = ["Monterrey", "Apodaca", "Guadalupe", "García"]
     en_top4 = con_m & (g.en_interseccion == True) & g.NOM_MUN.isin(TOP4)
     arbol = {
         "total": int(len(g)),
-        "danos": int((~con_h & ~con_m).sum()),
-        "costo": int((con_h | con_m).sum()),
-        "solo_heridos": int((con_h & ~con_m).sum()),
         "heridos": int(g.TOTHERIDOS.sum()),
-        "con_defunciones": int(con_m.sum()),
         "defunciones": int(g.TOTMUERTOS.sum()),
         "top4": int(g.loc[en_top4, "TOTMUERTOS"].sum()),
         "top4_municipios": TOP4,
