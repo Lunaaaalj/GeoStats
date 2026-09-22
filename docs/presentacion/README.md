@@ -4,7 +4,7 @@
 tiene ni una imagen. Los mapas, la curva de concentración, el calendario, la
 matriz de perfiles y las series se dibujan en el navegador desde `datos.json`, y
 las tipografías van embebidas, así que se abre con doble clic y se ve igual sin
-conexión. **27 láminas** en cuatro partes.
+conexión. **31 láminas** en cuatro partes.
 
 ## Presentar
 
@@ -21,9 +21,10 @@ barra de avance y cada nodo es un atajo. En la lámina de contenido, cada
 renglón salta a su parte.
 
 Hay cosas que responden al cursor: **pasar el ratón sobre cualquier hexágono**
-dice su municipio y su cifra; las fichas de *Quién pierde* y de *2027* cambian
-la capa del mapa; en *Persistencia* los años avanzan solos y se pueden fijar
-haciendo clic.
+dice su municipio y su cifra; en *Persistencia* los años avanzan solos y se
+pueden fijar haciendo clic. Es la única lámina con fichas: *Quién pierde* y
+*2027* se dividieron en una lámina por capa para que avanzar con las flechas
+baste, sin tener que apuntar con el cursor.
 
 ## Cómo está armado
 
@@ -80,7 +81,7 @@ chrome --headless --no-pdf-header-footer --force-prefers-reduced-motion \
 
 `--force-prefers-reduced-motion` es necesario: sin él las láminas se imprimen a
 medio aparecer. Al imprimir, cada lámina recibe su propia copia del mapa —el
-original es uno solo y no puede estar en 27 páginas a la vez.
+original es uno solo y no puede estar en 32 páginas a la vez.
 
 ## Diseño
 
