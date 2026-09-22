@@ -634,8 +634,8 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
 <!-- ============ 14 · EL ÁRBOL DEL COSTO HUMANO ============ -->
 <section class="slide" data-t="El costo humano" data-parte="Parte 2"
   data-capa="ninguna" data-marco="fuera" data-velo="lleno"
-  data-fuente="Sobre los 379&#8239;294 hechos de tránsito de la Zona Metropolitana, 2019&#8211;2024. Heridos y defunciones son <b>personas</b>: su porcentaje es cuántas deja cada cien hechos de tránsito."
-  data-notas="Se lee de izquierda a derecha, y la unidad de las dos ramas de abajo son personas: cuántas deja cada cien hechos de tránsito. El 92,93 % del total fue solo daños materiales. El 7,07 % tuvo costo humano. El 6,76 % dejó heridos: 25 642 personas en seis años. El 0,307 % dejó defunciones: 1 167 en seis años, que no es poco, una cada dos días. Y de esas 1 167, el 64,4 % —752 defunciones— se concentra en las intersecciones urbanas de Monterrey, Apodaca, Guadalupe y García. El 35,6 % restante se acumula en diversas vialidades de los otros municipios.">
+  data-fuente="Cada rama se reparte por <b>hechos de tránsito</b> sobre los 379&#8239;294 de la Zona Metropolitana, 2019&#8211;2024. Los heridos y las defunciones del subtítulo son personas."
+  data-notas="Se lee de izquierda a derecha, y lo que se reparte son hechos de tránsito. De los 379 294, el 94,33 % fue solo daños materiales. El 5,67 % tuvo costo humano: 21 523 hechos. Casi todos dejaron heridos y nada más, el 5,39 %, pero eso son 25 642 personas heridas en seis años, porque un hecho puede herir a varias. Y el 0,28 % —1 075 hechos— dejó alguna defunción: 1 167 en total, una cada dos días. De esas 1 167, el 64,4 % —752 defunciones— se concentra en las intersecciones urbanas de Monterrey, Apodaca, Guadalupe y García. El 35,6 % restante se acumula en diversas vialidades de los otros municipios.">
   <div class="ceja" data-anim style="--i:0">El costo humano</div>
   <h2 data-anim style="--i:1;max-width:none">Dónde cuestan vidas los hechos de tránsito</h2>
   <div class="marco" style="align-items:stretch;margin-top:10px"><div class="grafica" data-g="arbol" style="width:100%;height:100%"></div></div>
@@ -1610,12 +1610,10 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     // la caja siguiente, que se dibuja a tamaño legible. La rama que termina en
     // las intersecciones de cuatro municipios va en cálido.
     var A = D.arbol, W = 1140, H = 420;
-    // Las ramas se miden en personas por cada cien hechos de tránsito: heridos y
-    // defunciones son personas, no hechos, y así las dos ramas del costo humano
-    // se suman entre sí y con la de solo daños.
-    var pHer = A.heridos / A.total * 100, pDef = A.defunciones / A.total * 100;
-    var pCosto = pHer + pDef, pDanos = 100 - pCosto;
-    var pct = function(q, dec){ return q.toFixed(dec === undefined ? (q < 1 ? 2 : 1) : dec).replace(".", ",") + " %"; };
+    // Todas las ramas se reparten por hechos de tránsito, que es lo que cuenta la
+    // base. Los heridos y las defunciones son personas y van como subtítulo: hay
+    // más heridos que hechos con heridos, y no se pueden sumar a la misma torta.
+    var pct = function(n, d, dec){ return (n / d * 100).toFixed(dec === undefined ? 2 : dec).replace(".", ",") + " %"; };
     var FRIO = "#005991", CALIDO = "#B15E2E", LADRILLO = "#8B2C1A";
     var s = svgEl("svg", {viewBox: "0 0 " + W + " " + H, style: "width:100%;height:100%"});
     var animados = [];
@@ -1657,7 +1655,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
 
     // --- columna 0: el total, con la rebanada de costo humano abajo -----------
     var x0 = 0, w0 = 96, yT = 16, hT = H - 32;
-    var hCosto0 = hT * pCosto / 100;
+    var hCosto0 = hT * A.costo / A.total;
     s.appendChild(svgEl("rect", {x: x0, y: yT, width: w0, height: hT, fill: FRIO, "fill-opacity": .16}));
     rebanada(x0, yT + hT - hCosto0, w0, hCosto0, CALIDO, .9);
     var tT = svgEl("text", {x: x0 + w0 / 2, y: yT + hT / 2 - 10, "text-anchor": "middle",
@@ -1672,10 +1670,10 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     var c1 = {danos: [16, 120], costo: [236, 168]};       // [y, alto]
     flujo(x0 + w0, yT, yT + hT - hCosto0, x1, c1.danos[0], c1.danos[0] + c1.danos[1], FRIO, .10);
     flujo(x0 + w0, yT + hT - hCosto0, yT + hT, x1, c1.costo[0], c1.costo[0] + c1.costo[1], CALIDO, .28);
-    cajaTexto(x1, c1.danos[0], w1, c1.danos[1], {t: "Solo daños materiales", v: pct(pDanos, 2) + " del total", sub: "sin heridos ni defunciones"}, 1);
-    cajaTexto(x1, c1.costo[0], w1, c1.costo[1], {t: "Con costo humano", v: pct(pCosto, 2) + " del total", sub: "heridos y defunciones", calido: true}, 1);
+    cajaTexto(x1, c1.danos[0], w1, c1.danos[1], {t: "Solo daños materiales", v: pct(A.danos, A.total) + " del total", sub: milesTexto(A.danos) + " hechos de tránsito"}, 1);
+    cajaTexto(x1, c1.costo[0], w1, c1.costo[1], {t: "Con costo humano", v: pct(A.costo, A.total) + " del total", sub: milesTexto(A.costo) + " hechos de tránsito", calido: true}, 1);
     // dentro de "costo humano": la rebanada de los que tuvieron defunciones
-    var hDef1 = c1.costo[1] * pDef / pCosto;
+    var hDef1 = c1.costo[1] * A.con_defunciones / A.costo;
     rebanada(x1 + w1 - 14, c1.costo[0] + c1.costo[1] - hDef1, 14, hDef1, LADRILLO, .95);
     rebanada(x1 + w1 - 14, c1.costo[0], 14, c1.costo[1] - hDef1, CALIDO, .35);
 
@@ -1684,8 +1682,8 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     var c2 = {her: [150, 112], def: [296, 108]};
     flujo(x1 + w1, c1.costo[0], c1.costo[0] + c1.costo[1] - hDef1, x2, c2.her[0], c2.her[0] + c2.her[1], CALIDO, .16);
     flujo(x1 + w1, c1.costo[0] + c1.costo[1] - hDef1, c1.costo[0] + c1.costo[1], x2, c2.def[0], c2.def[0] + c2.def[1], LADRILLO, .38);
-    cajaTexto(x2, c2.her[0], w2, c2.her[1], {t: "Con heridos", v: pct(pHer, 2) + " del total", sub: milesTexto(A.heridos) + " personas heridas", calido: true}, 2);
-    cajaTexto(x2, c2.def[0], w2, c2.def[1], {t: "Con defunciones", v: pct(pDef, 3) + " del total", sub: milesTexto(A.defunciones) + " defunciones", calido: true}, 2);
+    cajaTexto(x2, c2.her[0], w2, c2.her[1], {t: "Solo heridos", v: pct(A.solo_heridos, A.total) + " del total", sub: milesTexto(A.heridos) + " personas heridas", calido: true}, 2);
+    cajaTexto(x2, c2.def[0], w2, c2.def[1], {t: "Con defunciones", v: pct(A.con_defunciones, A.total) + " del total", sub: milesTexto(A.defunciones) + " defunciones", calido: true}, 2);
     // dentro de "con defunciones": la rebanada de los cuatro municipios
     var hTop = c2.def[1] * A.top4 / A.defunciones;
     rebanada(x2 + w2 - 14, c2.def[0], 14, hTop, LADRILLO, .95);
@@ -1696,9 +1694,9 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     var c3 = {top4: [222, 108], resto: [344, 76]};
     flujo(x2 + w2, c2.def[0], c2.def[0] + hTop, x3, c3.top4[0], c3.top4[0] + c3.top4[1], LADRILLO, .42);
     flujo(x2 + w2, c2.def[0] + hTop, c2.def[0] + c2.def[1], x3, c3.resto[0], c3.resto[0] + c3.resto[1], LADRILLO, .16);
-    cajaTexto(x3, c3.top4[0], w3, c3.top4[1], {t: "Intersecciones de " + A.top4_municipios.join(", "), v: pct(A.top4 / A.defunciones * 100) + " de las defunciones",
+    cajaTexto(x3, c3.top4[0], w3, c3.top4[1], {t: "Intersecciones de " + A.top4_municipios.join(", "), v: pct(A.top4, A.defunciones, 1) + " de las defunciones",
       sub: milesTexto(A.top4) + " de las " + milesTexto(A.defunciones) + " defunciones", calido: true, fuerte: true}, 3);
-    cajaTexto(x3, c3.resto[0], w3, c3.resto[1], {t: "Vialidades de los demás municipios", v: pct((A.defunciones - A.top4) / A.defunciones * 100) + " de las defunciones",
+    cajaTexto(x3, c3.resto[0], w3, c3.resto[1], {t: "Vialidades de los demás municipios", v: pct(A.defunciones - A.top4, A.defunciones, 1) + " de las defunciones",
       sub: milesTexto(A.defunciones - A.top4) + " de las " + milesTexto(A.defunciones) + " defunciones", calido: true}, 3);
 
     caja.appendChild(s);
