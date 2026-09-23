@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Relieve 3D — ZMM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --azul:#005991; --azul-medio:#1b77b8; --azul-claro:#4195d9;
+    --rojo:#8B2C1A; --oxido:#B15E2E; --grafito:#2C2C2C; --gris:#F2F2F2;
+    --titular:"Montserrat","Helvetica Neue",Arial,sans-serif;
+    --cifras:"Roboto Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--gris);
+    font-family:var(--titular);color:var(--grafito)}
+  #mapa{position:absolute;inset:0}
+  canvas{outline:none}
+
+  .panel{position:absolute;background:rgba(255,255,255,.94);border:1px solid #dcdcdc;
+    border-radius:4px;padding:14px 16px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+
+  /* --- controles ------------------------------------------------------- */
+  #controles{top:calc(16px + env(safe-area-inset-top,0px));left:16px;width:264px}
+  #controles h1{margin:0 0 2px;font-size:15px;letter-spacing:-.01em}
+  #controles .sub{margin:0 0 14px;font-size:11.5px;line-height:1.45;color:#666}
+
+  .vistas{display:flex;gap:0;border:1px solid var(--azul);border-radius:3px;
+    overflow:hidden;margin-bottom:14px}
+  .vistas button{flex:1;border:0;padding:9px 6px;font-family:var(--titular);
+    font-size:11px;font-weight:600;background:#fff;color:var(--azul);cursor:pointer;
+    line-height:1.25;transition:background .15s}
+  .vistas button:hover{background:#eaf2f8}
+  .vistas button[aria-pressed="true"]{background:var(--azul);color:#fff}
+
+  .campo{margin-bottom:12px}
+  .campo label{display:block;font-size:10.5px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.06em;color:#777;margin-bottom:5px}
+  .campo input[type=range]{width:100%;accent-color:var(--azul);margin:0}
+  .fila{display:flex;align-items:center;gap:8px;font-size:11.5px;margin-bottom:7px}
+  .fila input{accent-color:var(--azul);margin:0;flex:none}
+  .fila label{cursor:pointer}
+
+  .acciones{display:flex;gap:6px;margin-top:14px}
+  .acciones button{flex:1;border:1px solid #d0d0d0;background:#fff;border-radius:3px;
+    padding:7px 4px;font-family:var(--titular);font-size:10.5px;font-weight:600;
+    color:var(--grafito);cursor:pointer;transition:background .15s}
+  .acciones button:hover{background:var(--gris)}
+  .acciones button[aria-pressed="true"]{background:var(--grafito);color:#fff;border-color:var(--grafito)}
+
+  /* --- leyenda --------------------------------------------------------- */
+  #leyenda{bottom:calc(16px + env(safe-area-inset-bottom,0px));left:16px;width:264px}
+  #leyenda .titulo{font-size:11px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.06em;margin-bottom:8px}
+  .rampa{height:11px;border-radius:2px;margin-bottom:5px}
+  .topes{display:flex;justify-content:space-between;font-family:var(--cifras);
+    font-size:10px;color:#666;margin-bottom:11px}
+  #leyenda p{margin:0;font-size:11px;line-height:1.5;color:#555}
+  #leyenda .nota{margin-top:10px;padding-top:10px;border-top:1px solid #e6e6e6;
+    font-size:10.5px;line-height:1.5;color:#777}
+  #leyenda .nota b{color:var(--rojo)}
+
+  /* --- tooltip --------------------------------------------------------- */
+  #tip{position:absolute;pointer-events:none;background:rgba(44,44,44,.95);color:#fff;
+    padding:9px 11px;border-radius:3px;font-size:11px;line-height:1.55;
+    max-width:230px;display:none;z-index:10}
+  #tip .h{font-weight:700;font-size:11.5px;margin-bottom:4px}
+  #tip .m{color:#b9b9b9;font-size:10px;text-transform:uppercase;letter-spacing:.05em;
+    margin-bottom:6px}
+  #tip dl{margin:0;display:grid;grid-template-columns:auto auto;gap:1px 10px}
+  #tip dt{color:#c5c5c5}
+  #tip dd{margin:0;font-family:var(--cifras);text-align:right}
+
+  #error{position:absolute;inset:0;display:none;place-items:center;text-align:center;
+    padding:32px;font-size:13px;line-height:1.6}
+
+  @media (max-width:760px){
+    #controles,#leyenda{width:auto;left:12px;right:12px}
+    #leyenda{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="mapa"></div>
+<div id="tip"></div>
+
+<div id="error">
+  <div>
+    <b>No se pudo cargar deck.gl.</b><br>
+    Este prototipo necesita conexión la primera vez, para traer la librería desde jsDelivr.
+  </div>
+</div>
+
+<div class="panel" id="controles">
+  <h1>Relieve de la ZMM</h1>
+  <p class="sub">2,241 hexágonos de 500 m. La altura codifica la variable elegida; arrastra para girar, rueda para acercar.</p>
+
+  <div class="vistas" role="group" aria-label="Variable en la altura">
+    <button id="bt-abs" aria-pressed="true">Accidentes<br>esperados 2027</button>
+    <button id="bt-rel" aria-pressed="false">Relativo a su<br>municipio</button>
+  </div>
+
+  <div class="campo">
+    <label for="escala">Exageración vertical</label>
+    <input type="range" id="escala" min="0.2" max="3" step="0.05" value="1">
+  </div>
+
+  <div class="fila">
+    <input type="checkbox" id="log"><label for="log">Altura en escala logarítmica</label>
+  </div>
+  <div class="fila">
+    <input type="checkbox" id="opac"><label for="opac">Translucidez donde hay pocos datos</label>
+  </div>
+  <div class="fila">
+    <input type="checkbox" id="orto" checked><label for="orto">Proyección ortográfica</label>
+  </div>
+  <div class="fila">
+    <input type="checkbox" id="vias" checked><label for="vias">Vialidades primarias</label>
+  </div>
+
+  <div class="acciones">
+    <button id="bt-orbita" aria-pressed="false">Órbita</button>
+    <button id="bt-reset">Reencuadrar</button>
+  </div>
+</div>
+
+<div class="panel" id="leyenda">
+  <div class="titulo" id="ley-titulo">Accidentes esperados en 2027</div>
+  <div class="rampa" id="ley-rampa"></div>
+  <div class="topes"><span id="ley-min">0</span><span id="ley-mid">26</span><span id="ley-max">729</span></div>
+  <p id="ley-texto"></p>
+  <div class="nota" id="ley-nota"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/deck.gl@9.0.0/dist.min.js"></script>
+<script>
+const DATOS = /*{{DATOS}}*/;
+
+if (typeof deck === "undefined") {
+  document.getElementById("error").style.display = "grid";
+} else {
+(function () {
+  "use strict";
+
+  const AZUL = [0, 89, 145], ROJO = [139, 44, 26], GRIS = [242, 242, 242];
+  const AZUL_CLARO = [154, 197, 227], AZUL_MEDIO = [27, 119, 184];
+
+  const celdas = DATOS.celdas;
+  const ALTURA_MAX = 9000;            // metros del pico, antes de la exageración
+
+  // Topes de cada vista. El ratio se recorta a [1/20, 20] para que un par de
+  // celdas extremas no aplanen todo lo demás.
+  const maxAbs = Math.max(...celdas.map(c => c.l));
+  const TOPE_REL = 20;
+  celdas.forEach(c => { c.rc = Math.min(Math.max(c.r, 1 / TOPE_REL), TOPE_REL); });
+
+  // El hash permite abrir una vista concreta: #rel, #rel,log , #abs,opac …
+  // Sirve para enlazar desde la presentación sin tocar los controles en vivo.
+  const banderas = new Set(location.hash.replace("#", "").split(",").filter(Boolean));
+
+  const estado = {
+    vista: banderas.has("rel") ? "rel" : "abs",
+    escala: 1,
+    log: banderas.has("log"),
+    opacidad: banderas.has("opac"),
+    orto: !banderas.has("persp"),
+    vias: !banderas.has("sinvias"),
+    orbita: false,
+  };
+
+  // --- escalas ------------------------------------------------------------
+  const lerp = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+
+  function rampaAzul(t) {                       // secuencial: claro -> azul marca
+    // gamma < 1: sube los tonos medios, porque la mediana de lambda cae muy
+    // abajo del rango logarítmico y sin esto casi todo el mapa sale lavado.
+    t = Math.pow(Math.min(Math.max(t, 0), 1), 0.7);
+    return t < 0.5 ? lerp(AZUL_CLARO, AZUL_MEDIO, t * 2)
+                   : lerp(AZUL_MEDIO, AZUL, (t - 0.5) * 2);
+  }
+  function rampaDivergente(t) {                 // -1 azul, 0 gris, +1 rojo
+    t = Math.min(Math.max(t, -1), 1);
+    return t < 0 ? lerp(GRIS, AZUL, -t) : lerp(GRIS, ROJO, t);
+  }
+
+  function valor(c) { return estado.vista === "abs" ? c.l : c.rc; }
+  function tope()   { return estado.vista === "abs" ? maxAbs : TOPE_REL; }
+
+  function altura(c) {
+    const v = valor(c), vm = tope();
+    const t = estado.log ? Math.log1p(v) / Math.log1p(vm) : v / vm;
+    return t * ALTURA_MAX;
+  }
+
+  function color(c) {
+    let rgb;
+    if (estado.vista === "abs") {
+      rgb = rampaAzul(Math.log1p(c.l) / Math.log1p(maxAbs));
+    } else {
+      // divergente centrada en 1, saturando en x10 / ÷10
+      rgb = rampaDivergente(Math.log(c.rc) / Math.log(10));
+    }
+    let alfa = 255;
+    if (estado.opacidad) {
+      // cuánta evidencia sostiene la celda: lambda de 0.5 a 50 accidentes/año
+      const t = (Math.log(c.l + 0.1) - Math.log(0.5)) / (Math.log(50) - Math.log(0.5));
+      alfa = Math.round(70 + 185 * Math.min(Math.max(t, 0), 1));
+    }
+    return [rgb[0], rgb[1], rgb[2], alfa];
+  }
+
+  // --- capas --------------------------------------------------------------
+  function capas() {
+    const disparadores = [estado.vista, estado.log, estado.opacidad];
+    const salida = [];
+
+    if (estado.vias) {
+      salida.push(new deck.PathLayer({
+        id: "vias",
+        data: DATOS.vias,
+        getPath: d => d,
+        getColor: [44, 44, 44, 70],
+        getWidth: 2,
+        widthUnits: "pixels",
+        widthMinPixels: 1,
+        parameters: { depthTest: false },
+      }));
+    }
+
+    salida.push(new deck.PolygonLayer({
+      id: "celdas",
+      data: celdas,
+      extruded: true,
+      filled: true,
+      stroked: false,
+      pickable: true,
+      getPolygon: c => c.p,
+      getElevation: altura,
+      getFillColor: color,
+      elevationScale: estado.escala,
+      material: { ambient: 0.62, diffuse: 0.58, shininess: 24, specularColor: [255, 255, 255] },
+      transitions: {
+        getElevation: { duration: 750, easing: t => t * t * (3 - 2 * t) },
+        getFillColor: { duration: 750 },
+      },
+      updateTriggers: { getElevation: disparadores, getFillColor: disparadores },
+    }));
+
+    return salida;
+  }
+
+  // --- vista --------------------------------------------------------------
+  const VISTA_INICIAL = {
+    longitude: DATOS.centro[0] + 0.04,
+    latitude: DATOS.centro[1] - 0.09,
+    zoom: 9.75,
+    pitch: 55,
+    bearing: -18,
+  };
+
+  function vistas() {
+    return [new deck.MapView({ id: "principal", orthographic: estado.orto })];
+  }
+
+  const tip = document.getElementById("tip");
+  const nf = new Intl.NumberFormat("es-MX");
+
+  const deckgl = new deck.DeckGL({
+    container: "mapa",
+    views: vistas(),
+    initialViewState: VISTA_INICIAL,
+    controller: { dragRotate: true, touchRotate: true },
+    layers: capas(),
+    parameters: { clearColor: [0.949, 0.949, 0.949, 1] },
+    onHover: info => {
+      if (!info.object) { tip.style.display = "none"; return; }
+      const c = info.object;
+      tip.innerHTML =
+        '<div class="h">Celda ' + c.h + '</div>' +
+        '<div class="m">' + DATOS.municipios[c.m] + '</div>' +
+        '<dl>' +
+        '<dt>Observado 2024</dt><dd>' + nf.format(c.y) + '</dd>' +
+        '<dt>Esperado 2027</dt><dd>' + nf.format(Math.round(c.l)) + '</dd>' +
+        '<dt>Intervalo 90 %</dt><dd>' + nf.format(c.a) + '–' + nf.format(c.b) + '</dd>' +
+        '<dt>Vs. su municipio</dt><dd>' + (c.r >= 1 ? '×' + c.r.toFixed(1) : '÷' + (1 / c.r).toFixed(1)) + '</dd>' +
+        '<dt>P(5 % peor)</dt><dd>' + c.t.toFixed(2) + '</dd>' +
+        '</dl>';
+      tip.style.display = "block";
+      tip.style.left = Math.min(info.x + 14, window.innerWidth - 246) + "px";
+      tip.style.top = (info.y + 14) + "px";
+    },
+  });
+
+  function dibujar() { deckgl.setProps({ layers: capas(), views: vistas() }); }
+
+  // --- leyenda ------------------------------------------------------------
+  const elTitulo = document.getElementById("ley-titulo");
+  const elRampa = document.getElementById("ley-rampa");
+  const elMin = document.getElementById("ley-min");
+  const elMid = document.getElementById("ley-mid");
+  const elMax = document.getElementById("ley-max");
+  const elTexto = document.getElementById("ley-texto");
+  const elNota = document.getElementById("ley-nota");
+
+  function css(rgb) { return "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")"; }
+
+  function leyenda() {
+    if (estado.vista === "abs") {
+      elTitulo.textContent = "Accidentes esperados en 2027";
+      elRampa.style.background = "linear-gradient(90deg," +
+        css(rampaAzul(0)) + "," + css(rampaAzul(0.5)) + "," + css(rampaAzul(1)) + ")";
+      elMin.textContent = "0";
+      // La barra es lineal en log(1+lambda): su punto medio no es maxAbs/2.
+      elMid.textContent = nf.format(Math.round(Math.expm1(0.5 * Math.log1p(maxAbs))));
+      elMax.textContent = nf.format(Math.round(maxAbs)) + " / año";
+      elTexto.innerHTML = "Altura ∝ accidentes esperados, en escala " +
+        (estado.log ? "<b>logarítmica</b>" : "<b>lineal</b>") +
+        ". El color va siempre en escala logarítmica, para que las celdas bajas " +
+        "se distingan entre sí. La torre más alta son " +
+        nf.format(Math.round(maxAbs)) + " accidentes al año.";
+      elNota.innerHTML = "<b>Cuidado:</b> esta altura incluye cuánto reporta cada " +
+        "municipio. Guadalupe se ve bajo en parte porque dejó de capturar, no solo " +
+        "porque sea seguro. Cambia a la otra vista para quitar ese efecto.";
+    } else {
+      elTitulo.textContent = "Riesgo relativo a su propio municipio";
+      elRampa.style.background = "linear-gradient(90deg," +
+        css(rampaDivergente(-1)) + "," + css(rampaDivergente(0)) + "," + css(rampaDivergente(1)) + ")";
+      elMin.textContent = "÷10";
+      elMid.textContent = "×1";
+      elMax.textContent = "×10";
+      elTexto.innerHTML = "Altura y color ∝ cuántas veces la celda supera a la " +
+        "celda típica de su municipio" +
+        (estado.log ? ", con la altura en escala logarítmica" : "") +
+        ". Gris = igual que su municipio; el relieve se recorta en ×20.";
+      elNota.innerHTML = "Esta vista es exp(uᵢ), el perfil espacial del modelo: " +
+        "no depende del régimen de reporte. Los bloques municipales desaparecen y " +
+        "quedan los corredores.";
+    }
+  }
+
+  // --- controles ----------------------------------------------------------
+  const btAbs = document.getElementById("bt-abs");
+  const btRel = document.getElementById("bt-rel");
+
+  function cambiarVista(v) {
+    if (estado.vista === v) return;
+    estado.vista = v;
+    btAbs.setAttribute("aria-pressed", String(v === "abs"));
+    btRel.setAttribute("aria-pressed", String(v === "rel"));
+    dibujar();
+    leyenda();
+  }
+  btAbs.onclick = () => cambiarVista("abs");
+  btRel.onclick = () => cambiarVista("rel");
+
+  document.getElementById("escala").oninput = e => {
+    estado.escala = parseFloat(e.target.value);
+    dibujar();
+  };
+  document.getElementById("log").onchange = e => {
+    estado.log = e.target.checked; dibujar(); leyenda();
+  };
+  document.getElementById("opac").onchange = e => {
+    estado.opacidad = e.target.checked; dibujar();
+  };
+  document.getElementById("orto").onchange = e => {
+    estado.orto = e.target.checked; dibujar();
+  };
+  document.getElementById("vias").onchange = e => {
+    estado.vias = e.target.checked; dibujar();
+  };
+
+  // Órbita: para presentar sin tocar el ratón. Gira el rumbo a ritmo constante.
+  const btOrbita = document.getElementById("bt-orbita");
+  let animacion = null;
+  function orbitar() {
+    const vs = Object.assign({}, deckgl.viewState || VISTA_INICIAL);
+    const actual = deckgl.viewManager ? deckgl.viewManager.getViewState("principal") : vs;
+    const siguiente = Object.assign({}, actual, { bearing: (actual.bearing || 0) + 0.12 });
+    deckgl.setProps({ viewState: siguiente });
+    deckgl.viewState = siguiente;
+    animacion = requestAnimationFrame(orbitar);
+  }
+  btOrbita.onclick = () => {
+    estado.orbita = !estado.orbita;
+    btOrbita.setAttribute("aria-pressed", String(estado.orbita));
+    if (estado.orbita) {
+      deckgl.viewState = Object.assign({}, VISTA_INICIAL, deckgl.viewState || {});
+      orbitar();
+    } else {
+      cancelAnimationFrame(animacion);
+      deckgl.setProps({ viewState: undefined, initialViewState: deckgl.viewState });
+    }
+  };
+
+  document.getElementById("bt-reset").onclick = () => {
+    if (estado.orbita) btOrbita.click();
+    deckgl.setProps({ initialViewState: Object.assign({}, VISTA_INICIAL, { transitionDuration: 600 }) });
+  };
+
+  // Los controles arrancan reflejando el hash, no sus valores del HTML.
+  btAbs.setAttribute("aria-pressed", String(estado.vista === "abs"));
+  btRel.setAttribute("aria-pressed", String(estado.vista === "rel"));
+  document.getElementById("log").checked = estado.log;
+  document.getElementById("opac").checked = estado.opacidad;
+  document.getElementById("orto").checked = estado.orto;
+  document.getElementById("vias").checked = estado.vias;
+
+  dibujar();
+  leyenda();
+})();
+}
+</script>
+</body>
+</html>
