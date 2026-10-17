@@ -1,12 +1,12 @@
 # Publicación — carrusel de Instagram
 
-Veinte láminas verticales de **1080 × 1350** (4:5). Dieciocho se generan aquí;
-las otras dos las ponen los autores y la numeración ya les deja su lugar:
+Veinte láminas verticales de **1080 × 1350** (4:5). Diecinueve se generan aquí;
+la 15 la ponen los autores y la numeración ya le deja su lugar:
 
 | # | Lámina | Origen |
 |---|---|---|
 | 01 | Portada | `01_portada.png` |
-| 02 | Nota periodística | **la proveen los autores** |
+| 02 | Nota periodística | `02_nota_periodistica.png` |
 | 03 | Por qué hicimos esto | `03_por_que.png` |
 | 04 | La problemática (lámina 4 de la presentación) | `04_la_problematica.png` |
 | 05 | De dónde salen los datos (lámina 6) | `05_los_datos.png` |
@@ -40,6 +40,14 @@ Se edita `plantilla.html`; los PNG **se generan**.
 No hay datos propios: todo sale de `docs/presentacion/datos.json`, con las
 mismas fuentes, logotipos y generador de QR (`construir.py` importa el de la
 presentación). Si cambia `datos.json`, basta con volver a correr el script.
+
+`logos/` guarda las imágenes propias del carrusel y tienen prioridad sobre las
+de la presentación: el recorte de la nota periodística y el logotipo nuevo de
+SDLM (fondo transparente, para invertirlo sobre la portada oscura).
+
+- Solo la portada lleva el logotipo de SDLM; todas las demás llevan el de
+  GeoStats arriba a la derecha (lo agrega el script) y el número de lámina
+  abajo a la izquierda.
 
 - Lo observado va en la rampa fría y lo estimado (2027) en la cálida, igual que
   en la presentación.

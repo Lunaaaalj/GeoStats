@@ -8,12 +8,15 @@ fotografía cada lámina por separado.
 
     uv run --with segno --with playwright --no-project python publicacion/construir.py
 
-Faltan a propósito el 02 (la nota periodística) y el 15 (la foto de la app):
-esos los ponen los autores y la numeración ya les deja su lugar.
+Las imágenes propias del carrusel (la nota periodística del 02 y el logotipo
+de SDLM de la portada) viven en `publicacion/logos/` y tienen prioridad sobre
+las de la presentación. Falta a propósito el 15 (la foto de la app): esa la
+ponen los autores y la numeración ya le deja su lugar.
 """
 
 from __future__ import annotations
 
+import base64
 import re
 import sys
 import tempfile
@@ -27,11 +30,22 @@ sys.path.insert(0, str(PRESENTACION))
 
 import construir as base  # noqa: E402  (el construir.py de la presentación)
 
+TIPOS = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
+
+
+def resolver(marca: re.Match[str]) -> str:
+    """Como el de la presentación, pero `{{IMG:…}}` busca primero en logos/ de aquí."""
+    propia = AQUI / "logos" / marca.group(2)
+    if marca.group(1) == "IMG" and propia.exists():
+        b64 = base64.b64encode(propia.read_bytes()).decode("ascii")
+        return f"data:{TIPOS[propia.suffix.lower()]};base64,{b64}"
+    return base.resolver(marca)
+
 
 def armar() -> str:
     plantilla = (AQUI / "plantilla.html").read_text(encoding="utf-8")
     salida = plantilla.replace("{{DATOS}}", base.datos())
-    return re.sub(r"\{\{(FUENTE|QR_LADO|QR_TRAZO|IMG):([^}]+)\}\}", base.resolver, salida)
+    return re.sub(r"\{\{(FUENTE|QR_LADO|QR_TRAZO|IMG):([^}]+)\}\}", resolver, salida)
 
 
 def main() -> None:
