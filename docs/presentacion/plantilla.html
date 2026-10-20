@@ -165,6 +165,9 @@ td.sede{font-size:15px; color:var(--tenue)}
 tr.cima td{color:var(--ladrillo); font-weight:600}
 tr.cima td.n{color:var(--ladrillo); font-weight:700}
 .rango{font-family:var(--cifra); font-size:12px; color:var(--tenue); width:26px}
+/* La fila del resto no continúa el acumulado de las de arriba: es su
+   complemento. Va atenuada para que se lea como el cierre, no como un hito. */
+tr.resto td, tr.resto td.n{color:var(--tenue); font-weight:400}
 
 /* -------------------------------------------------------------- barras --- */
 .barras{display:flex; flex-direction:column; gap:12px}
@@ -707,7 +710,6 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
         <thead><tr><th>Los peores…</th><th style="text-align:right">% de los cruces</th><th style="text-align:right">% acumulado de hechos de tránsito</th></tr></thead>
         <tbody data-tabla="hitos"></tbody>
       </table>
-      <p class="entrada" data-anim style="--i:4">Al revés: el <b>91 %</b> de los cruces aporta menos de un tercio de los hechos de tránsito.</p>
     </div>
   </div>
 </section>
@@ -720,8 +722,10 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   <h2 data-anim style="--i:1">Tienen nombre y apellido</h2>
   <div class="marco">
     <div class="col media">
-      <table data-anim style="--i:2"><tbody data-tabla="cruces"></tbody></table>
-      <p class="pie" data-anim style="--i:3;max-width:48ch;margin-top:14px">En el mapa, cada número es un renglón de esta tabla. El primero acumula <b>1,024</b> hechos de tránsito en seis años.</p>
+      <table data-anim style="--i:2">
+        <thead><tr><th></th><th></th><th></th><th style="text-align:right">Hechos 2019-2024</th></tr></thead>
+        <tbody data-tabla="cruces"></tbody>
+      </table>
     </div>
   </div>
 </section>
@@ -1381,7 +1385,7 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
     s.appendChild(et);
     s.appendChild(svgEl("text", {x: px(50), y: H - 6, "text-anchor": "middle",
       "font-family": "Montserrat, sans-serif", "font-size": 12, fill: "#2C2C2C",
-      "fill-opacity": .55})).textContent = "% de los cruces, del peor al mejor";
+      "fill-opacity": .55})).textContent = "% de cruces";
     var ey = svgEl("text", {x: 14, y: py(50), "text-anchor": "middle",
       "font-family": "Montserrat, sans-serif", "font-size": 12, fill: "#2C2C2C", "fill-opacity": .55,
       transform: "rotate(-90 14 " + py(50) + ")"});
@@ -1393,6 +1397,45 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
       linea.style.strokeDasharray = L; linea.style.strokeDashoffset = L;
       linea.style.transition = "stroke-dashoffset 1.9s cubic-bezier(.22,.68,.16,1) .25s";
       requestAnimationFrame(function(){ linea.style.strokeDashoffset = 0; });
+
+      /* Un punto recorre la curva diciendo, en cada posición, qué porcentaje
+         de los cruces acumula qué porcentaje de los hechos. Arranca cuando la
+         línea termina de dibujarse y se desvanece al llegar al final, para
+         dejar el hito de los mil cruces como única marca en reposo. */
+      var lectura = svgEl("g", {opacity: 0, style: "transition:opacity .45s"});
+      var bolita = svgEl("circle", {r: 5, fill: "#2C2C2C", stroke: "#fff", "stroke-width": 2});
+      // La lectura va fija en el hueco bajo la diagonal, no pegada al punto:
+      // siguiéndolo chocaba con la etiqueta del hito de los mil cruces.
+      var r1 = svgEl("text", {x: px(52), y: py(26), "font-family": "Roboto Mono, monospace",
+        "font-size": 14, "font-weight": 500, fill: "#2C2C2C"});
+      var r2 = svgEl("text", {x: px(52), y: py(26) + 18, "font-family": "Roboto Mono, monospace",
+        "font-size": 13, "font-weight": 500, fill: "#2C2C2C", "fill-opacity": .6});
+      lectura.appendChild(bolita); lectura.appendChild(r1); lectura.appendChild(r2);
+      s.appendChild(lectura);
+
+      var P = D.lorenz, ESPERA = 2150, DUR = 4200, T0 = null, j = 0;
+      var pct = function(v){ return (v < 10 ? v.toFixed(1) : v.toFixed(0)) + " %"; };
+
+      var paso = function(t){
+        if (T0 === null) T0 = t;
+        var u = (t - T0 - ESPERA) / DUR;
+        if (u < 0){ requestAnimationFrame(paso); return; }
+        lectura.setAttribute("opacity", 1);
+        var fin = u >= 1;
+        u = fin ? 1 : u;
+        // La curva viene muestreada muy densa cerca del cero; avanzar en x con
+        // una potencia le da tiempo al tramo empinado, que es el que importa.
+        var X = 100 * Math.pow(u, 2.5);
+        while (j < P.length - 2 && P[j + 1][0] < X) j++;
+        var a = P[j], b = P[j + 1], d = b[0] - a[0];
+        var Y = d > 0 ? a[1] + (b[1] - a[1]) * ((X - a[0]) / d) : a[1];
+        bolita.setAttribute("cx", px(X)); bolita.setAttribute("cy", py(Y));
+        r1.textContent = pct(X) + " de los cruces";
+        r2.textContent = pct(Y) + " de los hechos";
+        if (!fin) requestAnimationFrame(paso);
+        else setTimeout(function(){ lectura.setAttribute("opacity", 0); }, 900);
+      };
+      requestAnimationFrame(paso);
     }
   }
 
@@ -1889,13 +1932,25 @@ body.sobreLamina:not(.noche) #cadena .nodo.aqui{background:var(--oxido)}
   /* ==================================== tablas, barras y fichas ========== */
   function rellenarEstaticos(){
     var t = document.querySelector('[data-tabla="hitos"]');
-    D.cruces.hitos.forEach(function(h, idx){
-      var tr = el("tr", idx === 2 ? "cima" : null);
-      var ultimo = idx === D.cruces.hitos.length - 1;
-      tr.innerHTML = "<td>" + (ultimo ? "Todos: " : "") + miles(h[0]) + " cruces</td>" +
-        '<td class="n">' + h[1].toFixed(2) + "<i class='e'></i>%</td>" +
-        '<td class="n">' + h[2].toFixed(1) + "<i class='e'></i>%</td>";
+    var HIT = D.cruces.hitos;
+    var filaHito = function(etiqueta, pcruces, phechos, clase){
+      var tr = el("tr", clase || null);
+      tr.innerHTML = "<td>" + etiqueta + "</td>" +
+        '<td class="n">' + pcruces.toFixed(2) + "<i class='e'></i>%</td>" +
+        '<td class="n">' + phechos.toFixed(1) + "<i class='e'></i>%</td>";
       t.appendChild(tr);
+    };
+    HIT.forEach(function(h, idx){
+      var ultimo = idx === HIT.length - 1;
+      if (ultimo){
+        // El complemento del último hito: los cruces que no están en la cabeza
+        // y la porción que les toca. Es el dato que antes iba en prosa.
+        var cabeza = HIT[HIT.length - 2];
+        filaHito("Los otros " + miles(h[0] - cabeza[0]) + " cruces",
+                 100 - cabeza[1], 100 - cabeza[2], "resto");
+      }
+      filaHito((ultimo ? "Todos: " : "") + miles(h[0]) + " cruces",
+               h[1], h[2], idx === 2 ? "cima" : null);
     });
 
     t = document.querySelector('[data-tabla="cruces"]');
