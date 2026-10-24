@@ -22,7 +22,7 @@ import argparse
 import re
 
 import pandas as pd
-from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 from geostats import rutas
@@ -33,8 +33,13 @@ GENERICO = re.compile(r"^(AVENIDA|AV\.?|CALLE|CALZADA|BOULEVARD|BLVD\.?|CARRETER
                       r"PROLONGACI[OÓ]N|PRIVADA|ANDADOR)\s+", re.IGNORECASE)
 MINUSCULAS = {"De", "Del", "La", "Las", "Los", "Y", "El"}
 
-# Identidad GeoStats: encabezado en Azul Prusia ajustado, texto blanco.
+# Identidad GeoStats: secciones en la rampa ordinal de azules, texto grafito,
+# rejilla y subencabezados en gris claro.
 AZUL = "005991"
+RAMPA = (AZUL, "1B77B8")
+GRAFITO = "2C2C2C"
+GRIS = "F2F2F2"
+GRIS_TEXTO = "6B6B6B"  # rankings: secundarios frente a la cuenta
 
 
 def calle_limpia(calle) -> str | None:
@@ -74,16 +79,18 @@ def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
         peatones_afectados=d.PEATMUERTO + d.PEATHERIDO,
         defunciones_pc=d.PEATMUERTO + d.CICLMUERTO,
     )
+    d["con_pc"] = d.con_peaton | d.con_ciclista
     g = d.groupby("id_punto_4d")
     nodos = pd.DataFrame({
         "hechos": g.size(),
         "defunciones": g.TOTMUERTOS.sum(),
-        "peatones_afectados": g.peatones_afectados.sum(),
-        "defunciones_pc": g.defunciones_pc.sum(),
         "hechos_peaton": g.con_peaton.sum(),
-        "hechos_ciclista": g.con_ciclista.sum(),
         "def_peaton": g.PEATMUERTO.sum(),
+        "peatones_afectados": g.peatones_afectados.sum(),
+        "hechos_ciclista": g.con_ciclista.sum(),
         "def_ciclista": g.CICLMUERTO.sum(),
+        "hechos_pc": g.con_pc.sum(),
+        "defunciones_pc": g.defunciones_pc.sum(),
         "municipio": g.NOM_MUN.agg(lambda s: s.mode().iloc[0]),
         "ubicacion": g.ubicacion.agg(lambda s: s.mode().iloc[0]),
         "lat": g.LATITUD.median(),
@@ -92,42 +99,52 @@ def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
     cruces = nodos[nodos.ubicacion == "Intersección"].copy()
     cruces["nombre"] = nombres_de_cruce(d).reindex(cruces.index).fillna("Sin nombre")
 
-    def lugar(col: str) -> pd.Series:
-        return cruces[col].rank(ascending=False, method="min").astype(int)
-
-    cruces["r_hechos"] = lugar("hechos")
-    cruces["r_defunciones"] = lugar("defunciones")
-    cruces["r_peatones"] = lugar("peatones_afectados")
-    cruces["r_defunciones_pc"] = lugar("defunciones_pc")
+    # Cada cuenta lleva su ranking en la columna «r_<cuenta>».
+    for col in [c for c, _ in columnas_de(SECCIONES) if c.startswith("r_")]:
+        base = col[2:]
+        cruces[col] = cruces[base].rank(ascending=False, method="min").astype(int)
     cruces["maps"] = [f"https://www.google.com/maps?q={la:.6f},{lo:.6f}"
                       for la, lo in zip(cruces.lat, cruces.lon)]
     cruces["coordenadas"] = [f"{la:.6f}, {lo:.6f}" for la, lo in zip(cruces.lat, cruces.lon)]
 
     cruces = cruces.sort_values(["hechos", "defunciones", "nombre"],
                                 ascending=[False, False, True])
-    return cruces.rename(columns=COLUMNAS)[list(COLUMNAS.values())]
+    columnas = columnas_de(SECCIONES)
+    return cruces[[c for c, _ in columnas]].set_axis([e for _, e in columnas], axis=1)
 
 
-COLUMNAS = {
-    "r_hechos": "Ranking por hechos de tránsito",
-    "nombre": "Cruce",
-    "hechos": "Hechos de tránsito",
-    "defunciones": "Defunciones",
-    "r_defunciones": "Ranking por defunciones",
-    "peatones_afectados": "Peatones afectados (muertos + heridos)",
-    "r_peatones": "Ranking por peatones afectados",
-    "defunciones_pc": "Defunciones de peatones o ciclistas",
-    "r_defunciones_pc": "Ranking por defunciones de peatones o ciclistas",
-    "hechos_peaton": "Hechos con peatones",
-    "hechos_ciclista": "Hechos con ciclistas",
-    "def_peaton": "Defunciones de peatones",
-    "def_ciclista": "Defunciones de ciclistas",
-    "municipio": "Municipio",
-    "maps": "Google Maps",
-    "coordenadas": "Coordenadas (lat, lon)",
-    "lat": "Latitud",
-    "lon": "Longitud",
-}
+# Secciones de la hoja: (título, [(columna, encabezado), ...]). Cada sección de
+# conteos lleva sus hechos y defunciones, cada uno seguido de su ranking.
+SECCIONES = [
+    ("Cruce", [("nombre", "Cruce")]),
+    ("Totales", [
+        ("hechos", "Hechos de tránsito"), ("r_hechos", "Ranking"),
+        ("defunciones", "Defunciones"), ("r_defunciones", "Ranking"),
+    ]),
+    ("Solo peatones", [
+        ("hechos_peaton", "Hechos de tránsito"), ("r_hechos_peaton", "Ranking"),
+        ("def_peaton", "Defunciones"), ("r_def_peaton", "Ranking"),
+        ("peatones_afectados", "Afectados (muertos + heridos)"),
+        ("r_peatones_afectados", "Ranking"),
+    ]),
+    ("Solo ciclistas", [
+        ("hechos_ciclista", "Hechos de tránsito"), ("r_hechos_ciclista", "Ranking"),
+        ("def_ciclista", "Defunciones"), ("r_def_ciclista", "Ranking"),
+    ]),
+    ("Peatones o ciclistas", [
+        ("hechos_pc", "Hechos de tránsito"), ("r_hechos_pc", "Ranking"),
+        ("defunciones_pc", "Defunciones"), ("r_defunciones_pc", "Ranking"),
+    ]),
+    ("Ubicación", [
+        ("municipio", "Municipio"), ("maps", "Google Maps"),
+        ("coordenadas", "Coordenadas (lat, lon)"), ("lat", "Latitud"), ("lon", "Longitud"),
+    ]),
+]
+
+
+def columnas_de(secciones) -> list[tuple[str, str]]:
+    return [par for _, pares in secciones for par in pares]
+
 
 NOTAS = [
     ("Fuente", "ATUS (INEGI), Zona Metropolitana de Monterrey, 2019-2024; "
@@ -139,8 +156,11 @@ NOTAS = [
     ("Peatones afectados", "PEATMUERTO + PEATHERIDO (personas, no hechos)."),
     ("Hechos con peatones", "Atropellamiento (TIPACCID = 2) o algún peatón muerto."),
     ("Hechos con ciclistas", "Colisión con ciclista (TIPACCID = 11) o algún ciclista muerto."),
-    ("Defunciones de peatones / ciclistas", "PEATMUERTO / CICLMUERTO (personas)."),
-    ("Rankings", "1 = el cruce con más. Empates comparten el lugar más alto (método «min»), "
+    ("Hechos con peatones o ciclistas", "Unión de los dos anteriores, contada por hecho: "
+                                        "un hecho con peatón y ciclista cuenta una vez."),
+    ("Defunciones de peatones / ciclistas", "PEATMUERTO / CICLMUERTO (personas); la sección "
+                                            "«Peatones o ciclistas» suma las dos."),
+    ("Ranking", "Cada cuenta lleva a su derecha su ranking; 1 = el cruce con más. Empates comparten el lugar más alto (método «min»), "
                  "así que muchos cruces con 0 defunciones empatan en el mismo lugar."),
     ("Coordenadas", "Mediana de LATITUD y LONGITUD de los hechos del cruce (WGS84)."),
     ("Generado con", "uv run tabla-cruces (src/geostats/tabla_cruces.py)."),
@@ -148,37 +168,72 @@ NOTAS = [
 
 
 def escribir_excel(tabla: pd.DataFrame, ruta) -> None:
+    """Dos filas de encabezado: la sección (celdas combinadas) y la columna."""
     with pd.ExcelWriter(ruta, engine="openpyxl") as xl:
-        tabla.to_excel(xl, sheet_name="Cruces", index=False)
+        tabla.to_excel(xl, sheet_name="Cruces", index=False, startrow=1)
         pd.DataFrame(NOTAS, columns=["Concepto", "Definición"]).to_excel(
             xl, sheet_name="Notas", index=False)
 
         hoja = xl.sheets["Cruces"]
-        encabezado = Font(bold=True, color="FFFFFF")
-        relleno = PatternFill("solid", fgColor=AZUL)
-        for celda in hoja[1]:
-            celda.font, celda.fill = encabezado, relleno
-            celda.alignment = Alignment(wrap_text=True, vertical="center")
-        hoja.row_dimensions[1].height = 45
-        hoja.freeze_panes = "C2"
-        hoja.auto_filter.ref = hoja.dimensions
+        blanco = Font(bold=True, color="FFFFFF")
+        grafito = Font(bold=True, color=GRAFITO)
+        centro = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        separador = Side(style="medium", color=GRAFITO)
+        n = len(tabla) + 2
 
-        anchos = {"Cruce": 48, "Municipio": 22, "Google Maps": 16,
-                  "Coordenadas (lat, lon)": 24}
+        col = 1
+        for k, (titulo, pares) in enumerate(SECCIONES):
+            ini, fin = col, col + len(pares) - 1
+            # Alterna los dos tonos de la rampa ordinal para distinguir secciones.
+            tono = RAMPA[k % 2]
+            hoja.merge_cells(start_row=1, start_column=ini, end_row=1, end_column=fin)
+            celda = hoja.cell(row=1, column=ini, value=titulo)
+            celda.font, celda.alignment = blanco, centro
+            for c in range(ini, fin + 1):
+                hoja.cell(row=1, column=c).fill = PatternFill("solid", fgColor=tono)
+                sub = hoja.cell(row=2, column=c)
+                sub.font, sub.alignment = grafito, centro
+                sub.fill = PatternFill("solid", fgColor=GRIS)
+            # Línea gruesa a la izquierda de cada sección, de arriba abajo.
+            if ini > 1:
+                for fila in range(1, n + 1):
+                    celda = hoja.cell(row=fila, column=ini)
+                    celda.border = Border(left=separador)
+            col = fin + 1
+
+        hoja.row_dimensions[1].height = 22
+        hoja.row_dimensions[2].height = 45
+        hoja.freeze_panes = "B3"
+        hoja.auto_filter.ref = f"A2:{get_column_letter(len(tabla.columns))}{n}"
+
+        anchos = {"Cruce": 48, "Municipio": 22, "Google Maps": 15,
+                  "Coordenadas (lat, lon)": 24, "Ranking": 9,
+                  "Afectados (muertos + heridos)": 14}
         for k, nombre in enumerate(tabla.columns, start=1):
-            hoja.column_dimensions[get_column_letter(k)].width = anchos.get(nombre, 14)
+            letra = get_column_letter(k)
+            hoja.column_dimensions[letra].width = anchos.get(nombre, 12)
+            if nombre == "Ranking":
+                for fila in range(3, n + 1):
+                    hoja.cell(row=fila, column=k).font = Font(color=GRIS_TEXTO)
+            elif nombre in ("Latitud", "Longitud"):
+                for fila in range(3, n + 1):
+                    hoja.cell(row=fila, column=k).number_format = "0.000000"
 
         col_maps = list(tabla.columns).index("Google Maps") + 1
-        for fila in range(2, len(tabla) + 2):
+        for fila in range(3, n + 1):
             celda = hoja.cell(row=fila, column=col_maps)
             celda.hyperlink, celda.value = celda.value, "Abrir en Maps"
             celda.style = "Hyperlink"
 
         notas = xl.sheets["Notas"]
         for celda in notas[1]:
-            celda.font, celda.fill = encabezado, relleno
+            celda.font = blanco
+            celda.fill = PatternFill("solid", fgColor=AZUL)
         notas.column_dimensions["A"].width = 34
         notas.column_dimensions["B"].width = 100
+        for fila in notas.iter_rows(min_row=2):
+            for celda in fila:
+                celda.alignment = Alignment(wrap_text=True, vertical="top")
 
 
 def main() -> None:
