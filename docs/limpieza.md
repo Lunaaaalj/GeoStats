@@ -1,11 +1,11 @@
 # Limpieza — ATUS ZMM
 
 Qué hace `geostats.limpieza` con `atus_zmm.parquet` y qué decide **no** hacer.
-379,294 registros, **51 columnas → 71**; las 51 originales salen intactas.
+379,294 registros, **51 columnas → 73**; las 51 originales salen intactas.
 
 ```bash
-uv run limpiar-atus          # data/processed/atus_zmm_limpio.parquet   (12.1 MB)
-uv run limpiar-atus --geo    # además el GeoParquet                     (14.7 MB)
+uv run limpiar-atus          # data/processed/atus_zmm_limpio.parquet   (13.5 MB)
+uv run limpiar-atus --geo    # además el GeoParquet                     (16.0 MB)
 ```
 
 ## El principio
@@ -22,7 +22,7 @@ Nombres: `MAYÚSCULAS` = tal como llegó del INEGI, nunca se modifica;
 `minúsculas` = construido por este repo. Excepción: `CVE_MUN` y `NOM_MUN`, que
 siguen la nomenclatura de claves geoestadísticas del INEGI.
 
-## Las 20 columnas derivadas
+## Las 22 columnas derivadas
 
 | Columna | Tipo | Regla | NA |
 |---|---|---|---|
@@ -41,6 +41,8 @@ siguen la nomenclatura de claves geoestadísticas del INEGI.
 | `hay_victimas` | `bool` | `CLASE ∈ {1,2}` | 21,523 `True` |
 | `calle1_norm` | `string` | Recorte, espacios, mayúsculas, sin acentos | 0.11 % |
 | `calle2_norm` | `string` | Igual | 1.58 % |
+| `calle1_hom` | `string` | `calle1_norm` homologada: sin genérico ni abreviatura, con alias verificados | 0.11 % |
+| `calle2_hom` | `string` | Igual, desde `calle2_norm` | 1.58 % |
 | `carretera_norm` | `string` | Igual | 98.51 % |
 | `falta_calle2` | `bool` | `en_interseccion` y `calle2_norm` en NA | 3,072 `True` |
 | `id_punto` | `string` | `"lon,lat"` exacto, vía `str(float)` | 0 |
@@ -68,6 +70,25 @@ nombre real; `Ñ` → `N` es una fusión real y por eso no toca el original.
 `falta_calle2` separa el hueco real del estructural: la segunda vialidad debe
 estar *en* intersección.
 
+**`_hom` es la columna para contar vialidades; `_norm`, para todo lo demás.**
+El mismo parte escribe «AVENIDA PASEO DE LOS LEONES», «PASEO DE LOS LEONES» o
+«AV.PASEO DE LOS LEONES»: contadas por `_norm` son tres calles y el ranking de
+avenidas sale partido. La homologación separa el punto pegado, repone el punto
+de la inicial («MANUEL L BARRAGAN»), expande `AV`/`AVE`/`BLVD`/`CALZ`… y quita
+el genérico `AVENIDA`, `CALLE`, `BOULEVARD` o `CALZADA`. Se comprobó con la
+geometría: `AVENIDA X` y `X` caen a menos de 100 m una de otra en el 98.5 % de
+los registros y `CALLE X` en el 95.8 %. `CARRETERA` no se quita porque ahí baja
+a 70 % («CARRETERA NACIONAL» no es la calle «NACIONAL»). Los nombres distintos
+pasan de **28,173 a 19,474**.
+
+Los títulos **no** se quitan por regla, porque distinguen calles reales:
+«GENERAL LAZARO CARDENAS» está entero en Guadalupe y «LAZARO CARDENAS» en
+Monterrey y San Pedro; «ELEUTERIO GONZALEZ» está en Santiago y no es Gonzalitos.
+Las formas cortas y largas se unen solo con `ALIAS_VIALIDAD`, diez alias
+escritos a mano, y cada uno entra si al menos el 75 % de sus registros cae a
+menos de 100 m del nombre canónico. «LEONES» a secas se quedó fuera con 74.8 %.
+Caso límite aceptado: «CALLE CALZADA SUR» (un registro) queda como «SUR».
+
 ## Lo que decide no hacer
 
 | No hace | Por qué |
@@ -76,15 +97,15 @@ estar *en* intersección.
 | Borrar filas | Solo el 25.5 % está completo en los seis campos clave |
 | Tirar columnas | Es un superconjunto; se selecciona al analizar ([`seleccion_datos.md`](seleccion_datos.md)) |
 | *Jitter* en coordenadas | Decisión de análisis; un archivo con ruido inyectado es una mentira para cualquier otro uso |
-| Canonicalizar `AV`/`AVE`/`AVENIDA` | Requiere diccionario a mano; riesgo alto de fusionar calles distintas |
+| Quitar títulos (`GENERAL`, `DOCTOR`) por regla | Fusiona calles distintas de municipios distintos; solo hay alias verificados uno por uno |
 | Pegar la tasa de captura al renglón | Es un agregado: al filtrar deja de significar lo que dice. Vive como función |
 
 ## Verificación
 
-`validar()` recorre **21 invariantes** y lanza excepción con la lista de las que
+`validar()` recorre **23 invariantes** y lanza excepción con la lista de las que
 fallen; las diez primeras son las de `calidad_datos.qmd`, que dieron cero
 violaciones sobre la base sucia, así que si aparecen ahora la limpieza rompió
-algo. `diagnostico()` reporta, sin reprobar, doce cifras más.
+algo. `diagnostico()` reporta, sin reprobar, catorce cifras más.
 
 `tasa_captura(datos, campo)` da el porcentaje con dato real por municipio y año.
 El faltante de `CINTURON`, `ALIENTO` y `EDAD` mide **práctica administrativa, no
