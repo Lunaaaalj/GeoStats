@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "montserrat",
+        "createdAt": "2026-10-24T23:30:26.814Z",
+        "reason": "CLAUDE.md del proyecto: Montserrat es tipografía de la identidad visual de GeoStats"
+      }
+    ]
+  }
+}
