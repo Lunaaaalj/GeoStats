@@ -74,6 +74,36 @@ HERIDOS = ["CONDHERIDO", "PASAHERIDO", "PEATHERIDO", "CICLHERIDO", "OTROHERIDO"]
 
 COLUMNAS_TEXTO = ["CALLE1", "CALLE2", "CARRETERA"]
 
+# Homologación de vialidades. El mismo parte puede escribir «AVENIDA PASEO DE
+# LOS LEONES», «PASEO DE LOS LEONES» o «AV.PASEO DE LOS LEONES», y contadas
+# por nombre son tres calles. Se quita el genérico porque nadie lo usa para
+# distinguir: `AVENIDA X` y `X` caen a menos de 100 m una de otra en el 98.5 %
+# de los registros, `CALLE X` en el 95.8 %. `CARRETERA` no se quita: ahí la
+# coincidencia baja a 70 % («CARRETERA NACIONAL» no es la calle «NACIONAL»).
+ABREVIATURAS_GENERICO = {
+    "AVENIDA": r"AVDA|AVE|AV", "BOULEVARD": r"BLVD|BLVR", "CALZADA": r"CALZ",
+    "CARRETERA": r"CARR", "PROLONGACION": r"PROL", "PRIVADA": r"PRIV",
+}
+GENERICOS = ["AVENIDA", "CALLE", "BOULEVARD", "CALZADA"]
+
+# Formas cortas o largas del mismo nombre. No se resuelven con una regla
+# porque los títulos sí distinguen: «GENERAL LAZARO CARDENAS» está entero en
+# Guadalupe y «LAZARO CARDENAS» en Monterrey y San Pedro; «ELEUTERIO GONZALEZ»
+# está en Santiago y no es Gonzalitos. Cada alias entra solo si al menos el
+# 75 % de sus registros cae a menos de 100 m de un registro del nombre canónico.
+ALIAS_VIALIDAD = {
+    "IGNACIO MORONES PRIETO": "DOCTOR IGNACIO MORONES PRIETO",
+    "MORONES PRIETO": "DOCTOR IGNACIO MORONES PRIETO",
+    "LINCOLN": "ABRAHAM LINCOLN",
+    # «LEONES» a secas no entra: queda en 74.8 %, justo debajo del umbral.
+    "PASEO LOS LEONES": "PASEO DE LOS LEONES",
+    "PASO DE LOS LEONES": "PASEO DE LOS LEONES",
+    "GARZA SADA": "EUGENIO GARZA SADA",
+    "MIGUEL ALEMAN VALDES": "MIGUEL ALEMAN",
+    "CARRETERA MIGUEL ALEMAN": "MIGUEL ALEMAN",
+    "CARRETERA A MIGUEL ALEMAN": "MIGUEL ALEMAN",
+}
+
 LLAVE = ["ANIO", "EDO", "MPIO", "ID"]
 
 # Redondeo del identificador de punto con tolerancia. A la latitud de la ZMM
@@ -112,6 +142,34 @@ def _normalizar_texto(columna: pd.Series) -> pd.Series:
     )
     # Una cadena vacía o de puros espacios es información ausente, no un nombre.
     return limpio.mask(limpio == "", pd.NA)
+
+
+def _homologar_vialidad(normalizada: pd.Series) -> pd.Series:
+    """Un solo nombre por vialidad, para contar calles y corredores.
+
+    Parte de la columna `_norm` y hace cuatro cosas, en este orden:
+
+    1. Separa el punto pegado («AV.LINCOLN») y le pone punto a la inicial que
+       lo perdió («MANUEL L BARRAGAN» → «MANUEL L. BARRAGAN»). Las vocales y la
+       «Y» quedan fuera porque son preposiciones: «CARRETERA A MIGUEL ALEMAN».
+    2. Expande las abreviaturas del genérico al inicio («AVE», «BLVD»).
+    3. Quita el genérico, las veces que venga («CALZADA CALZADA DEL VALLE»),
+       siempre que quede un nombre con letras: «CALLE 5» se queda como está.
+    4. Aplica los alias verificados de `ALIAS_VIALIDAD`.
+    """
+    h = (
+        normalizada.str.replace(r"\.(?=[^\s\d])", ". ", regex=True)
+        .str.replace(r"(?<=[A-Z]{2} )([B-DF-HJ-NP-TV-XZ]) (?=[A-Z]{2})", r"\1. ",
+                     regex=True)
+    )
+    for generico, abreviaturas in ABREVIATURAS_GENERICO.items():
+        h = h.str.replace(rf"^(?:{abreviaturas})\b\.?\s*", f"{generico} ", regex=True)
+    h = h.str.replace(r"\s+", " ", regex=True).str.strip()
+    genericos = "|".join(GENERICOS)
+    # Cada pasada quita un genérico; tres bastan para «AVENIDA CALLE CALZADA X».
+    for _ in range(3):
+        h = h.str.replace(rf"^(?:{genericos}) (?=.*[A-Z]{{3}})", "", regex=True)
+    return h.replace(ALIAS_VIALIDAD)
 
 
 def _fecha(datos: pd.DataFrame) -> pd.Series:
@@ -226,6 +284,10 @@ def limpiar(datos: pd.DataFrame) -> pd.DataFrame:
     # --- Vialidades --------------------------------------------------------
     for columna in COLUMNAS_TEXTO:
         d[f"{columna.lower()}_norm"] = _normalizar_texto(d[columna])
+    # La homologación es para contar vialidades; `_norm` se conserva porque
+    # quitar el genérico ya es una decisión sobre qué cuenta como la misma calle.
+    for columna in ("calle1", "calle2"):
+        d[f"{columna}_hom"] = _homologar_vialidad(d[f"{columna}_norm"])
     # Una intersección tiene dos vialidades por definición, así que aquí el
     # hueco es faltante real y no estructural.
     d["falta_calle2"] = d["en_interseccion"] & d["calle2_norm"].isna()
@@ -282,6 +344,13 @@ def validar(limpio: pd.DataFrame, n_original: int) -> None:
         "id_punto no distingue coordenadas distintas": abs(
             limpio.groupby(["LONGITUD", "LATITUD"]).ngroups
             - limpio["id_punto"].nunique()
+        ),
+        # Homologar renombra; si deja un nombre vacío o llena un hueco, borró
+        # o inventó una calle.
+        "calle_hom vacía donde calle_norm no (o al revés)": sum(
+            int((limpio[f"{c}_hom"].isna() != limpio[f"{c}_norm"].isna()).sum()
+                + (limpio[f"{c}_hom"] == "").sum())
+            for c in ("calle1", "calle2")
         ),
     }
 
@@ -350,6 +419,12 @@ def diagnostico(limpio: pd.DataFrame) -> dict[str, int | float]:
         "precisión baja (<=3 decimales)": int(limpio["precision_baja"].sum()),
         "CALLE2 ausente en intersección": int(limpio["falta_calle2"].sum()),
         "valores de texto que cambiaron al normalizar": texto_cambiado,
+        "vialidades distintas (normalizadas)": int(
+            pd.concat([limpio["calle1_norm"], limpio["calle2_norm"]]).nunique()
+        ),
+        "vialidades distintas (homologadas)": int(
+            pd.concat([limpio["calle1_hom"], limpio["calle2_hom"]]).nunique()
+        ),
     }
 
 

@@ -29,6 +29,28 @@ def por_celda(union: pd.DataFrame, mascara, orden) -> list[int]:
     return s.reindex(orden, fill_value=0).astype(int).tolist()
 
 
+def nombre_de_cruce(partes: pd.DataFrame) -> tuple[str, str]:
+    """Las dos calles con que más partes nombran el cruce.
+
+    Se cuenta el par y no cada campo por separado: la moda de `calle1` y la de
+    `calle2` pueden salir de partes distintos y armar un cruce que nadie
+    escribió. Se descartan los pares con la misma calle dos veces (793 partes
+    de Barragán × Fidel Velázquez dicen «Barragán × Barragán»), salvo que no
+    haya otra cosa. El orden es el que más se usa para ese par.
+    """
+    p = partes[["calle1_hom", "calle2_hom"]].dropna()
+    if p.empty:
+        return (partes["calle1_hom"].dropna().iloc[0]
+                if partes["calle1_hom"].notna().any() else "", "")
+    distintas = p[p.calle1_hom != p.calle2_hom]
+    if not distintas.empty:
+        p = distintas
+    llave = p.apply(lambda r: tuple(sorted(r)), axis=1)
+    elegido = llave.value_counts().index[0]
+    orden = p[llave == elegido].value_counts().index[0]
+    return orden[0], orden[1]
+
+
 def main() -> None:
     g = gpd.read_parquet(rutas.ATUS_ZMM_LIMPIO_GEO).to_crs(espacial.UTM_ZMM)
     rejilla, _ = espacial.celdas(g, lado=LADO)
@@ -105,10 +127,6 @@ def main() -> None:
              .agg(n=("geometry", "size"),
                   x=("geometry", lambda s: s.iloc[0].x),
                   y=("geometry", lambda s: s.iloc[0].y),
-                  # El mismo cruce se captura con nombres distintos según
-                  # el parte; se queda el que más veces aparece, no el primero.
-                  c1=("calle1_norm", lambda s: s.mode().iloc[0] if len(s.mode()) else ""),
-                  c2=("calle2_norm", lambda s: s.mode().iloc[0] if len(s.mode()) else ""),
                   mun=("NOM_MUN", "first"))
              .sort_values("n", ascending=False))
     cabeza = nodos.head(600)
@@ -119,8 +137,12 @@ def main() -> None:
         return re.sub(r"^(Avenida|Calle|Calzada|Boulevard|Carretera|Prolongacion) ",
                       "", calle.title())
 
-    cruces_top = [[f"{corto(r.c1)} × {corto(r.c2)}", r.mun, int(r.n)]
-                  for r in nodos.head(10).itertuples()]
+    # El nombre solo hace falta para los diez de la tabla; calcularlo para los
+    # 54 mil cruces costaría minutos.
+    cruces_top = []
+    for r in nodos.head(10).itertuples():
+        c1, c2 = nombre_de_cruce(g[g.id_punto_4d == r.Index])
+        cruces_top.append([f"{corto(c1)} × {corto(c2)}", r.mun, int(r.n)])
 
     # concentración por número de cruces, para la tabla
     conteo_cruce = nodos["n"].to_numpy()
@@ -130,7 +152,9 @@ def main() -> None:
              for k in (50, 250, 1000, 5000, len(conteo_cruce))]
 
     # --- vialidades: los dos campos de calle cuentan igual -------------------
-    calles = pd.concat([g.calle1_norm, g.calle2_norm]).dropna()
+    # Con el nombre homologado: sin eso «Avenida Paseo de los Leones» y «Paseo
+    # de los Leones» se cuentan como dos calles y el ranking sale partido.
+    calles = pd.concat([g.calle1_hom, g.calle2_hom]).dropna()
     vialidades = [[n.title(), int(v)] for n, v in calles.value_counts().head(8).items()]
 
     # --- corredores: cada avenida dibujada con sus propios cruces ------------
@@ -139,7 +163,7 @@ def main() -> None:
     # eje principal (el primer componente de la nube de puntos) y se unen.
     corredores = []
     for nombre, _ in calles.value_counts().head(6).items():
-        toca = g[(g.calle1_norm == nombre) | (g.calle2_norm == nombre)]
+        toca = g[(g.calle1_hom == nombre) | (g.calle2_hom == nombre)]
         cruces_via = (toca.groupby("id_punto_4d")
                       .agg(n=("geometry", "size"),
                            x=("geometry", lambda t: t.iloc[0].x),

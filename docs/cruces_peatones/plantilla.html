@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cruces más letales para peatones</title>
+<style>
+/* ===========================================================================
+   GeoStats · Los 10 cruces con más fatalidades a peatones
+   Misma identidad que la presentación: paleta de seis, Montserrat /
+   Cormorant / Roboto Mono. Las gráficas se dibujan desde el JSON incrustado
+   abajo; lo único que es imagen son las fotos satelitales.
+   La genera notebooks/cruces_peatones.qmd: se edita esta plantilla, no index.html.
+
+   Regla de color de toda la página: AZUL es el total (todos los hechos de
+   tránsito, todos los cruces, todos los fallecidos); ROJO es lo que tiene
+   peatón o ciclista.
+   =========================================================================== */
+@font-face{font-family:"Montserrat";src:url({{FUENTE:montserrat}}) format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url({{FUENTE:cormorant}}) format("woff2");font-weight:300 700;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url({{FUENTE:cormorant-italica}}) format("woff2");font-weight:300 700;font-style:italic;font-display:swap}
+@font-face{font-family:"Roboto Mono";src:url({{FUENTE:mono}}) format("woff2");font-weight:100 700;font-display:swap}
+
+:root{
+  --blanco:#FFFFFF; --niebla:#F2F2F2; --prusia:#003153;
+  --ladrillo:#8B2C1A; --oxido:#B15E2E; --grafito:#2C2C2C;
+  --dato:#005991; --dato-2:#1b77b8; --dato-3:#4195d9;
+  --tenue:#3a3a3a; --suave:#6b6b6b; --linea:rgba(0,49,83,.13); --gris-barra:#DCDCDC;
+  --display:"Montserrat","Segoe UI",system-ui,sans-serif;
+  --texto:"Cormorant Garamond",Georgia,serif;
+  --cifra:"Roboto Mono",ui-monospace,Consolas,monospace;
+  --curva:cubic-bezier(.22,.68,.16,1);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--niebla); color:var(--grafito); font-family:var(--display);
+  -webkit-font-smoothing:antialiased}
+.pagina{max-width:1180px; margin:0 auto; padding:48px 40px 80px}
+.azul{color:var(--dato)} .rojo{color:var(--ladrillo)}
+
+/* ------------------------------------------------- barra con el selector --- */
+.barra-sup{position:sticky; top:0; z-index:20; background:rgba(242,242,242,.94);
+  backdrop-filter:saturate(1.4) blur(8px); -webkit-backdrop-filter:saturate(1.4) blur(8px);
+  border-bottom:1px solid var(--linea)}
+.barra-sup .dentro{max-width:1180px; margin:0 auto; padding:12px 40px; display:flex;
+  align-items:center; justify-content:space-between; gap:16px}
+.marca{font-size:12px; font-weight:700; color:var(--prusia); letter-spacing:.02em; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis}
+.marca span{font-weight:500; color:var(--suave)}
+.selector{display:flex; align-items:center; gap:10px; font-size:12px; font-weight:700; color:var(--prusia)}
+.selector select{appearance:none; -webkit-appearance:none; font:600 14px var(--display); color:var(--grafito);
+  background:var(--blanco) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23003153' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center;
+  border:1px solid rgba(0,49,83,.28); border-radius:3px; padding:8px 36px 8px 12px; min-width:220px; cursor:pointer}
+.selector select:hover{border-color:var(--dato)}
+.selector select:focus-visible{outline:2px solid var(--dato); outline-offset:2px}
+
+/* ---------------------------------------------------------- tipografía --- */
+.ceja{font-size:11px; font-weight:700; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--prusia); display:flex; align-items:center; gap:14px}
+.ceja::after{content:""; width:70px; height:1px; background:currentColor; opacity:.35}
+h1{font-weight:700; font-size:clamp(38px,6vw,68px); line-height:1.02; margin:0;
+  color:var(--ladrillo); letter-spacing:-.025em; text-wrap:balance; max-width:16ch}
+h1 .donde{display:block; font-size:.42em; letter-spacing:-.01em; color:var(--prusia); margin-top:12px}
+h2{font-weight:700; font-size:clamp(26px,3.4vw,36px); line-height:1.08; margin:12px 0 0;
+  color:var(--ladrillo); letter-spacing:-.018em; text-wrap:balance}
+.entrada{font-family:var(--texto); font-size:clamp(19px,2.2vw,23px); line-height:1.38;
+  color:var(--tenue); margin:18px 0 0; max-width:60ch}
+.entrada b{font-family:var(--cifra); font-size:.78em; font-weight:700}
+section{margin-top:72px}
+
+/* ------------------------------------------------ resumen: 3 grupos x 2 --- */
+.resumen{display:grid; grid-template-columns:minmax(150px,200px) repeat(3,minmax(0,1fr));
+  margin-top:40px; border-top:1px solid var(--linea)}
+.resumen .cab{font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--prusia); padding:16px 16px 4px 0}
+.resumen .eti{font-weight:700; font-size:13px; line-height:1.25; padding:18px 16px 18px 0;
+  border-top:1px solid var(--linea); display:flex; align-items:flex-start; gap:10px}
+.resumen .eti i{flex:none; width:10px; height:10px; margin-top:3px}
+.resumen .celda{padding:16px 16px 18px 0; border-top:1px solid var(--linea)}
+.resumen .v{font-family:var(--cifra); font-weight:700; font-size:clamp(24px,3vw,34px); line-height:1;
+  letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.resumen .s{font-family:var(--cifra); font-size:12px; color:var(--suave); margin-top:7px}
+.resumen .total .v, .resumen .total.eti{color:var(--dato)}
+.resumen .total.eti i{background:var(--dato)}
+.resumen .pc .v, .resumen .pc.eti{color:var(--ladrillo)}
+.resumen .pc.eti i{background:var(--ladrillo)}
+
+/* ---------------------------------------------------------- la unión ----- */
+.metodo{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); gap:48px; align-items:center; margin-top:26px}
+.metodo svg{width:100%; height:auto; display:block}
+.reglas{display:flex; flex-direction:column; gap:18px}
+.dato{padding-left:18px; border-left:2px solid var(--ladrillo)}
+.dato.frio{border-left-color:var(--prusia)}
+.dato .t{font-weight:700; font-size:15px; color:var(--grafito)}
+.dato .txt{font-family:var(--texto); font-size:19px; line-height:1.32; color:var(--tenue); margin-top:4px}
+
+/* ---------------------------------------------------------- ranking ------ */
+.ranking{margin-top:26px; background:var(--blanco); padding:28px 30px 20px; border-radius:2px}
+.fila{display:grid; grid-template-columns:30px minmax(0,300px) minmax(0,1fr); gap:14px; align-items:center;
+  padding:7px 0; text-decoration:none; color:inherit; border-bottom:1px solid var(--niebla)}
+.fila:last-of-type{border-bottom:0}
+.fila:hover .nom{color:var(--ladrillo)}
+.fila .n{font-family:var(--cifra); font-weight:700; color:var(--ladrillo); font-size:15px}
+.fila .nom{font-weight:600; font-size:14px; line-height:1.2; transition:color .2s}
+.fila .nom small{display:block; font-weight:500; font-size:11px; color:var(--suave); margin-top:2px}
+.barra{position:relative; height:22px}
+.barra .tot{position:absolute; left:0; top:0; bottom:0; background:var(--dato)}
+.barra .uni{position:absolute; left:0; top:0; bottom:0; background:var(--ladrillo)}
+.barra .et{position:absolute; top:50%; transform:translateY(-50%); font-family:var(--cifra);
+  font-size:12px; white-space:nowrap; padding-left:8px; color:var(--dato)}
+.barra .et b{color:var(--ladrillo)}
+.leyenda{display:flex; gap:22px; flex-wrap:wrap; font-size:12px; color:var(--tenue); margin-top:16px}
+.leyenda i{display:inline-block; width:12px; height:12px; vertical-align:-1px; margin-right:6px}
+.vacio{font-family:var(--texto); font-size:20px; color:var(--tenue); padding:8px 0}
+
+/* ---------------------------------------------------------- fichas ------- */
+.ficha{background:var(--blanco); margin-top:28px; padding:34px 36px 30px; border-radius:2px;
+  border-top:4px solid var(--ladrillo); scroll-margin-top:76px}
+.cabeza{display:grid; grid-template-columns:auto minmax(0,1fr); gap:22px; align-items:start}
+.lugar{font-weight:700; font-size:84px; line-height:.82; letter-spacing:-.05em; color:var(--ladrillo);
+  font-variant-numeric:tabular-nums}
+.cabeza h3{margin:2px 0 0; font-weight:700; font-size:clamp(22px,2.8vw,30px); line-height:1.1;
+  letter-spacing:-.015em; color:var(--grafito); text-wrap:balance}
+.cabeza .mun{font-size:12px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--prusia); margin-top:10px}
+.cabeza .mun span{letter-spacing:.02em; text-transform:none; font-weight:500; color:var(--suave)}
+.cuerpo{display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:36px; margin-top:28px}
+.izq,.der{display:flex; flex-direction:column; gap:26px; min-width:0}
+
+.heroe{display:flex; gap:22px; align-items:flex-end; flex-wrap:wrap}
+.heroe .l{font-family:var(--cifra); font-weight:700; font-size:58px; line-height:.9; color:var(--ladrillo);
+  letter-spacing:-.04em; font-variant-numeric:tabular-nums}
+.heroe .txt{font-family:var(--texto); font-size:19px; line-height:1.3; color:var(--tenue); max-width:32ch; padding-bottom:4px}
+.heroe .txt b{font-family:var(--cifra); font-size:.86em}
+.proporcion{height:10px; background:var(--dato); position:relative; margin-top:-12px}
+.proporcion span{position:absolute; left:0; top:0; bottom:0; background:var(--ladrillo)}
+
+.tarjetas{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-top:1px solid var(--linea)}
+.tarjetas>div{padding:14px 14px 0 0}
+.tarjetas .k{font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--prusia)}
+.tarjetas .v{font-family:var(--cifra); font-weight:700; font-size:26px; line-height:1.15; margin-top:8px;
+  color:var(--dato); letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.tarjetas .v.rojo{color:var(--ladrillo)}
+.tarjetas .s{font-family:var(--cifra); font-size:12px; color:var(--tenue); margin-top:4px}
+
+.graf h4{margin:0 0 8px; font-size:13px; font-weight:700; color:var(--grafito)}
+.graf h4 span{font-weight:500; color:var(--suave)}
+.graf h4 em{font-style:normal; font-weight:700}
+.graf svg{width:100%; height:auto; display:block; overflow:visible}
+.graf svg text{font-family:var(--cifra); font-size:10px; fill:var(--tenue)}
+.graf svg .eje{stroke:var(--gris-barra); stroke-width:1}
+.graf svg .rej{stroke:var(--niebla); stroke-width:1}
+.graf rect.t{fill:var(--dato)}
+.graf rect.u{fill:var(--ladrillo)}
+.graf g.q{cursor:default; transition:opacity .15s}
+.graf svg.activo g.q{opacity:.38}
+.graf svg.activo g.q.sobre{opacity:1}
+
+.anios{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); border-top:1px solid var(--linea)}
+.anios>div{padding:10px 8px 0 0}
+.anios .a{font-family:var(--cifra); font-size:11px; color:var(--suave)}
+.anios .v{font-family:var(--cifra); font-weight:700; font-size:19px; color:var(--dato); margin-top:3px; font-variant-numeric:tabular-nums}
+.anios .u{font-family:var(--cifra); font-weight:700; font-size:15px; color:var(--ladrillo); margin-top:4px;
+  padding-top:4px; border-top:1px dashed rgba(139,44,26,.25); font-variant-numeric:tabular-nums}
+
+/* tooltip de la gráfica por trimestre */
+#tip{position:fixed; z-index:50; pointer-events:none; background:var(--blanco); border-radius:3px;
+  box-shadow:0 6px 24px rgba(0,49,83,.18), 0 0 0 1px rgba(0,49,83,.10); padding:11px 14px 12px; min-width:220px;
+  opacity:0; transform:translateY(4px); transition:opacity .12s, transform .12s}
+#tip.ver{opacity:1; transform:none}
+#tip .tt{font-size:12px; font-weight:700; color:var(--grafito)}
+#tip .tt span{font-weight:500; color:var(--suave)}
+#tip .r{display:grid; grid-template-columns:auto 1fr; column-gap:10px; align-items:baseline; margin-top:7px}
+#tip .r b{font-family:var(--cifra); font-size:18px; text-align:right; min-width:2.6ch}
+#tip .r small{font-size:12px; color:var(--tenue)}
+#tip .p{font-family:var(--cifra); font-size:11px; color:var(--suave); margin-top:8px; padding-top:7px; border-top:1px solid var(--linea)}
+
+.foto{position:relative; aspect-ratio:3/2; overflow:hidden; background:#ccc; border-radius:2px}
+.foto img{width:100%; height:100%; object-fit:cover; display:block}
+.foto .aro{position:absolute; left:50%; top:50%; width:58px; height:58px; margin:-29px 0 0 -29px;
+  border-radius:50%; border:2px solid var(--ladrillo); box-shadow:0 0 0 2.5px rgba(255,255,255,.95), inset 0 0 0 2.5px rgba(255,255,255,.95)}
+.foto .esc{position:absolute; left:12px; bottom:10px; width:100%; font-family:var(--cifra); font-size:10.5px; color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.8)}
+.foto .esc i{display:block; height:3px; background:#fff; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,.6)}
+.pie-foto{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-family:var(--cifra);
+  font-size:11px; color:var(--suave); margin-top:8px}
+.pie-foto a{color:var(--dato); font-weight:700; text-decoration:none}
+.pie-foto a:hover{text-decoration:underline}
+
+.ubic{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; align-items:center}
+.ubic svg{width:100%; height:auto; display:block; background:var(--niebla); border-radius:2px}
+.ubic svg path{fill:none; stroke:var(--grafito); stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke}
+.posicion .k{font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--prusia)}
+.posicion .v{font-family:var(--cifra); font-weight:700; font-size:34px; color:var(--dato); margin-top:8px; letter-spacing:-.03em}
+.posicion .s{font-family:var(--texto); font-size:17px; line-height:1.3; color:var(--tenue); margin-top:6px}
+
+.notas{font-family:var(--texto); font-size:17px; line-height:1.4; color:var(--tenue); margin-top:56px;
+  border-top:1px solid var(--linea); padding-top:20px; max-width:80ch}
+.notas p{margin:0 0 10px}
+
+@media (max-width:880px){
+  .pagina{padding:32px 16px 56px}
+  .barra-sup .dentro{padding:10px 16px}
+  .marca span{display:none}
+  .selector select{min-width:0; max-width:52vw}
+  .resumen{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .resumen .esquina{display:none}
+  .resumen .eti{grid-column:1 / -1; padding:14px 0 0}
+  .resumen .eti + .celda, .resumen .eti + .celda + .celda, .resumen .eti + .celda + .celda + .celda{border-top:0; padding-top:8px}
+  .metodo,.cuerpo{grid-template-columns:minmax(0,1fr)}
+  .fila{grid-template-columns:24px minmax(0,1fr)}
+  .fila .barra{grid-column:1 / -1}
+  .ficha{padding:24px 18px 22px}
+  .lugar{font-size:60px}
+  .tarjetas{grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:10px}
+}
+@media (max-width:520px){
+  .selector > span{display:none}
+  .ubic{grid-template-columns:minmax(0,1fr)}
+  .anios .v{font-size:15px} .anios .u{font-size:13px}
+  .heroe .l{font-size:46px}
+  .resumen .s{font-size:10.5px}
+}
+@media print{
+  body{background:#fff}
+  .barra-sup{position:static}
+  .ficha{break-inside:avoid; border:1px solid var(--linea); border-top:4px solid var(--ladrillo)}
+  section{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="barra-sup">
+  <div class="dentro">
+    <div class="marca">GeoStats <span>· Semana de la Movilidad</span></div>
+    <label class="selector"><span>Municipio</span><select id="mun" aria-label="Municipio de la Zona Metropolitana de Monterrey"></select></label>
+  </div>
+</div>
+
+<main class="pagina">
+  <header>
+    <h1>Los 10 cruces con más fatalidades a peatones<span class="donde" id="donde"></span></h1>
+    <p class="entrada" id="entrada"></p>
+    <div class="resumen" id="resumen"></div>
+  </header>
+
+  <section>
+    <div class="ceja">Cómo se eligieron</div>
+    <h2>Una sola cuenta: la unión</h2>
+    <div class="metodo">
+      <svg id="venn" viewBox="0 0 440 270" role="img" aria-label="Diagrama de la unión de hechos con peatón y hechos con ciclista"></svg>
+      <div class="reglas">
+        <div class="dato">
+          <div class="t">Hecho con peatón</div>
+          <div class="txt">Un atropellamiento, o cualquier hecho de tránsito en el que murió un peatón.</div>
+        </div>
+        <div class="dato">
+          <div class="t">Hecho con ciclista</div>
+          <div class="txt">Una colisión con ciclista, o cualquier hecho de tránsito en el que murió un ciclista.</div>
+        </div>
+        <div class="dato frio">
+          <div class="t">La unión decide el lugar</div>
+          <div class="txt">Cada hecho cuenta una vez aunque cumpla varias condiciones: un atropellamiento fatal no vale doble. Los cruces con más hechos en la unión son los de esta página.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="ceja">El ranking</div>
+    <h2>Lo que ordena es el rojo, no el tamaño del cruce</h2>
+    <div class="ranking" id="ranking"></div>
+  </section>
+
+  <div id="fichas"></div>
+
+  <div class="notas" id="notas"></div>
+</main>
+<div id="tip" role="tooltip"></div>
+
+<script id="datos" type="application/json">{{DATOS}}</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("datos").textContent);
+  const NS = "http://www.w3.org/2000/svg";
+  const fmt = n => Math.round(n).toLocaleString("en-US");
+  const pct = (a, b) => (b ? 100 * a / b : 0).toFixed(1) + " %";
+  const $ = id => document.getElementById(id);
+  const el = (tag, attrs = {}, padre) => {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (padre) padre.appendChild(e);
+    return e;
+  };
+  const MESES = ["ene–mar", "abr–jun", "jul–sep", "oct–dic"];
+
+  // --- diagrama de la unión (no depende del municipio) ------------------------
+  {
+    const s = $("venn");
+    el("circle", {cx: 140, cy: 125, r: 112, fill: "#8B2C1A", "fill-opacity": .12, stroke: "#8B2C1A", "stroke-width": 1.5}, s);
+    el("circle", {cx: 300, cy: 125, r: 112, fill: "#8B2C1A", "fill-opacity": .12, stroke: "#8B2C1A", "stroke-width": 1.5}, s);
+    const t = (x, y, txt, estilo) => {
+      const e = el("text", {x, y, "text-anchor": "middle"}, s);
+      e.textContent = txt;
+      e.setAttribute("style", estilo);
+    };
+    const T = "font-family:Montserrat,sans-serif;font-weight:700;font-size:13px;fill:#2C2C2C";
+    const F = "font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;fill:#3a3a3a";
+    t(100, 115, "Con peatón", T);
+    t(100, 135, "atropellamiento", F);
+    t(100, 152, "o peatón fallecido", F);
+    t(340, 115, "Con ciclista", T);
+    t(340, 135, "colisión con", F);
+    t(340, 152, "ciclista o ciclista", F);
+    t(340, 169, "fallecido", F);
+    t(220, 264, "unión = cada hecho cuenta una vez", "font-family:'Roboto Mono',monospace;font-size:12px;font-weight:700;fill:#8B2C1A");
+  }
+
+  // --- tooltip ---------------------------------------------------------------
+  const tip = $("tip");
+  function mostrar(html, ev) {
+    tip.innerHTML = html;
+    tip.classList.add("ver");
+    mover(ev);
+  }
+  function mover(ev) {
+    const w = tip.offsetWidth, h = tip.offsetHeight, m = 14;
+    let x = ev.clientX + m, y = ev.clientY - h - m;
+    if (x + w > innerWidth - 8) x = ev.clientX - w - m;
+    if (y < 8) y = ev.clientY + m;
+    tip.style.left = Math.max(8, x) + "px";
+    tip.style.top = y + "px";
+  }
+  const ocultar = () => tip.classList.remove("ver");
+  addEventListener("scroll", ocultar, {passive: true});
+
+  // --- gráfica por trimestre -------------------------------------------------
+  function trimestres(c) {
+    const W = 560, H = 170, m = {l: 30, r: 4, t: 10, b: 22};
+    const n = c.trimTotal.length, max = Math.max(...c.trimTotal);
+    const tope = Math.max(4, Math.ceil(max / 4) * 4);
+    const s = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
+      "aria-label": `Hechos de tránsito por trimestre en ${c.nombre}`});
+    const paso = (W - m.l - m.r) / n;
+    const x = i => m.l + i * paso;
+    const y = v => H - m.b - v / tope * (H - m.t - m.b);
+    for (let k = 0; k <= 4; k++) {
+      const v = tope * k / 4;
+      el("line", {x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), class: k ? "rej" : "eje"}, s);
+      const e = el("text", {x: m.l - 6, y: y(v) + 3.5, "text-anchor": "end"}, s);
+      e.textContent = fmt(v);
+    }
+    const ancho = paso * 0.74;
+    c.trimTotal.forEach((v, i) => {
+      const u = c.trimUnion[i];
+      const g = el("g", {class: "q"}, s);
+      el("rect", {x: x(i), y: y(v), width: ancho, height: y(0) - y(v), class: "t"}, g);
+      if (u) el("rect", {x: x(i), y: y(u), width: ancho, height: y(0) - y(u), class: "u"}, g);
+      // Zona sensible de toda la columna: el trimestre responde aunque la barra sea baja.
+      el("rect", {x: x(i) - (paso - ancho) / 2, y: m.t, width: paso, height: y(0) - m.t, fill: "transparent"}, g);
+      const [anio, q] = D.trimestres[i].split(" T");
+      const html = `
+        <div class="tt">${anio}, trimestre ${q} <span>· ${MESES[q - 1]}</span></div>
+        <div class="r"><b class="azul">${fmt(v)}</b><small>hechos de tránsito</small></div>
+        <div class="r"><b class="rojo">${fmt(u)}</b><small>con peatón o ciclista</small></div>
+        <div class="p">${v ? pct(u, v) + " del trimestre con peatón o ciclista" : "sin hechos de tránsito"}</div>`;
+      const entra = ev => { s.classList.add("activo"); g.classList.add("sobre"); mostrar(html, ev); };
+      const sale = () => { s.classList.remove("activo"); g.classList.remove("sobre"); ocultar(); };
+      g.addEventListener("pointerenter", entra);
+      g.addEventListener("pointermove", mover);
+      g.addEventListener("pointerleave", sale);
+    });
+    D.anios.forEach((a, k) => {
+      const e = el("text", {x: x(4 * k) + 2 * paso - (paso - ancho) / 2, y: H - 5, "text-anchor": "middle"}, s);
+      e.textContent = a;
+      if (k) el("line", {x1: x(4 * k) - (paso - ancho) / 2, x2: x(4 * k) - (paso - ancho) / 2,
+        y1: H - m.b, y2: H - m.b + 5, class: "eje"}, s);
+    });
+    return s;
+  }
+
+  // --- ubicación en la ZMM ---------------------------------------------------
+  const CAJA = {x0: -100.52, x1: -100.10, y0: 25.56, y1: 25.85};
+  const KX = Math.cos(25.7 * Math.PI / 180);
+  const px = lon => (lon - CAJA.x0) * KX * 1000;
+  const py = lat => (CAJA.y1 - lat) * 1000;
+  const rutasVias = D.vias.map(([clase, xy]) =>
+    [clase, "M" + xy.map(([lo, la]) => `${px(lo).toFixed(1)} ${py(la).toFixed(1)}`).join("L")]);
+  function ubicacion(c, lista) {
+    const W = px(CAJA.x1), H = py(CAJA.y0);
+    const s = el("svg", {viewBox: `0 0 ${W.toFixed(0)} ${H.toFixed(0)}`, role: "img",
+      "aria-label": `Ubicación de ${c.nombre} en la Zona Metropolitana de Monterrey`});
+    for (const [clase, d] of rutasVias)
+      el("path", {d, "stroke-width": clase === "m" ? 1.3 : .7, "stroke-opacity": clase === "m" ? .42 : .24}, s);
+    for (const o of lista)
+      if (o !== c) el("circle", {cx: px(o.lon), cy: py(o.lat), r: 3.2, fill: "#005991"}, s);
+    el("circle", {cx: px(c.lon), cy: py(c.lat), r: 12, fill: "#fff", stroke: "#8B2C1A", "stroke-width": 3}, s);
+    el("circle", {cx: px(c.lon), cy: py(c.lat), r: 4.5, fill: "#8B2C1A"}, s);
+    return s;
+  }
+
+  // --- una vista: todo lo que cambia con el municipio ------------------------
+  const ZMM = D.vistas[0];
+  const [ANCHO_M] = D.ventana;
+
+  function pintar(V) {
+    const todos = V.nombre === "Todos";
+    const lista = V.ids.map(i => D.cruces[i]);
+    const donde = todos ? "Zona Metropolitana de Monterrey" : V.nombre;
+    const cuantos = lista.length;
+    ocultar();
+
+    $("donde").textContent = todos ? "Zona Metropolitana de Monterrey, 2019–2024" : `${V.nombre}, 2019–2024`;
+    document.title = todos ? "Cruces más letales para peatones" : `Cruces más letales para peatones · ${V.nombre}`;
+
+    const suma = lista.reduce((a, c) => a + c.union, 0);
+    $("entrada").innerHTML =
+      `De los <b class="azul">${fmt(V.hechos)}</b> hechos de tránsito registrados en ` +
+      `${todos ? "la " + donde : donde} entre 2019 y 2024, <b class="rojo">${fmt(V.union)}</b> arrollaron o ` +
+      `mataron a un peatón o a un ciclista. ` +
+      (cuantos === 10
+        ? `Están repartidos en ${fmt(V.crucesUnion)} cruces, pero no parejo: estos diez concentran <b class="rojo">${fmt(suma)}</b>.`
+        : !V.union
+          ? ""
+          : (cuantos === 1 ? "Solo un cruce tiene alguno, y es el de abajo"
+             : cuantos ? `Solo ${cuantos} cruces tienen alguno; aquí están todos`
+             : "Ninguno ocurrió en un cruce") +
+            // El resto ocurrió en tramos sin cruce, caminos rurales o carreteras.
+            (cuantos && V.union > suma
+              ? `. Los otros ${fmt(V.union - suma)} ocurrieron fuera de un cruce: en tramos, caminos o carreteras.`
+              : "."));
+
+    // Resumen: tres grupos (columnas) en dos filas (total y peatón o ciclista).
+    const celda = (cls, v, s) => `<div class="celda ${cls}"><div class="v">${fmt(v)}</div><div class="s">${s}</div></div>`;
+    $("resumen").innerHTML = `
+      <div class="cab esquina"></div>
+      <div class="cab">Cruces</div><div class="cab">Hechos de tránsito</div><div class="cab">Fallecidos</div>
+      <div class="eti total"><i></i>En total</div>
+      ${celda("total", V.cruces, "con al menos un hecho")}
+      ${celda("total", V.hechos, "2019–2024")}
+      ${celda("total", V.fallecidos, "todas las personas")}
+      <div class="eti pc"><i></i>Con peatón o ciclista</div>
+      ${celda("pc", V.crucesUnion, pct(V.crucesUnion, V.cruces) + " de los cruces")}
+      ${celda("pc", V.union, pct(V.union, V.hechos) + " de los hechos")}
+      ${celda("pc", V.fallecidosPC, pct(V.fallecidosPC, V.fallecidos) + " de los fallecidos")}`;
+
+    // Ranking.
+    if (!cuantos) {
+      $("ranking").innerHTML = `<div class="vacio">En ${V.nombre} ningún cruce tiene hechos de tránsito con peatón o ciclista en 2019–2024.</div>`;
+    } else {
+      const max = Math.max(...lista.map(c => c.total)) / 0.74;
+      $("ranking").innerHTML = lista.map((c, k) => `
+        <a class="fila" href="#cruce-${k + 1}">
+          <div class="n">${k + 1}</div>
+          <div class="nom">${c.nombre}<small>${c.municipio}${todos ? "" : ` · lugar ${fmt(c.lugarZMM)} en la ZMM`}</small></div>
+          <div class="barra">
+            <div class="tot" style="width:${100 * c.total / max}%"></div>
+            <div class="uni" style="width:${100 * c.union / max}%"></div>
+            <div class="et" style="left:${100 * c.total / max}%"><b>${fmt(c.union)}</b> de ${fmt(c.total)} · ${pct(c.union, c.total)}</div>
+          </div>
+        </a>`).join("") + `
+        <div class="leyenda">
+          <span><i style="background:#8B2C1A"></i>con peatón o ciclista (la unión, ordena el ranking)</span>
+          <span><i style="background:#005991"></i>hechos de tránsito del cruce</span>
+        </div>`;
+    }
+
+    // Fichas.
+    const fichas = $("fichas");
+    fichas.replaceChildren();
+    lista.forEach((c, k) => {
+      const f = document.createElement("article");
+      f.className = "ficha";
+      f.id = `cruce-${k + 1}`;
+      const maps = `https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lon}`;
+      f.innerHTML = `
+        <div class="cabeza">
+          <div class="lugar">${k + 1}</div>
+          <div><h3>${c.nombre}</h3><div class="mun">${c.municipio}${todos ? "" : ` <span>· lugar ${fmt(c.lugarZMM)} en la ZMM por hechos con peatón o ciclista</span>`}</div></div>
+        </div>
+        <div class="cuerpo">
+          <div class="izq">
+            <div class="heroe">
+              <div class="l">${fmt(c.union)}</div>
+              <div class="txt">hechos de tránsito con peatón o ciclista: <b class="rojo">${pct(c.union, c.total)}</b> de los <b class="azul">${fmt(c.total)}</b> del cruce</div>
+            </div>
+            <div class="proporcion" title="${pct(c.union, c.total)} de los hechos de tránsito del cruce"><span style="width:${100 * c.union / c.total}%"></span></div>
+            <div class="tarjetas">
+              <div><div class="k">Hechos de tránsito</div><div class="v">${fmt(c.total)}</div><div class="s">2019–2024</div></div>
+              <div><div class="k">Con peatón</div><div class="v rojo">${fmt(c.peatones)}</div><div class="s">${pct(c.peatones, c.total)} del total</div></div>
+              <div><div class="k">Con ciclista</div><div class="v rojo">${fmt(c.ciclistas)}</div><div class="s">${pct(c.ciclistas, c.total)} del total</div></div>
+              <div><div class="k">Defunciones</div><div class="v rojo">${fmt(c.defunciones)}</div><div class="s">peatones y ciclistas</div></div>
+            </div>
+            <div class="graf">
+              <h4>Hechos de tránsito por trimestre <span>· <em class="azul">azul</em>, todos; <em class="rojo">rojo</em>, con peatón o ciclista</span></h4>
+              <div class="trim"></div>
+            </div>
+            <div class="graf">
+              <h4>Hechos de tránsito por año <span>· <em class="azul">${fmt(c.total)}</em> en total, <em class="rojo">${fmt(c.union)}</em> con peatón o ciclista</span></h4>
+              <div class="anios">${D.anios.map((a, j) => `
+                <div><div class="a">${a}</div><div class="v" title="hechos de tránsito">${fmt(c.porAnio[j])}</div>
+                <div class="u" title="con peatón o ciclista">${fmt(c.porAnioUnion[j])}</div></div>`).join("")}</div>
+            </div>
+          </div>
+          <div class="der">
+            <div>
+              <div class="foto">
+                <img src="${c.foto}" alt="Vista satelital del cruce ${c.nombre}" loading="lazy">
+                <div class="aro"></div>
+                <div class="esc"><i style="width:${100 * 50 / ANCHO_M}%"></i>50 m</div>
+              </div>
+              <div class="pie-foto"><span>${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}</span><a href="${maps}" target="_blank" rel="noopener">Abrir en Google Maps ↗</a></div>
+            </div>
+            <div class="ubic">
+              <div class="mini"></div>
+              <div class="posicion">
+                <div class="k">Por hechos de tránsito</div>
+                <div class="v">#${fmt(c.lugarTotal)}</div>
+                <div class="s">de ${fmt(ZMM.cruces)} cruces de la ZMM, si se ordenan todos por su número de hechos de tránsito.</div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      f.querySelector(".trim").appendChild(trimestres(c));
+      f.querySelector(".mini").appendChild(ubicacion(c, lista));
+      fichas.appendChild(f);
+    });
+  }
+
+  // --- selector de municipio -------------------------------------------------
+  const sel = $("mun");
+  sel.innerHTML = D.vistas.map((v, i) =>
+    `<option value="${i}">${v.nombre === "Todos" ? "Todos los municipios" : v.nombre}</option>`).join("");
+  // El municipio va en la URL (#m=Apodaca) para poder compartir la vista.
+  const desdeURL = () => {
+    const m = decodeURIComponent((location.hash.match(/m=([^&]+)/) || [])[1] || "");
+    const i = D.vistas.findIndex(v => v.nombre === m);
+    return i < 0 ? 0 : i;
+  };
+  sel.value = desdeURL();
+  pintar(D.vistas[sel.value]);
+  sel.addEventListener("change", () => {
+    const V = D.vistas[sel.value];
+    history.replaceState(null, "", V.nombre === "Todos" ? location.pathname : `#m=${encodeURIComponent(V.nombre)}`);
+    pintar(V);
+  });
+
+  // --- notas -----------------------------------------------------------------
+  $("notas").innerHTML = `
+    <p><b>Fuente:</b> INEGI, Accidentes de Tránsito Terrestre en Zonas Urbanas y Suburbanas (ATUS), 2019–2024, recortado a los 18 municipios de la Zona Metropolitana de Monterrey. Un cruce es un nodo de 10 m cuya ubicación más frecuente es «Intersección».</p>
+    <p><b>Colores:</b> azul es el total (todos los cruces, hechos de tránsito o fallecidos); rojo, lo que tiene peatón o ciclista. «Fallecidos» en total cuenta a todas las personas: conductores, pasajeros, peatones, ciclistas y otros.</p>
+    <p><b>Desempate:</b> a igual número de hechos en la unión, sube el cruce con más defunciones de peatón o ciclista, y luego el que tiene más hechos de tránsito. En la ZMM, el lugar 10 tiene ${D.corte[0]} hechos en la unión y el 11, ${D.corte[1]}. Por municipio, el orden es el mismo y entran solo los cruces con al menos un hecho en la unión.</p>
+    <p><b>Conteos, no tasas:</b> no hay aforo peatonal por cruce. Un cruce con mucha gente a pie puede tener más atropellamientos sin ser más peligroso por persona que lo cruza.</p>
+    <p>${D.atribucion}. La imagen es la vigente, no la del periodo 2019–2024. Vialidades de la ubicación: OpenStreetMap.</p>`;
+})();
+</script>
+</body>
+</html>
