@@ -12,18 +12,14 @@
       {
         "rule": "hero-eyebrow-chip",
         "value": "*",
-        "files": [
-          "docs/cruces_peatones/plantilla.html"
-        ],
+        "files": ["docs/cruces_peatones/plantilla.html"],
         "createdAt": "2026-10-03T23:03:59.853Z",
         "reason": "La .ceja es el patrón de la presentación GeoStats (docs/presentacion/plantilla.html); la página debe seguir ese estilo"
       },
       {
         "rule": "all-caps-body",
         "value": "*",
-        "files": [
-          "docs/cruces_peatones/plantilla.html"
-        ],
+        "files": ["docs/cruces_peatones/plantilla.html"],
         "createdAt": "2026-10-03T23:04:00.576Z",
         "reason": "Las mayúsculas solo están en rótulos cortos (.ceja, .mun, .k), como en la presentación; ningún párrafo va en mayúsculas"
       }

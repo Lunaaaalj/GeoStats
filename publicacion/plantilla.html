@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GeoStats · carrusel de Instagram</title>
+<style>
+/* ===========================================================================
+   GeoStats · carrusel vertical para Instagram (1080 × 1350, 4:5)
+   Las mismas cifras, paleta y tipografías que docs/presentacion: los mapas y
+   las gráficas se dibujan desde su `datos.json`. `construir.py` fotografía
+   cada <section class="ig"> por separado.
+   =========================================================================== */
+@font-face{font-family:"Montserrat";src:url({{FUENTE:montserrat}}) format("woff2");font-weight:100 900;font-display:block}
+@font-face{font-family:"Cormorant Garamond";src:url({{FUENTE:cormorant}}) format("woff2");font-weight:300 700;font-display:block}
+@font-face{font-family:"Cormorant Garamond";src:url({{FUENTE:cormorant-italica}}) format("woff2");font-weight:300 700;font-style:italic;font-display:block}
+@font-face{font-family:"Roboto Mono";src:url({{FUENTE:mono}}) format("woff2");font-weight:100 700;font-display:block}
+
+:root{
+  --niebla:#F2F2F2; --prusia:#003153; --ladrillo:#8B2C1A; --oxido:#B15E2E; --grafito:#2C2C2C;
+  --dato:#005991; --dato-2:#1b77b8; --dato-3:#4195d9;
+  --linea:rgba(0,49,83,.14);
+  --display:"Montserrat","Segoe UI",system-ui,sans-serif;
+  --texto:"Cormorant Garamond",Georgia,serif;
+  --cifra:"Roboto Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0; background:#555; font-family:var(--display); color:var(--grafito)}
+#hxdefs{position:absolute; width:0; height:0}
+
+.ig{position:relative; width:1080px; height:1350px; overflow:hidden; background:var(--niebla);
+  padding:92px 84px 120px; display:flex; flex-direction:column; margin:0 0 40px}
+.ig.hondo{background:var(--prusia); color:#EAF1F6}
+
+/* pie fijo: número de lámina a la izquierda y, si hay, la fuente a la derecha */
+.folio{position:absolute; left:84px; right:84px; bottom:46px; display:flex; justify-content:space-between; gap:40px;
+  align-items:center; font-family:var(--cifra); font-size:19px; letter-spacing:.06em; color:rgba(44,44,44,.62); z-index:5}
+.folio span+span{text-align:right}
+.hondo .folio{color:rgba(187,216,234,.7)}
+/* firma: el logotipo arriba a la derecha (el script lo pone en todas menos la portada) */
+.marca{position:absolute; top:64px; right:84px; height:54px; z-index:6}
+.hondo .marca{filter:invert(1); opacity:.94}
+
+.ceja{font-size:21px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:var(--prusia);
+  display:flex; align-items:center; gap:20px; flex:none; position:relative; z-index:3}
+.ceja::after{content:""; width:90px; height:2px; background:currentColor; opacity:.35}
+.hondo .ceja{color:#79AECF}
+h1{font-weight:700; font-size:104px; line-height:.98; letter-spacing:-.03em; margin:26px 0 0; color:#fff;
+  text-wrap:balance; position:relative; z-index:3}
+h2{font-weight:700; font-size:64px; line-height:1.04; letter-spacing:-.022em; margin:22px 0 0; color:var(--ladrillo);
+  text-wrap:balance; flex:none; position:relative; z-index:3}
+.hondo h2{color:#fff}
+.entrada{font-family:var(--texto); font-size:35px; line-height:1.3; margin:22px 0 0; color:#111; flex:none; position:relative; z-index:3}
+.hondo .entrada{color:#C6DAE8}
+.entrada b{font-weight:700}
+.pie{font-family:var(--texto); font-size:27px; line-height:1.28; color:#222; margin-top:6px}
+.hondo .pie{color:#9FC2D8}
+.nota{font-family:var(--cifra); font-size:17px; line-height:1.45; color:rgba(44,44,44,.7)}
+.hondo .nota{color:rgba(187,216,234,.75)}
+
+.l{font-family:var(--display); font-weight:700; font-size:80px; line-height:1; letter-spacing:-.035em; color:var(--prusia);
+  font-variant-numeric:tabular-nums}
+.xl{font-family:var(--display); font-weight:700; font-size:150px; line-height:.86; letter-spacing:-.05em; color:var(--ladrillo); white-space:nowrap; flex:none}
+.arde{color:var(--ladrillo)} .hondo .arde{color:#E8A88F}
+.e{display:inline-block; width:.24em}
+.marco{flex:1; min-height:0; display:flex; flex-direction:column; margin-top:34px; gap:28px; position:relative; z-index:2}
+.fila{display:flex; gap:40px; align-items:center}
+.dato{padding-left:24px; border-left:3px solid var(--oxido)}
+.dato.frio{border-left-color:var(--prusia)}
+.hondo .dato.frio{border-left-color:#79AECF}
+.dato .txt{font-family:var(--texto); font-size:29px; line-height:1.28; color:#111}
+.hondo .dato .txt{color:#C6DAE8}
+.dato .txt b{font-weight:700}
+
+.mapa{position:relative}
+.mapa svg{display:block; width:100%; height:100%}
+.leyenda{display:flex; align-items:center; gap:12px; font-family:var(--cifra); font-size:17px; color:rgba(44,44,44,.72)}
+.hondo .leyenda{color:#9FC2D8}
+.leyenda .rampa{width:150px; height:10px}
+
+/* ---- tablas ---- */
+table{border-collapse:collapse; width:100%}
+th{font-size:16px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(44,44,44,.72);
+  text-align:left; padding:0 14px 14px 0; border-bottom:2px solid var(--prusia); vertical-align:bottom}
+th.n{text-align:right}
+td{padding:13px 14px 13px 0; border-bottom:1px solid var(--linea); font-family:var(--texto); font-size:29px; line-height:1.15;
+  vertical-align:baseline; color:#111}
+td.n{font-family:var(--cifra); font-size:26px; font-weight:500; text-align:right; color:var(--dato);
+  font-variant-numeric:tabular-nums; white-space:nowrap}
+td.r{font-family:var(--cifra); font-size:20px; color:rgba(44,44,44,.6); width:44px}
+td.sede{font-size:22px; color:#444; display:block; margin-top:2px}
+tr.cima td{color:var(--ladrillo); font-weight:700}
+.holgada td{padding-top:22px; padding-bottom:22px; font-size:32px}
+.holgada td.n{font-size:29px}
+tr.cima td.n{color:var(--ladrillo); font-weight:700}
+
+/* ---- barras ---- */
+.barras{display:flex; flex-direction:column; gap:12px}
+.barra{display:grid; grid-template-columns:44px 300px 1fr 110px; align-items:center; gap:16px}
+.barra .k{font-family:var(--cifra); font-weight:700; font-size:20px; color:#fff; width:40px; height:40px; border-radius:50%;
+  display:grid; place-items:center}
+.barra .et{font-family:var(--texto); font-size:28px; color:#111; line-height:1.05}
+.barra .canal{height:16px; background:rgba(0,49,83,.09); position:relative}
+.barra .relleno{position:absolute; inset:0 auto 0 0}
+.barra .val{font-family:var(--cifra); font-size:23px; font-weight:500; text-align:right}
+
+/* ---- ficha técnica ---- */
+.especificaciones{display:flex; flex-direction:column; gap:26px; margin:0}
+.especificacion{display:grid; grid-template-columns:150px 1fr; gap:26px; align-items:baseline}
+.especificacion dt{font-size:17px; font-weight:700; letter-spacing:.17em; text-transform:uppercase; color:var(--oxido)}
+.especificacion dd{font-family:var(--texto); font-size:31px; line-height:1.27; color:#111; margin:0}
+.especificacion dd b{font-weight:700}
+
+/* ---- preguntas ---- */
+.foro{display:flex; flex-direction:column; gap:46px}
+.pregunta{display:grid; grid-template-columns:76px 1fr; gap:22px; align-items:baseline}
+.pregunta .np{font-family:var(--cifra); font-size:22px; font-weight:700; letter-spacing:.14em; color:var(--oxido)}
+.pregunta .q{font-weight:700; font-size:42px; line-height:1.16; letter-spacing:-.012em; color:#fff}
+
+/* ---- QR ---- */
+.qrcaja{background:#fff; padding:44px; box-shadow:0 30px 60px -30px rgba(0,49,83,.45); display:block}
+.qrcaja path{fill:var(--prusia)}
+.url{font-family:var(--cifra); font-size:30px; font-weight:500; color:var(--prusia); letter-spacing:.01em}
+
+/* velos sobre los mapas a sangre */
+.velo{position:absolute; inset:0; z-index:1; pointer-events:none}
+.sangre{position:absolute; inset:0; z-index:0}
+.desliza{font-family:var(--display); font-weight:700; font-size:22px; letter-spacing:.2em; text-transform:uppercase; color:#E8A88F}
+.recorte{display:block; max-width:100%; max-height:100%; margin:0 auto; box-shadow:0 30px 60px -28px rgba(0,49,83,.5)}
+</style>
+</head>
+<body>
+<svg id="hxdefs" aria-hidden="true"><defs><path id="hx" d="M1 0L.5 .866L-.5 .866L-1 0L-.5 -.866L.5 -.866Z"/></defs></svg>
+
+<!-- =================================================== 01 · PORTADA ===== -->
+<section class="ig hondo" data-archivo="01_portada">
+  <div class="sangre mapa" id="mPortada"></div>
+  <div class="velo" style="background:linear-gradient(180deg,#003153 0%,#003153 30%,rgba(0,49,83,.86) 42%,rgba(0,49,83,.15) 62%,rgba(0,49,83,0) 72%,rgba(0,49,83,.55) 86%,#003153 100%)"></div>
+  <div style="display:flex;align-items:center;justify-content:flex-end;gap:40px;position:relative;z-index:3">
+    <img src="{{IMG:sdlm.png}}" alt="SDLM" style="height:54px;filter:invert(1);opacity:.94">
+    <img src="{{IMG:geostats.png}}" alt="GeoStats" style="height:92px;filter:invert(1);opacity:.94">
+  </div>
+  <div class="ceja" style="margin-top:58px">Zona Metropolitana de Monterrey</div>
+  <h1>¿Dónde es peligroso moverse en Monterrey?</h1>
+  <p class="entrada" style="margin-top:28px;font-size:36px">379,294 hechos de tránsito en seis años, en un solo mapa.</p>
+  <div class="folio"><span>01 / 20</span></div>
+</section>
+
+<!-- ======================================== 02 · NOTA PERIODÍSTICA ===== -->
+<section class="ig" data-archivo="02_nota_periodistica">
+  <div class="ceja">En la prensa</div>
+  <div class="marco" style="margin-top:40px;justify-content:center">
+    <img class="recorte" src="{{IMG:nota_periodistica.jpg}}" alt="Nota: Identifican en la Ciudad cruces viales peligrosos">
+  </div>
+  <div class="folio"><span>02 / 20</span></div>
+</section>
+
+<!-- ================================================ 03 · POR QUÉ ======= -->
+<section class="ig" data-archivo="03_por_que">
+  <div class="ceja">Por qué hicimos esto</div>
+  <h2 style="font-size:78px;margin-top:30px">En Monterrey ocurre un hecho de tránsito cada ocho minutos.</h2>
+  <div class="marco" style="gap:30px;margin-top:44px">
+    <p class="entrada" style="margin:0">Casi siempre son solo fierros. Pero cada dos días, en promedio, alguien en la metrópoli <b>sale de casa y no vuelve</b>.</p>
+    <p class="entrada" style="margin:0">Nos acostumbramos a llamarlos <i>accidentes</i>, como si fueran mala suerte. Quisimos comprobarlo: tomamos seis años de registros del INEGI, los pusimos en un mapa y preguntamos <b>dónde, cuándo y a quién</b>.</p>
+    <div class="dato" style="margin-top:14px;border-left-width:4px">
+      <div class="txt" style="font-family:var(--display);font-weight:700;font-size:40px;line-height:1.15;color:var(--ladrillo)">La respuesta: no es azar. Tiene lugares, horarios y nombres de calle.</div>
+    </div>
+  </div>
+  <div class="mapa" id="mPorQue" style="position:absolute;left:0;right:0;bottom:0;height:420px;z-index:0"></div>
+  <div class="velo" style="top:auto;height:420px;background:linear-gradient(180deg,#F2F2F2 0%,rgba(242,242,242,.55) 40%,rgba(242,242,242,.15) 100%)"></div>
+  <div class="folio" style="color:#2C2C2C"><span>03 / 20</span></div>
+</section>
+
+<!-- =================================== 04 · LA PROBLEMÁTICA (lámina 4) == -->
+<section class="ig" data-archivo="04_la_problematica">
+  <div class="ceja">La problemática</div>
+  <h2>Un hecho de tránsito cada dos minutos en el país; uno cada ocho en Monterrey</h2>
+  <div class="marco" style="gap:20px;margin-top:20px">
+    <div class="mapa" id="mMX" style="height:500px;margin:0 -30px"></div>
+    <div class="fila" style="align-items:flex-start;gap:36px">
+      <div style="flex:1"><div class="l">601</div><div class="pie">hechos de tránsito al día <b>en todo el país</b>, uno cada 2.4 minutos</div></div>
+      <div style="flex:1"><div class="l">173</div><div class="pie">al día <b>en la Zona Metropolitana de Monterrey</b>, uno cada 8 minutos</div></div>
+    </div>
+    <div class="dato" style="margin-top:6px"><div class="txt"><b class="arde" style="font-family:var(--display);font-size:34px">1 de cada 18</b> hechos en la Zona Metropolitana deja personas heridas o fallecidas.</div></div>
+  </div>
+  <div class="folio"><span>04 / 20</span><span>INEGI · ATUS 2019–2024 · celdas de 11 km</span></div>
+</section>
+
+<!-- ======================================= 05 · LOS DATOS (lámina 6) ==== -->
+<section class="ig" data-archivo="05_los_datos">
+  <div class="ceja">Los datos</div>
+  <h2>De dónde salen estos datos</h2>
+  <div class="marco" style="gap:0;justify-content:space-between;margin-top:44px">
+    <dl class="especificaciones" style="gap:34px">
+      <div class="especificacion"><dt>Qué es</dt><dd><b>Accidentes de Tránsito Terrestre en Zonas Urbanas y Suburbanas</b> (ATUS). Un censo, no una encuesta: no se estima, se cuenta.</dd></div>
+      <div class="especificacion"><dt>Quién</dt><dd>El <b>INEGI</b>, con los partes que levantan las policías de tránsito de cada municipio.</dd></div>
+      <div class="especificacion"><dt>Cuándo</dt><dd>La serie arranca en <b>1997</b>. La versión con coordenadas, apenas en <b>2019</b>, y por eso este trabajo empieza ahí.</dd></div>
+    </dl>
+    <div>
+      <div style="height:38px;background:rgba(0,49,83,.09);position:relative">
+        <div style="position:absolute;inset:0;background:var(--dato)"></div>
+        <div style="position:absolute;inset:0 auto 0 0;width:28.8%;background:var(--dato-3)"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:18px;font-family:var(--texto);font-size:28px;color:#111">
+        <span><i style="display:inline-block;width:18px;height:18px;background:var(--dato);margin-right:14px;vertical-align:-1px"></i>Todo el país · 1.3 millones de hechos de tránsito</span>
+        <span><i style="display:inline-block;width:18px;height:18px;background:var(--dato-3);margin-right:14px;vertical-align:-1px"></i><b>Zona Metropolitana de Monterrey · 379,294 · el 28.8 %</b></span>
+      </div>
+    </div>
+    <div class="fila" style="gap:34px;padding-top:30px;border-top:1px solid var(--linea)">
+      <svg viewBox="-1.1 -1 2.2 2" style="width:132px;flex:none"><use href="#hx" fill="#005991" fill-opacity=".14" stroke="#003153" stroke-width=".035"/>
+        <line x1="-1" y1="0" x2="1" y2="0" stroke="#B15E2E" stroke-width=".02" stroke-dasharray=".06 .045"/>
+        <text x="0" y="-.14" text-anchor="middle" font-family="Roboto Mono" font-size=".22" fill="#B15E2E">1 km</text></svg>
+      <div class="pie" style="margin:0"><b style="font-family:var(--display);font-size:24px;letter-spacing:.06em;color:var(--prusia)">CÓMO LEER LOS MAPAS</b><br>Cada celda es un hexágono de un kilómetro de punta a punta. Mientras más intenso es su color, más hechos de tránsito ocurrieron dentro de ese hexágono.
+        <div class="leyenda" style="margin-top:14px"><span>pocos</span><span class="rampa" style="width:220px;height:14px;background:linear-gradient(90deg,#F2F2F2,#9EC6E4,#4195d9,#1b77b8,#005991,#003153);outline:1px solid rgba(0,49,83,.18)"></span><span>muchos hechos</span></div></div>
+    </div>
+  </div>
+  <div class="folio"><span>05 / 20</span><span>inegi.org.mx/programas/accidentes</span></div>
+</section>
+
+<!-- ============================== 06 · HERIDOS Y DEFUNCIONES ========== -->
+<section class="ig" data-archivo="06_heridos_y_defunciones">
+  <div class="ceja">Las personas en los registros</div>
+  <h2>Los heridos siguen al tráfico; las defunciones, no</h2>
+  <div class="marco" style="gap:22px;margin-top:28px">
+    <div class="fila" style="gap:24px;align-items:stretch">
+      <div style="flex:1;display:flex;flex-direction:column">
+        <div class="l" style="font-size:66px">25,642</div><div class="pie" style="margin-bottom:6px">personas heridas</div>
+        <div class="mapa" id="mHeridos" style="height:610px"></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column">
+        <div class="l arde" style="font-size:66px">1,167</div><div class="pie" style="margin-bottom:6px">defunciones</div>
+        <div class="mapa" id="mMuertos" style="height:610px"></div>
+      </div>
+    </div>
+    <div class="dato"><div class="txt">El 5 % de las zonas con más hechos concentra el 43 % de los hechos y solo el <b>25 % de las defunciones</b>. Santiago registra 18 defunciones por cada mil hechos; Monterrey, 2.</div></div>
+  </div>
+  <div class="folio"><span>06 / 20</span><span>2019–2024 · color: personas por zona</span></div>
+</section>
+
+<!-- ================================== 07 · GRUPOS VULNERABLES ========== -->
+<section class="ig" data-archivo="07_grupos_vulnerables">
+  <div class="ceja">Quién</div>
+  <h2>Los grupos vulnerables de la ciudad</h2>
+  <div class="marco" style="gap:0;margin-top:26px" id="vulnerables"></div>
+  <div class="folio"><span>07 / 20</span><span>2019–2024 · color: hechos por zona</span></div>
+</section>
+
+<!-- ======================================== 08 · HORA Y DÍA ============ -->
+<section class="ig" data-archivo="08_hora_y_dia">
+  <div class="ceja">El calendario</div>
+  <h2>El pico es en la mañana</h2>
+  <div class="marco" style="gap:20px;margin-top:24px">
+    <div id="gHoraDia" style="flex:1;min-height:0"></div>
+    <div class="dato"><div class="txt">La hora con más hechos es el <b>martes a las 8 de la mañana</b>; muy cerca le siguen el sábado a las 2 y el viernes a las 3 de la tarde. En cambio, entre la medianoche y las cinco de la mañana ocurre solo el <b>8.6 %</b>. Los hechos se acumulan cuando más gente está en la calle, no de madrugada.</div></div>
+  </div>
+  <div class="folio"><span>08 / 20</span><span>Hechos de tránsito por hora y día · 2019–2024</span></div>
+</section>
+
+<!-- ======================================== 09 · CORREDORES ============ -->
+<section class="ig" data-archivo="09_corredores">
+  <div class="ceja">La forma del riesgo</div>
+  <h2>Es de corredor, no de esquina</h2>
+  <p class="entrada" style="font-size:32px;margin-top:16px">Seis avenidas reúnen <b>60 mil</b> hechos de tránsito: el 16 % de toda la metrópoli.</p>
+  <div class="marco" style="gap:26px;margin-top:20px">
+    <div class="mapa" id="mCorredores" style="height:470px;margin:0 -84px"></div>
+    <div class="barras" id="bCorredores"></div>
+  </div>
+  <div class="folio"><span>09 / 20</span><span>Hechos 2019–2024 sumando todos los cruces de cada avenida</span></div>
+</section>
+
+<!-- ========================================== 10 · COSTO HUMANO ======== -->
+<section class="ig" data-archivo="10_costo_humano">
+  <div class="ceja">El costo humano</div>
+  <h2>Dónde cuestan vidas los hechos de tránsito</h2>
+  <div class="marco" style="margin-top:30px"><div id="gArbol" style="flex:1;min-height:0"></div></div>
+  <div class="folio"><span>10 / 20</span><span>Cada rama reparte los 379,294 hechos de tránsito · 2019–2024</span></div>
+</section>
+
+<!-- ========================================== 11 · CONCENTRACIÓN ======= -->
+<section class="ig" data-archivo="11_concentracion">
+  <div class="ceja">Concentración</div>
+  <h2>Mil cruces explican cuatro de cada diez</h2>
+  <div class="marco" style="gap:0;justify-content:space-between;margin-top:50px;margin-bottom:20px">
+    <div class="fila" style="gap:30px;align-items:flex-end">
+      <div class="xl">40<i class="e"></i>%</div>
+      <div class="pie" style="font-size:31px;margin-bottom:6px">de los hechos de tránsito ocurre en <b>1,000 cruces</b>: apenas el 1.8 % de los 54,742 de la metrópoli.</div>
+    </div>
+    <table>
+      <thead><tr><th>Los peores…</th><th class="n">% de los cruces</th><th class="n">% acumulado de hechos</th></tr></thead>
+      <tbody id="tHitos" class="holgada"></tbody>
+    </table>
+    <div class="dato"><div class="txt">Casi 50 mil cruces (el <b>91 %</b>) reúnen apenas el 32 % de los hechos. Atender primero los 1,000 peores rinde más que repartir parejo.</div></div>
+  </div>
+  <div class="folio"><span>11 / 20</span><span>Cruces ordenados de más a menos hechos · 2019–2024</span></div>
+</section>
+
+<!-- ======================================== 12 · LOS DIEZ PEORES ======= -->
+<section class="ig" data-archivo="12_nombre_y_apellido">
+  <div class="ceja">Los puntos negros</div>
+  <h2>Tienen nombre y apellido</h2>
+  <div class="marco" style="gap:14px;margin-top:20px">
+    <div class="mapa" id="mTop10" style="height:500px;margin:0 -84px"></div>
+    <table id="tTop10" style="margin-top:4px"></table>
+  </div>
+  <div class="folio"><span>12 / 20</span><span>Hechos de tránsito por cruce · 2019–2024</span></div>
+</section>
+
+<!-- ============================================ 13 · TENDENCIA ========= -->
+<section class="ig" data-archivo="13_tendencia">
+  <div class="ceja">Seis años</div>
+  <h2>Cambia el nivel, no el dibujo</h2>
+  <div class="marco" style="gap:26px;margin-top:26px">
+    <div id="gTendencia"></div>
+    <div id="anios" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px 18px"></div>
+    <div class="dato"><div class="txt">De los 200 peores cruces, <b>155 aparecen los seis años</b>, con una pandemia en medio. Un problema que se queda quieto se puede planear.</div></div>
+  </div>
+  <div class="folio"><span>13 / 20</span><span>Hechos de tránsito por año · misma escala de color</span></div>
+</section>
+
+<!-- ========================================== 14 · PRONÓSTICO 2027 ===== -->
+<section class="ig" data-archivo="14_pronostico_2027">
+  <div class="ceja">Pronóstico · 2027</div>
+  <h2>Si nada cambia, 74 mil hechos de tránsito en 2027</h2>
+  <div class="marco" style="gap:22px;margin-top:20px">
+    <div class="fila" style="gap:20px;align-items:center">
+      <div style="flex:0 0 430px;display:flex;flex-direction:column;gap:26px">
+        <div><div class="xl" style="font-size:132px">74<span style="font-size:.5em;letter-spacing:-.02em"> mil</span></div>
+          <div class="pie">hechos esperados en la Zona Metropolitana, con un margen del 3 %</div></div>
+        <div class="dato"><div class="txt"><b>42.9 %</b> caerá en el 5 % de zonas con más riesgo, y 112 de ellas ya están identificadas.</div></div>
+      </div>
+      <div class="mapa" id="mP2027" style="flex:1;height:540px;margin-right:-60px"></div>
+    </div>
+    <table>
+      <thead><tr><th>Municipio</th><th class="n">2024</th><th class="n">2027 esperado</th><th class="n">Zonas en el 5 % peor</th></tr></thead>
+      <tbody id="tMunicipios"></tbody>
+    </table>
+  </div>
+  <div class="folio"><span>14 / 20</span><span>Modelo jerárquico por zona · color: hechos esperados</span></div>
+</section>
+
+<!-- ============================================ 16 · REFLEXIÓN ========= -->
+<section class="ig hondo" data-archivo="16_reflexiones">
+  <div class="ceja">Reflexiones</div>
+  <h2>Cuatro preguntas para llevarse</h2>
+  <div class="marco" style="justify-content:center;margin-top:20px">
+    <div class="foro">
+      <div class="pregunta"><div class="np">01</div><div class="q">¿En qué momento nos acostumbramos a ver estas cifras año tras año como si fueran inevitables?</div></div>
+      <div class="pregunta"><div class="np">02</div><div class="q">¿Qué nos impide mirar esos lugares como una responsabilidad compartida entre ciudadanía y autoridades?</div></div>
+      <div class="pregunta"><div class="np">03</div><div class="q">Cuando una persona sale de casa y no vuelve, ¿nos basta con decir que fue un accidente?</div></div>
+      <div class="pregunta"><div class="np">04</div><div class="q">¿Qué nos gustaría poder decirles a quienes hoy transitan por esas zonas?</div></div>
+    </div>
+  </div>
+  <div class="folio"><span>16 / 20</span></div>
+</section>
+
+<!-- =========================================== 17 · TRANSICIÓN ========= -->
+<section class="ig hondo" data-archivo="17_revisalo_tu">
+  <div class="sangre mapa" id="mTransicion"></div>
+  <div class="velo" style="background:linear-gradient(180deg,rgba(0,49,83,0) 0%,rgba(0,49,83,.25) 28%,rgba(0,49,83,.9) 48%,#003153 58%,#003153 100%)"></div>
+  <div style="margin-top:auto;position:relative;z-index:3">
+    <div class="ceja">No nos creas: compruébalo</div>
+    <h1 style="font-size:112px">Revisa la info por ti mismo</h1>
+    <p class="entrada" style="max-width:none">Todo lo que viste es público. Escanea los códigos de las siguientes láminas:</p>
+    <div style="display:flex;flex-direction:column;gap:18px;margin-top:34px">
+      <div class="pregunta" style="grid-template-columns:76px 1fr"><div class="np">18</div><div class="q" style="font-size:36px">El visor: busca tu cruce</div></div>
+      <div class="pregunta" style="grid-template-columns:76px 1fr"><div class="np">19</div><div class="q" style="font-size:36px">El código y los datos</div></div>
+      <div class="pregunta" style="grid-template-columns:76px 1fr"><div class="np">20</div><div class="q" style="font-size:36px">La presentación completa</div></div>
+    </div>
+    <div class="desliza" style="margin-top:46px">Desliza →</div>
+  </div>
+  <div class="folio"><span>17 / 20</span></div>
+</section>
+
+<!-- ================================================ 18-20 · QR ========= -->
+<section class="ig" data-archivo="18_qr_visor">
+  <div class="ceja">Escanea · 1 de 3</div>
+  <h2>El visor interactivo: busca tu cruce</h2>
+  <div class="marco" style="align-items:center;justify-content:center;gap:34px">
+    <svg class="qrcaja" viewBox="0 0 {{QR_LADO:https://app-geo-eosin.vercel.app}} {{QR_LADO:https://app-geo-eosin.vercel.app}}" width="560" height="560"><path d="{{QR_TRAZO:https://app-geo-eosin.vercel.app}}"/></svg>
+    <div class="url">app-geo-eosin.vercel.app</div>
+    <div class="pie" style="text-align:center;max-width:40ch">Acércate hasta tu calle, filtra por año y tipo de usuario, y mira cuántos hechos espera el modelo en 2027.</div>
+  </div>
+  <div class="folio"><span>18 / 20</span></div>
+</section>
+
+<section class="ig" data-archivo="19_qr_repositorio">
+  <div class="ceja">Escanea · 2 de 3</div>
+  <h2>El código y los datos</h2>
+  <div class="marco" style="align-items:center;justify-content:center;gap:34px">
+    <svg class="qrcaja" viewBox="0 0 {{QR_LADO:https://github.com/Lunaaaalj/GeoStats}} {{QR_LADO:https://github.com/Lunaaaalj/GeoStats}}" width="560" height="560"><path d="{{QR_TRAZO:https://github.com/Lunaaaalj/GeoStats}}"/></svg>
+    <div class="url">github.com/Lunaaaalj/GeoStats</div>
+    <div class="pie" style="text-align:center;max-width:40ch">Código abierto, datos del INEGI sin modificar y cada análisis con su reporte. Repite el estudio de principio a fin.</div>
+  </div>
+  <div class="folio"><span>19 / 20</span></div>
+</section>
+
+<section class="ig" data-archivo="20_qr_presentacion">
+  <div class="ceja">Escanea · 3 de 3</div>
+  <h2>La presentación completa</h2>
+  <div class="marco" style="align-items:center;justify-content:center;gap:34px">
+    <svg class="qrcaja" viewBox="0 0 {{QR_LADO:https://geo-stats-three.vercel.app}} {{QR_LADO:https://geo-stats-three.vercel.app}}" width="560" height="560"><path d="{{QR_TRAZO:https://geo-stats-three.vercel.app}}"/></svg>
+    <div class="url">geo-stats-three.vercel.app</div>
+    <div class="pie" style="text-align:center;max-width:40ch">Todas las láminas de la Semana de la Movilidad, con el mapa que responde al cursor.</div>
+  </div>
+  <div class="folio"><span>20 / 20</span></div>
+</section>
+
+<script id="datos" type="application/json">{{DATOS}}</script>
+<script>
+(function(){
+  "use strict";
+  var D = JSON.parse(document.getElementById("datos").textContent);
+  var S3 = Math.sqrt(3);
+
+  function miles(n){ return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+  function svgEl(t, a){ var n = document.createElementNS("http://www.w3.org/2000/svg", t); for (var k in a) n.setAttribute(k, a[k]); return n; }
+  function texto(padre, a, t){ var n = svgEl("text", a); n.textContent = t; padre.appendChild(n); return n; }
+  function $(id){ return document.getElementById(id); }
+
+  var LOGO = "{{IMG:geostats.png}}";
+  document.querySelectorAll("section.ig:not([data-archivo='01_portada'])").forEach(function(sec){
+    var img = document.createElement("img");
+    img.className = "marca"; img.src = LOGO; img.alt = "GeoStats";
+    sec.appendChild(img);
+  });
+
+  /* --- rampas: las mismas de la presentación ------------------------------ */
+  var RAMPAS = {
+    fria:   ["#F2F2F2", "#9EC6E4", "#4195d9", "#1b77b8", "#005991", "#003153"],
+    calida: ["#F2F2F2", "#E8CDB6", "#D79A62", "#B15E2E", "#8B2C1A", "#6B1F12"],
+    friaNoche: ["#0A3A5C", "#12557F", "#2C7FB8", "#6BA6CE", "#BBD8EA", "#FFFFFF"]
+  };
+  var VACIA = {claro: "#E3E7EC", noche: "#0A3149"};
+  function mezcla(r, t){
+    t = Math.max(0, Math.min(1, t));
+    var p = t * (r.length - 1), k = Math.min(r.length - 2, Math.floor(p)), f = p - k;
+    function c(h, i){ return parseInt(h.substr(1 + i * 2, 2), 16); }
+    return "rgb(" + [0, 1, 2].map(function(i){ return Math.round(c(r[k], i) + (c(r[k + 1], i) - c(r[k], i)) * f); }).join(",") + ")";
+  }
+  function gradiente(r){ return "linear-gradient(90deg," + r.join(",") + ")"; }
+
+  /* --- geometría de la rejilla ------------------------------------------- */
+  var R = D.rejilla, N = R.i.length;
+  var xs = [], ys = [], minY = Infinity, maxY = -Infinity;
+  for (var k = 0; k < N; k++){
+    xs[k] = R.i[k] * 1.5;
+    ys[k] = R.j[k] * S3 + (R.i[k] % 2 ? S3 / 2 : 0);
+    minY = Math.min(minY, ys[k]); maxY = Math.max(maxY, ys[k]);
+  }
+  function Y(y){ return (maxY - y) - minY; }
+  // encuadre: la envolvente de las celdas que reúnen el 99 % de los hechos
+  var caja99 = (function(){
+    var o = D.capas.total.map(function(v, k){ return [v, k]; }).sort(function(a, b){ return b[0] - a[0]; });
+    var tot = D.capas.total.reduce(function(a, b){ return a + b; }, 0), s = 0;
+    var b = {x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity};
+    for (var q = 0; q < o.length && s / tot < 0.99; q++){
+      var kk = o[q][1]; s += o[q][0];
+      b.x0 = Math.min(b.x0, xs[kk]); b.x1 = Math.max(b.x1, xs[kk]);
+      b.y0 = Math.min(b.y0, Y(ys[kk])); b.y1 = Math.max(b.y1, Y(ys[kk]));
+    }
+    return {x: b.x0 - 2, y: b.y0 - 2, w: b.x1 - b.x0 + 4, h: b.y1 - b.y0 + 4};
+  })();
+
+  /**
+   * Un mapa hexagonal.
+   * o.capa, o.rampa ('fria' | 'calida'), o.noche, o.tope (común entre mapas),
+   * o.caja (recorte del viewBox), o.ajuste ('meet' | 'slice'), o.vias, o.cruces,
+   * o.top10, o.corredores, o.tenue (opacidad de las celdas)
+   */
+  function mapa(cont, o){
+    var cj = o.caja || caja99;
+    var s = svgEl("svg", {viewBox: [cj.x, cj.y, cj.w, cj.h].join(" "),
+      preserveAspectRatio: "xMidYMid " + (o.ajuste || "meet")});
+    var rampa = RAMPAS[(o.rampa || "fria") + (o.noche ? "Noche" : "")];
+    var vacia = VACIA[o.noche ? "noche" : "claro"];
+    var v = o.capa ? D.capas[o.capa] : null, tope = o.tope || 0;
+    if (v && !tope) v.forEach(function(x){ if (x > tope) tope = x; });
+    var lineal = o.capa === "ptop5";
+    var g = svgEl("g", {"fill-opacity": o.tenue || 1});
+    for (var k = 0; k < N; k++){
+      var t = v ? (lineal ? v[k] / tope : Math.pow(v[k] / tope, 0.42)) : 0;
+      g.appendChild(svgEl("use", {href: "#hx", x: xs[k], y: Y(ys[k]),
+        fill: (!v || v[k] === 0) ? vacia : mezcla(rampa, t)}));
+    }
+    s.appendChild(g);
+    if (o.vias !== false){
+      var gv = svgEl("g", {fill: "none", stroke: o.noche ? "#fff" : "#2C2C2C", "stroke-linecap": "round", "stroke-linejoin": "round"});
+      (D.vias || []).forEach(function(w){
+        var mayor = w[0] === "m";
+        gv.appendChild(svgEl("path", {
+          d: w[1].map(function(q, i){ return (i ? "L" : "M") + q[0] + " " + Y(q[1]).toFixed(2); }).join(""),
+          "stroke-opacity": o.noche ? (mayor ? .32 : .2) : (mayor ? .42 : .3),
+          "stroke-width": mayor ? (o.grosorVias || 1.4) : (o.grosorVias || 1.4) * .6, "vector-effect": "non-scaling-stroke"}));
+      });
+      s.appendChild(gv);
+    }
+    if (o.cruces){
+      var maxC = D.cruces.xy[0][2];
+      D.cruces.xy.forEach(function(c, idx){
+        if (o.top10 && idx < 10) return;
+        s.appendChild(svgEl("circle", {cx: c[0], cy: Y(c[1]), r: (0.32 + Math.sqrt(c[2] / maxC) * 1.7) * (o.radio || 1),
+          fill: o.noche ? "#BBD8EA" : "#003153", "fill-opacity": o.top10 ? .2 : (o.noche ? .5 : .62)}));
+      });
+    }
+    if (o.top10){
+      D.cruces.xy.slice(0, 10).forEach(function(c, idx){
+        var r = (0.32 + Math.sqrt(c[2] / D.cruces.xy[0][2]) * 1.7) * (o.radio || 1);
+        s.appendChild(svgEl("circle", {cx: c[0], cy: Y(c[1]), r: r, fill: "#8B2C1A", stroke: "#fff", "stroke-width": .3}));
+        // alternar arriba y abajo: el 1 y el 4 son vecinos y sus números se pisarían
+        var izq = idx === 3;   // el 4 es vecino del 1: su número va del otro lado
+        texto(s, {x: c[0] + (izq ? -(r + 0.35) : r + 0.35), y: Y(c[1]) + (idx % 2 ? 1.5 : -0.2), "font-size": 1.9,
+          "text-anchor": izq ? "end" : "start",
+          "font-family": "Roboto Mono, monospace", "font-weight": 700, fill: "#8B2C1A",
+          stroke: "#fff", "stroke-width": .55, "paint-order": "stroke"}, idx + 1);
+      });
+    }
+    if (o.corredores){
+      D.corredores.forEach(function(cr, idx){
+        var tono = TONOS[idx];
+        s.appendChild(svgEl("path", {d: cr.xy.map(function(p, i){ return (i ? "L" : "M") + p[0].toFixed(2) + " " + Y(p[1]).toFixed(2); }).join(""),
+          fill: "none", stroke: tono, "stroke-width": 1.1, "stroke-linejoin": "round", "stroke-linecap": "round", "stroke-opacity": .9}));
+        cr.xy.forEach(function(p){
+          s.appendChild(svgEl("circle", {cx: p[0], cy: Y(p[1]), r: (0.3 + Math.sqrt(p[2] / 1024) * 1.1).toFixed(2), fill: tono, "fill-opacity": .78}));
+        });
+      });
+      // el número de cada avenida, en su extremo más alejado del centro del haz
+      var cx = 0, cy = 0, n = 0;
+      D.corredores.forEach(function(cr){ cr.xy.forEach(function(p){ cx += p[0]; cy += Y(p[1]); n++; }); });
+      cx /= n; cy /= n;
+      D.corredores.forEach(function(cr, idx){
+        var a = cr.xy[0], b = cr.xy[cr.xy.length - 1];
+        var p = (Math.hypot(a[0] - cx, Y(a[1]) - cy) > Math.hypot(b[0] - cx, Y(b[1]) - cy)) ? a : b;
+        if (o.anclas && o.anclas[idx]) p = o.anclas[idx](cr.xy);
+        s.appendChild(svgEl("circle", {cx: p[0], cy: Y(p[1]), r: 1.45, fill: TONOS[idx], stroke: "#fff", "stroke-width": .25}));
+        texto(s, {x: p[0], y: Y(p[1]) + 0.62, "text-anchor": "middle", "font-size": 1.7,
+          "font-family": "Roboto Mono, monospace", "font-weight": 700, fill: "#fff"}, idx + 1);
+      });
+    }
+    cont.appendChild(s);
+    return {svg: s, tope: tope};
+  }
+  var TONOS = ["#005991", "#005991", "#1b77b8", "#1b77b8", "#4195d9", "#4195d9"];
+
+  function leyenda(rampa, izq, der, noche){
+    var d = document.createElement("div");
+    d.className = "leyenda";
+    d.innerHTML = "<span>" + izq + '</span><span class="rampa" style="background:' +
+      gradiente(RAMPAS[rampa + (noche ? "Noche" : "")].slice(1)) + '"></span><span>' + der + "</span>";
+    return d;
+  }
+  function cajaDe(puntos, pad){
+    var b = {x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity};
+    puntos.forEach(function(p){ b.x0 = Math.min(b.x0, p[0]); b.x1 = Math.max(b.x1, p[0]); b.y0 = Math.min(b.y0, Y(p[1])); b.y1 = Math.max(b.y1, Y(p[1])); });
+    return {x: b.x0 - pad, y: b.y0 - pad, w: b.x1 - b.x0 + 2 * pad, h: b.y1 - b.y0 + 2 * pad};
+  }
+
+  /* ================================================== 01 · portada ===== */
+  // un poco más cerca que el encuadre completo: el núcleo denso llena la lámina
+  mapa($("mPortada"), {capa: "total", noche: true, ajuste: "slice", cruces: true,
+    caja: {x: caja99.x - 6, y: caja99.y - 52, w: caja99.w + 12, h: caja99.h + 30}});
+
+  mapa($("mPorQue"), {capa: "total", ajuste: "slice", grosorVias: 1,
+    caja: {x: caja99.x + 8, y: caja99.y + caja99.h * .3, w: caja99.w - 16, h: caja99.h * .4}});
+
+  /* ========================================= 04 · el país =============== */
+  (function(){
+    var MX = D.nacional, kx = Math.cos(23 * Math.PI / 180);
+    var X = MX.i.map(function(v){ return v * kx; }), Yn = MX.j;
+    var nx = Infinity, xx = -Infinity, ny = Infinity, xy = -Infinity;
+    function ext(x, y){ nx = Math.min(nx, x); xx = Math.max(xx, x); ny = Math.min(ny, y); xy = Math.max(xy, y); }
+    X.forEach(function(x, k){ ext(x, Yn[k]); });
+    (MX.contorno || []).forEach(function(an){ an.forEach(function(q){ ext(q[0] * kx, q[1]); }); });
+    var s = svgEl("svg", {viewBox: (nx - 2) + " -2 " + (xx - nx + 4) + " " + (xy - ny + 4), preserveAspectRatio: "xMidYMid meet"});
+    if (MX.contorno){
+      s.appendChild(svgEl("path", {d: MX.contorno.map(function(an){
+        return an.map(function(q, i){ return (i ? "L" : "M") + (q[0] * kx).toFixed(2) + " " + (xy - q[1]).toFixed(2); }).join("") + "Z"; }).join(""),
+        fill: "#003153", "fill-opacity": .04, stroke: "#003153", "stroke-opacity": .45, "stroke-width": .45, "stroke-linejoin": "round"}));
+    }
+    var tope = Math.max.apply(null, MX.n);
+    MX.i.forEach(function(v, k){
+      s.appendChild(svgEl("rect", {x: (X[k] - kx / 2).toFixed(3), y: (xy - Yn[k] - 0.5).toFixed(3),
+        width: (kx * 0.92).toFixed(3), height: 0.92, fill: mezcla(RAMPAS.fria, Math.max(0.42, Math.pow(MX.n[k] / tope, 0.34)))}));
+    });
+    var fx = MX.foco[0] * kx, fy = xy - MX.foco[1];
+    s.appendChild(svgEl("circle", {cx: fx, cy: fy, r: 3.6, fill: "none", stroke: "#B15E2E", "stroke-width": .7}));
+    s.appendChild(svgEl("circle", {cx: fx, cy: fy, r: 5.8, fill: "none", stroke: "#B15E2E", "stroke-width": .35, "stroke-opacity": .5}));
+    texto(s, {x: fx + 7.5, y: fy + 1.6, "font-family": "Montserrat, sans-serif", "font-size": 4.6, "font-weight": 700, fill: "#8B2C1A"}, "Monterrey");
+    $("mMX").appendChild(s);
+  })();
+
+  /* =============================== 06 · heridos y defunciones ========== */
+  mapa($("mHeridos"), {capa: "heridos", grosorVias: 1});
+  mapa($("mMuertos"), {capa: "muertos", grosorVias: 1});
+
+  /* ==================================== 07 · grupos vulnerables ========= */
+  [["moto", "24,264", "colisiones con motocicleta", "Sigue los corredores grandes, igual que el automóvil, con consecuencias que no se parecen."],
+   ["peaton", "8,550", "atropellamientos", "Se concentra en el primer cuadro y en avenidas que cruzan colonias densas, no en las vías rápidas."],
+   ["ciclista", "1,509", "colisiones con ciclista", "El patrón más disperso y el de menor volumen: un problema que la base apenas alcanza a ver."]
+  ].forEach(function(q, idx){
+    var fila = document.createElement("div");
+    fila.className = "fila";
+    fila.style.cssText = "gap:34px;align-items:center;flex:1;min-height:0;padding:10px 0;" + (idx ? "border-top:1px solid var(--linea)" : "");
+    var m = document.createElement("div");
+    m.className = "mapa"; m.style.cssText = "flex:0 0 300px;height:100%";
+    fila.appendChild(m);
+    var t = document.createElement("div");
+    t.style.cssText = "flex:1";
+    t.innerHTML = '<div class="l" style="font-size:66px">' + q[1] + '</div><div class="pie" style="font-family:var(--display);font-weight:700;font-size:25px;color:var(--prusia);letter-spacing:.01em">' + q[2] +
+      '</div><div class="pie" style="margin-top:12px">' + q[3] + "</div>";
+    fila.appendChild(t);
+    $("vulnerables").appendChild(fila);
+    mapa(m, {capa: q[0], grosorVias: .8});
+  });
+
+  /* ======================================== 08 · hora × día (vertical) == */
+  (function(){
+    var dias = D.horaDia.dias, T = D.horaDia.tabla;
+    var W = 912, H = 760, m = {t: 44, r: 128, b: 6, l: 76};
+    var cw = (W - m.l - m.r) / 7, ch = (H - m.t - m.b) / 24;
+    var tope = 0, piso = Infinity, orden = [];
+    T.forEach(function(f, r){ f.forEach(function(v, c){ tope = Math.max(tope, v); piso = Math.min(piso, v); orden.push([v, r, c]); }); });
+    orden.sort(function(a, b){ return b[0] - a[0]; });
+    var s = svgEl("svg", {viewBox: "0 0 " + W + " " + H, style: "width:100%;height:100%"});
+    var DIA = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
+    T.forEach(function(fila, r){
+      fila.forEach(function(v, c){
+        s.appendChild(svgEl("rect", {x: m.l + r * cw, y: m.t + c * ch, width: cw - 3, height: ch - 3,
+          fill: mezcla(RAMPAS.fria, (v - piso) / (tope - piso))}));
+      });
+      texto(s, {x: m.l + r * cw + cw / 2 - 1.5, y: m.t - 16, "text-anchor": "middle", "font-family": "Montserrat, sans-serif",
+        "font-size": 19, "font-weight": 700, "letter-spacing": "1.5", fill: "#2C2C2C"}, DIA[r] || dias[r]);
+    });
+    for (var h = 0; h < 24; h += 2){
+      texto(s, {x: m.l - 14, y: m.t + h * ch + ch / 2 + 5, "text-anchor": "end", "font-family": "Roboto Mono, monospace",
+        "font-size": 17, fill: "#2C2C2C", "fill-opacity": .7}, String(h).padStart(2, "0") + " h");
+    }
+    orden.slice(0, 3).forEach(function(o, idx){
+      s.appendChild(svgEl("rect", {x: m.l + o[1] * cw - 2, y: m.t + o[2] * ch - 2, width: cw + 1, height: ch + 1,
+        fill: "none", stroke: "#B15E2E", "stroke-width": 3.5}));
+      texto(s, {x: m.l + o[1] * cw + cw / 2 - 1.5, y: m.t + o[2] * ch + ch / 2 + 6, "text-anchor": "middle",
+        "font-family": "Roboto Mono, monospace", "font-size": 17, "font-weight": 700, fill: "#fff"}, (idx + 1) + ".º");
+    });
+    // la escala de color, vertical a la derecha
+    var defs = svgEl("defs", {}), lg = svgEl("linearGradient", {id: "rampaHD", x1: 0, y1: 1, x2: 0, y2: 0});
+    RAMPAS.fria.forEach(function(c, i){ lg.appendChild(svgEl("stop", {offset: (i / 5 * 100) + "%", "stop-color": c})); });
+    defs.appendChild(lg); s.appendChild(defs);
+    var lx = W - m.r + 30, la = H - m.t - m.b;
+    s.appendChild(svgEl("rect", {x: lx, y: m.t, width: 18, height: la, fill: "url(#rampaHD)", stroke: "#003153", "stroke-opacity": .18}));
+    texto(s, {x: lx + 28, y: m.t + 14, "font-family": "Roboto Mono, monospace", "font-size": 16, fill: "#2C2C2C"}, miles(tope));
+    texto(s, {x: lx + 28, y: m.t + la - 2, "font-family": "Roboto Mono, monospace", "font-size": 16, fill: "#2C2C2C"}, miles(piso));
+    var cap = texto(s, {x: lx + 58, y: m.t + la / 2, "text-anchor": "middle", "font-family": "Montserrat, sans-serif", "font-size": 15,
+      "font-weight": 700, "letter-spacing": "2", fill: "#2C2C2C", "fill-opacity": .6, transform: "rotate(-90 " + (lx + 58) + " " + (m.t + la / 2) + ")"},
+      "HECHOS DE TRÁNSITO");
+    $("gHoraDia").appendChild(s);
+  })();
+
+  /* ============================================== 09 · corredores ======= */
+  (function(){
+    var todos = [];
+    D.corredores.forEach(function(cr){ todos = todos.concat(cr.xy); });
+    mapa($("mCorredores"), {capa: "total", tenue: .38, corredores: true, caja: cajaDe(todos, 3), grosorVias: 1});
+    var techo = D.vialidades[0][1];
+    var CORTO = {"Doctor Jose Eleuterio Gonzalez": "Gonzalitos", "Doctor Ignacio Morones Prieto": "Morones Prieto",
+      "Adolfo Ruiz Cortines": "Ruiz Cortines", "Paseo De Los Leones": "Paseo de los Leones"};
+    D.corredores.forEach(function(cr, idx){
+      var v = D.vialidades.filter(function(x){ return x[0] === cr.nombre; })[0];
+      var b = document.createElement("div");
+      b.className = "barra";
+      b.innerHTML = '<div class="k" style="background:' + TONOS[idx] + '">' + (idx + 1) + '</div><div class="et">' + (CORTO[cr.nombre] || cr.nombre) +
+        '</div><div class="canal"><div class="relleno" style="width:' + (v[1] / techo * 100).toFixed(1) + "%;background:" + TONOS[idx] + '"></div></div>' +
+        '<div class="val" style="color:' + TONOS[idx] + '">' + miles(v[1]) + "</div>";
+      $("bCorredores").appendChild(b);
+    });
+  })();
+
+  /* ============================================ 10 · árbol, vertical ==== */
+  (function(){
+    var A = D.arbol, W = 912, H = 890;
+    var FRIO = "#005991", CALIDO = "#B15E2E", LAD = "#8B2C1A";
+    var pct = function(n, d, dec){ return (n / d * 100).toFixed(dec === undefined ? 2 : dec) + " %"; };
+    var s = svgEl("svg", {viewBox: "0 0 " + W + " " + H, style: "width:100%;height:100%"});
+    // flujo vertical: de [a1,b1] en y1 a [a2,b2] en y2
+    function flujo(y1, a1, b1, y2, a2, b2, color, op){
+      var ym = (y1 + y2) / 2;
+      s.appendChild(svgEl("path", {d: "M" + a1 + " " + y1 + "C" + a1 + " " + ym + " " + a2 + " " + ym + " " + a2 + " " + y2 +
+        "L" + b2 + " " + y2 + "C" + b2 + " " + ym + " " + b1 + " " + ym + " " + b1 + " " + y1 + "Z", fill: color, "fill-opacity": op}));
+    }
+    function caja(x, y, w, h, n){
+      s.appendChild(svgEl("rect", {x: x, y: y, width: w, height: h, rx: 4,
+        fill: n.fuerte ? LAD : n.calido ? "#FBF1EA" : "#fff", stroke: n.calido ? CALIDO : FRIO,
+        "stroke-opacity": n.calido ? 1 : .45, "stroke-width": n.fuerte ? 0 : 1.6}));
+      var tinta = n.fuerte ? "#fff" : n.calido ? LAD : "#2C2C2C", valor = n.fuerte ? "#fff" : n.calido ? CALIDO : FRIO;
+      var y0 = y + 38;
+      n.t.forEach(function(l, i){ texto(s, {x: x + 20, y: y0 + i * 25, "font-family": "Montserrat, sans-serif", "font-size": 22, "font-weight": 700, fill: tinta}, l); });
+      var vy = y0 + (n.t.length - 1) * 25 + 38;
+      texto(s, {x: x + 20, y: vy, "font-family": "Roboto Mono, monospace", "font-size": 27, "font-weight": 700, fill: valor}, n.v);
+      texto(s, {x: x + 20, y: vy + 31, "font-family": "Cormorant Garamond, Georgia, serif", "font-size": 25, fill: tinta, "fill-opacity": n.fuerte ? .95 : .85}, n.sub);
+    }
+    // rebanada al pie de una caja: la proporción de sus hijos, a escala
+    function rebanada(x, y, w, partes){
+      var acc = x;
+      partes.forEach(function(p){ s.appendChild(svgEl("rect", {x: acc, y: y, width: w * p[0], height: 12, fill: p[1], "fill-opacity": p[2]})); acc += w * p[0]; });
+    }
+    // fila 0: todos los hechos, con la rebanada de costo humano a la derecha
+    var y0 = 0, h0 = 64, fC = A.costo / A.total, wC = Math.max(W * fC, 8);
+    s.appendChild(svgEl("rect", {x: 0, y: y0, width: W, height: h0, fill: FRIO, "fill-opacity": .16}));
+    s.appendChild(svgEl("rect", {x: W - wC, y: y0, width: wC, height: h0, fill: CALIDO}));
+    texto(s, {x: 20, y: y0 + 41, "font-family": "Montserrat, sans-serif", "font-size": 22, "font-weight": 700, fill: "#2C2C2C"}, "TODOS LOS HECHOS DE TRÁNSITO");
+    texto(s, {x: W - wC - 18, y: y0 + 42, "text-anchor": "end", "font-family": "Roboto Mono, monospace", "font-size": 26, "font-weight": 700, fill: FRIO}, miles(A.total));
+
+    // fila 1
+    var y1 = 150, h1 = 156, w1 = 432, xD = 0, xC = W - w1;
+    flujo(y0 + h0, 0, W - wC, y1, xD, xD + w1, FRIO, .1);
+    flujo(y0 + h0, W - wC, W, y1, xC, xC + w1, CALIDO, .3);
+    caja(xD, y1, w1, h1, {t: ["Solo daños materiales"], v: pct(A.danos, A.total), sub: miles(A.danos) + " hechos de tránsito"});
+    caja(xC, y1, w1, h1, {t: ["Con costo humano"], v: pct(A.costo, A.total), sub: miles(A.costo) + " hechos de tránsito", calido: true});
+    var fDef = A.con_defunciones / A.costo, wDef = Math.max(w1 * fDef, 10);
+    rebanada(xC, y1 + h1 - 12, w1, [[1 - wDef / w1, CALIDO, .45], [wDef / w1, LAD, 1]]);
+
+    // fila 2: bajo "costo humano"
+    var y2 = 400, h2 = 156, w2 = 432;
+    flujo(y1 + h1, xC, xC + w1 - wDef, y2, 0, w2, CALIDO, .16);
+    flujo(y1 + h1, xC + w1 - wDef, xC + w1, y2, W - w2, W, LAD, .36);
+    caja(0, y2, w2, h2, {t: ["Solo heridos"], v: pct(A.solo_heridos, A.total), sub: miles(A.heridos) + " personas heridas", calido: true});
+    caja(W - w2, y2, w2, h2, {t: ["Con defunciones"], v: pct(A.con_defunciones, A.total), sub: miles(A.defunciones) + " defunciones", calido: true});
+    var fTop = A.top4 / A.defunciones;
+    rebanada(W - w2, y2 + h2 - 12, w2, [[fTop, LAD, 1], [1 - fTop, LAD, .35]]);
+
+    // fila 3: dónde están las defunciones
+    var y3 = 650, h3 = 230, w3 = 432, xT = W - w2;
+    flujo(y2 + h2, xT, xT + w2 * fTop, y3, 0, w3, LAD, .42);
+    flujo(y2 + h2, xT + w2 * fTop, W, y3, W - w3, W, LAD, .16);
+    caja(0, y3, w3, h3, {t: ["Intersecciones de", "Monterrey, Apodaca,", "Guadalupe y García"], v: pct(A.top4, A.defunciones, 1),
+      sub: miles(A.top4) + " de las " + miles(A.defunciones) + " defunciones", calido: true, fuerte: true});
+    caja(W - w3, y3, w3, h3, {t: ["Vialidades de los", "demás municipios"], v: pct(A.defunciones - A.top4, A.defunciones, 1),
+      sub: miles(A.defunciones - A.top4) + " de las " + miles(A.defunciones) + " defunciones", calido: true});
+    $("gArbol").appendChild(s);
+  })();
+
+  /* =========================================== 11 · concentración ======= */
+  D.cruces.hitos.forEach(function(h, idx){
+    var tr = document.createElement("tr");
+    if (idx === 2) tr.className = "cima";
+    var ultimo = idx === D.cruces.hitos.length - 1;
+    tr.innerHTML = "<td>" + (ultimo ? "Todos: " : "") + miles(h[0]) + " cruces</td>" +
+      '<td class="n">' + h[1].toFixed(2) + "<i class='e'></i>%</td>" +
+      '<td class="n">' + h[2].toFixed(1) + "<i class='e'></i>%</td>";
+    $("tHitos").appendChild(tr);
+  });
+
+  /* ============================================ 12 · los diez peores ==== */
+  (function(){
+    var c = cajaDe(D.cruces.xy.slice(0, 10), 5);
+    mapa($("mTop10"), {capa: "total", tenue: .45, cruces: true, top10: true, radio: .5, caja: c, grosorVias: 1.2});
+    var t = $("tTop10");
+    var bonito = function(s){
+      return s.replace(/\b(De|Del|Los|La)\b/g, function(w){ return w.toLowerCase(); })
+        .replace("Fray Luis de Leon", "Fray Luis de León").replace("Fidel Velazquez", "Fidel Velázquez")
+        .replace("Lazaro Cardenas", "Lázaro Cárdenas").replace("Miguel Aleman", "Miguel Alemán")
+        .replace("Manuel L. Barragan", "Manuel L. Barragán").replace("Simon Bolivar", "Simón Bolívar")
+        .replace("Constitucion", "Constitución").replace("San Jeronimo", "San Jerónimo")
+        .replace("Doctor Jose Eleuterio Gonzalez", "Gonzalitos").replace("Revolucion", "Revolución")
+        .replace("Felix Uresti Gomez", "Félix U. Gómez");
+    };
+    var MUN = {"San Nicolás de los Garza": "San Nicolás", "San Pedro Garza García": "San Pedro"};
+    D.cruces.top.slice(0, 10).forEach(function(q, idx){
+      var tr = document.createElement("tr");
+      if (idx < 2) tr.className = "cima";
+      tr.innerHTML = '<td class="r">' + (idx + 1) + '</td><td style="font-size:26px;padding-top:7px;padding-bottom:7px">' + bonito(q[0]) +
+        '</td><td style="font-size:21px;color:#444;white-space:nowrap;padding-top:7px;padding-bottom:7px">' + (MUN[q[1]] || q[1]) + '</td><td class="n" style="font-size:24px;padding-top:7px;padding-bottom:7px">' + miles(q[2]) + "</td>";
+      t.appendChild(tr);
+    });
+  })();
+
+  /* ============================================== 13 · tendencia ======= */
+  (function(){
+    var v = D.totalPorAnio, W = 912, H = 280, m = {t: 50, r: 46, b: 40, l: 46};
+    var tope = Math.max.apply(null, v), piso = Math.min.apply(null, v);
+    var s = svgEl("svg", {viewBox: "0 0 " + W + " " + H, style: "width:100%;height:auto;display:block"});
+    var px = function(i){ return m.l + i * (W - m.l - m.r) / 5; };
+    var py = function(y){ return H - m.b - ((y - piso * 0.85) / (tope - piso * 0.85)) * (H - m.t - m.b); };
+    s.appendChild(svgEl("rect", {x: px(0.5), y: m.t - 14, width: px(2.5) - px(0.5), height: H - m.b - m.t + 14, fill: "#B15E2E", "fill-opacity": .09}));
+    texto(s, {x: (px(0.5) + px(2.5)) / 2, y: m.t - 22, "text-anchor": "middle", "font-family": "Montserrat, sans-serif", "font-size": 17,
+      "font-weight": 700, "letter-spacing": "2", fill: "#B15E2E"}, "PANDEMIA");
+    s.appendChild(svgEl("line", {x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: "#003153", "stroke-opacity": .2}));
+    s.appendChild(svgEl("path", {d: v.map(function(y, i){ return (i ? "L" : "M") + px(i) + " " + py(y); }).join(""),
+      fill: "none", stroke: "#005991", "stroke-width": 4, "stroke-linejoin": "round", "stroke-linecap": "round"}));
+    v.forEach(function(y, i){
+      s.appendChild(svgEl("circle", {cx: px(i), cy: py(y), r: 7, fill: "#005991"}));
+      texto(s, {x: px(i), y: H - m.b + 28, "text-anchor": "middle", "font-family": "Roboto Mono, monospace", "font-size": 18, fill: "#2C2C2C", "fill-opacity": .7}, 2019 + i);
+      texto(s, {x: px(i), y: py(y) - 17, "text-anchor": "middle", "font-family": "Roboto Mono, monospace", "font-size": 19,
+        "font-weight": i === 5 ? 700 : 500, fill: "#005991"}, miles(y));
+    });
+    $("gTendencia").appendChild(s);
+    // seis mapas con la misma escala: si cada uno usara su propio máximo,
+    // 2020 se vería igual de intenso que 2024
+    var tope = 0;
+    for (var a = 2019; a <= 2024; a++) D.capas["a" + a].forEach(function(x){ if (x > tope) tope = x; });
+    for (a = 2019; a <= 2024; a++){
+      var c = document.createElement("div");
+      c.innerHTML = '<div style="font-family:var(--cifra);font-weight:700;font-size:22px;color:var(--prusia)">' + a + "</div>";
+      var mm = document.createElement("div");
+      mm.className = "mapa"; mm.style.height = "232px";
+      c.appendChild(mm);
+      $("anios").appendChild(c);
+      mapa(mm, {capa: "a" + a, tope: tope, vias: false});
+    }
+  })();
+
+  /* ============================================== 14 · pronóstico ====== */
+  (function(){
+    mapa($("mP2027"), {capa: "p2027", rampa: "calida", grosorVias: 1});
+    var P = D.municipios.p2027, nombres = D.municipios.nombres, porCelda = D.municipios.porCelda, p5 = D.capas.ptop5;
+    // zonas con probabilidad ≥ 50 % de estar en el 5 % de mayor riesgo: son las 112 del modelo
+    var enTop = {};
+    p5.forEach(function(v, k){ if (v >= 50){ var n = nombres[porCelda[k]]; enTop[n] = (enTop[n] || 0) + 1; } });
+    var CORTO = {"San Nicolás de los Garza": "San Nicolás", "San Pedro Garza García": "San Pedro Garza García"};
+    Object.keys(P).sort(function(a, b){ return P[b][1] - P[a][1]; }).slice(0, 6).forEach(function(n, idx){
+      var tr = document.createElement("tr");
+      if (idx === 0) tr.className = "cima";
+      tr.innerHTML = '<td style="font-size:27px;padding-top:9px;padding-bottom:9px">' + (CORTO[n] || n) + '</td><td class="n" style="color:#555;font-size:23px">' + miles(P[n][0]) +
+        '</td><td class="n" style="color:var(--oxido);font-weight:700;font-size:25px">' + miles(P[n][1]) + '</td><td class="n" style="font-size:25px;color:' +
+        ((enTop[n] || 0) > 5 ? "var(--ladrillo)" : "#555") + '">' + (enTop[n] || 0) + "</td>";
+      $("tMunicipios").appendChild(tr);
+    });
+  })();
+
+  /* ============================================ 17 · transición ======== */
+  mapa($("mTransicion"), {capa: "total", noche: true, ajuste: "slice", cruces: true,
+    caja: {x: caja99.x + 14, y: caja99.y + caja99.h * .2, w: caja99.w - 28, h: caja99.h * .5}});
+
+  document.body.dataset.listo = "1";
+})();
+</script>
+</body>
+</html>
