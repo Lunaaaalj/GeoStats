@@ -37,6 +37,9 @@ MINUSCULAS = {"De", "Del", "La", "Las", "Los", "Y", "El"}
 # rejilla y subencabezados en gris claro.
 AZUL = "005991"
 RAMPA = (AZUL, "1B77B8")
+
+TRANSPORTE_PUBLICO = ["CAMPASAJ", "MICROBUS", "PASCAMION", "OMNIBUS"]
+TRANSPORTE_CARGA = ["CAMION", "TRACTOR"]
 GRAFITO = "2C2C2C"
 GRIS = "F2F2F2"
 GRIS_TEXTO = "6B6B6B"  # rankings: secundarios frente a la cuenta
@@ -55,40 +58,66 @@ def calle_limpia(calle) -> str | None:
 def nombres_de_cruce(d: pd.DataFrame) -> pd.Series:
     """Nombre de cada nodo: el par ordenado de calles más frecuente.
 
-    Si un nodo no tiene ningún par completo, se usa la calle 1 más frecuente.
+    Las calles se comparan por su forma sin acentos ni mayúsculas
+    (`calle*_hom` de `geostats.limpieza` si existe; si no, `calle*_norm` sin el
+    genérico), para que «Lázaro Cárdenas» y «Lazaro Cardenas» sean la misma.
+    Se muestra la escritura más frecuente de cada una. Si un nodo no tiene
+    ningún par completo, se usa la calle 1 más frecuente.
     """
-    c1 = d.CALLE1.map(calle_limpia)
-    c2 = d.CALLE2.map(calle_limpia)
-    completo = c1.notna() & c2.notna()
+    def llave(c: str) -> pd.Series:
+        if f"{c}_hom" in d:
+            return d[f"{c}_hom"]
+        return d[f"{c}_norm"].str.replace(GENERICO, "", regex=True).str.strip()
+
+    k1, k2 = llave("calle1"), llave("calle2")
+    bonitas = pd.DataFrame({
+        "k": pd.concat([k1, k2], ignore_index=True),
+        "v": pd.concat([d.CALLE1.map(calle_limpia), d.CALLE2.map(calle_limpia)],
+                       ignore_index=True),
+    }).dropna()
+    escritura = bonitas.groupby(["k", "v"]).size().reset_index(name="n")         .sort_values(["k", "n", "v"], ascending=[True, False, True])         .drop_duplicates("k").set_index("k").v
+
+    completo = k1.notna() & k2.notna()
     par = pd.Series(pd.NA, index=d.index, dtype="object")
-    par[completo] = [" × ".join(sorted(p)) for p in zip(c1[completo], c2[completo])]
+    par[completo] = [" × ".join(escritura[a] if a in escritura else a for a in sorted(p))
+                     for p in zip(k1[completo], k2[completo])]
+    sola = k1.map(escritura)
 
     def moda(s: pd.Series) -> pd.Series:
         s = pd.DataFrame({"nodo": d.id_punto_4d, "v": s}).dropna()
-        return s.groupby(["nodo", "v"]).size().reset_index(name="n") \
-                .sort_values(["nodo", "n", "v"], ascending=[True, False, True]) \
-                .drop_duplicates("nodo").set_index("nodo").v
+        return s.groupby(["nodo", "v"]).size().reset_index(name="n")                 .sort_values(["nodo", "n", "v"], ascending=[True, False, True])                 .drop_duplicates("nodo").set_index("nodo").v
 
-    return moda(par).combine_first(moda(c1))
+    return moda(par).combine_first(moda(sola))
 
 
 def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
     d = d.assign(
         con_peaton=d.TIPACCID.eq(2) | d.PEATMUERTO.gt(0),
         con_ciclista=d.TIPACCID.eq(11) | d.CICLMUERTO.gt(0),
-        peatones_afectados=d.PEATMUERTO + d.PEATHERIDO,
+        con_moto=d.TIPACCID.eq(10) | d.MOTOCICLET.gt(0),
+        con_publico=d[TRANSPORTE_PUBLICO].sum(axis=1).gt(0),
+        con_carga=d[TRANSPORTE_CARGA].sum(axis=1).gt(0),
         defunciones_pc=d.PEATMUERTO + d.CICLMUERTO,
     )
     d["con_pc"] = d.con_peaton | d.con_ciclista
+    # ATUS no separa las defunciones por tipo de vehículo: para motocicletas y
+    # transporte se cuentan todas las defunciones de esos hechos.
+    for k in ("moto", "publico", "carga"):
+        d[f"def_{k}"] = d.TOTMUERTOS.where(d[f"con_{k}"], 0)
     g = d.groupby("id_punto_4d")
     nodos = pd.DataFrame({
         "hechos": g.size(),
         "defunciones": g.TOTMUERTOS.sum(),
         "hechos_peaton": g.con_peaton.sum(),
         "def_peaton": g.PEATMUERTO.sum(),
-        "peatones_afectados": g.peatones_afectados.sum(),
         "hechos_ciclista": g.con_ciclista.sum(),
         "def_ciclista": g.CICLMUERTO.sum(),
+        "hechos_moto": g.con_moto.sum(),
+        "def_moto": g.def_moto.sum(),
+        "hechos_publico": g.con_publico.sum(),
+        "def_publico": g.def_publico.sum(),
+        "hechos_carga": g.con_carga.sum(),
+        "def_carga": g.def_carga.sum(),
         "hechos_pc": g.con_pc.sum(),
         "defunciones_pc": g.defunciones_pc.sum(),
         "municipio": g.NOM_MUN.agg(lambda s: s.mode().iloc[0]),
@@ -114,27 +143,21 @@ def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
 
 
 # Secciones de la hoja: (título, [(columna, encabezado), ...]). Cada sección de
-# conteos lleva sus hechos y defunciones, cada uno seguido de su ranking.
+# conteos lleva hechos de tránsito, su ranking y defunciones.
+def _conteo(titulo: str, hechos: str, defunciones: str):
+    return (titulo, [(hechos, "Hechos de tránsito"), (f"r_{hechos}", "Ranking"),
+                     (defunciones, "Defunciones")])
+
+
 SECCIONES = [
     ("Cruce", [("nombre", "Cruce")]),
-    ("Totales", [
-        ("hechos", "Hechos de tránsito"), ("r_hechos", "Ranking"),
-        ("defunciones", "Defunciones"), ("r_defunciones", "Ranking"),
-    ]),
-    ("Solo peatones", [
-        ("hechos_peaton", "Hechos de tránsito"), ("r_hechos_peaton", "Ranking"),
-        ("def_peaton", "Defunciones"), ("r_def_peaton", "Ranking"),
-        ("peatones_afectados", "Afectados (muertos + heridos)"),
-        ("r_peatones_afectados", "Ranking"),
-    ]),
-    ("Solo ciclistas", [
-        ("hechos_ciclista", "Hechos de tránsito"), ("r_hechos_ciclista", "Ranking"),
-        ("def_ciclista", "Defunciones"), ("r_def_ciclista", "Ranking"),
-    ]),
-    ("Peatones o ciclistas", [
-        ("hechos_pc", "Hechos de tránsito"), ("r_hechos_pc", "Ranking"),
-        ("defunciones_pc", "Defunciones"), ("r_defunciones_pc", "Ranking"),
-    ]),
+    _conteo("Totales", "hechos", "defunciones"),
+    _conteo("Solo peatones", "hechos_peaton", "def_peaton"),
+    _conteo("Solo ciclistas", "hechos_ciclista", "def_ciclista"),
+    _conteo("Peatones y/o ciclistas", "hechos_pc", "defunciones_pc"),
+    _conteo("Motociclistas", "hechos_moto", "def_moto"),
+    _conteo("Transporte público", "hechos_publico", "def_publico"),
+    _conteo("Transporte de carga", "hechos_carga", "def_carga"),
     ("Ubicación", [
         ("municipio", "Municipio"), ("maps", "Google Maps"),
         ("coordenadas", "Coordenadas (lat, lon)"), ("lat", "Latitud"), ("lon", "Longitud"),
@@ -153,14 +176,22 @@ NOTAS = [
               "«Intersección». Nombre: el par de vialidades que más se repite."),
     ("Hechos de tránsito", "Accidentes registrados en el cruce."),
     ("Defunciones", "Suma de TOTMUERTOS: conductores, pasajeros, peatones, ciclistas y otros."),
-    ("Peatones afectados", "PEATMUERTO + PEATHERIDO (personas, no hechos)."),
     ("Hechos con peatones", "Atropellamiento (TIPACCID = 2) o algún peatón muerto."),
     ("Hechos con ciclistas", "Colisión con ciclista (TIPACCID = 11) o algún ciclista muerto."),
     ("Hechos con peatones o ciclistas", "Unión de los dos anteriores, contada por hecho: "
                                         "un hecho con peatón y ciclista cuenta una vez."),
     ("Defunciones de peatones / ciclistas", "PEATMUERTO / CICLMUERTO (personas); la sección "
-                                            "«Peatones o ciclistas» suma las dos."),
-    ("Ranking", "Cada cuenta lleva a su derecha su ranking; 1 = el cruce con más. Empates comparten el lugar más alto (método «min»), "
+                                            "«Peatones y/o ciclistas» suma las dos."),
+    ("Motociclistas", "Hechos: colisión con motocicleta (TIPACCID = 10) o alguna motocicleta "
+                      "involucrada. Defunciones: todas las de esos hechos (ATUS no dice "
+                      "cuántas eran motociclistas)."),
+    ("Transporte público", "Hechos con camioneta de pasajeros, microbús, camión urbano u "
+                           "ómnibus. Defunciones: todas las de esos hechos."),
+    ("Transporte de carga", "Hechos con camión de carga o tractocamión. Defunciones: todas "
+                            "las de esos hechos."),
+    ("Nombres de calles", "Se comparan sin acentos ni mayúsculas, así «Lázaro Cárdenas» y "
+                          "«Lazaro Cardenas» son la misma calle; se muestra la escritura más común."),
+    ("Ranking", "El ranking va junto a los hechos de tránsito de su sección; 1 = el cruce con más. Empates comparten el lugar más alto (método «min»), "
                  "así que muchos cruces con 0 defunciones empatan en el mismo lugar."),
     ("Coordenadas", "Mediana de LATITUD y LONGITUD de los hechos del cruce (WGS84)."),
     ("Generado con", "uv run tabla-cruces (src/geostats/tabla_cruces.py)."),
@@ -207,8 +238,7 @@ def escribir_excel(tabla: pd.DataFrame, ruta) -> None:
         hoja.auto_filter.ref = f"A2:{get_column_letter(len(tabla.columns))}{n}"
 
         anchos = {"Cruce": 48, "Municipio": 22, "Google Maps": 15,
-                  "Coordenadas (lat, lon)": 24, "Ranking": 9,
-                  "Afectados (muertos + heridos)": 14}
+                  "Coordenadas (lat, lon)": 24, "Ranking": 9}
         for k, nombre in enumerate(tabla.columns, start=1):
             letra = get_column_letter(k)
             hoja.column_dimensions[letra].width = anchos.get(nombre, 12)
