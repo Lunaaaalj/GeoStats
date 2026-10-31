@@ -137,3 +137,9 @@ docs/reporte/*.toc
 docs/reporte/*.fls
 docs/reporte/*.fdb_latexmk
 docs/reporte/*.synctex.gz
+docs/reporte/*.fls
+docs/reporte/*.out
+docs/reporte/*.toc
+docs/reporte/*.bbl
+docs/reporte/*.blg
+docs/reporte/*.abs
