@@ -8,10 +8,9 @@ fotografía cada lámina por separado.
 
     uv run --with segno --with playwright --no-project python publicacion/construir.py
 
-Las imágenes propias del carrusel (la nota periodística del 02 y el logotipo
-de SDLM de la portada) viven en `publicacion/logos/` y tienen prioridad sobre
-las de la presentación. Falta a propósito el 15 (la foto de la app): esa la
-ponen los autores y la numeración ya le deja su lugar.
+Las imágenes propias del carrusel (la nota periodística del 02, el logotipo
+de SDLM de la portada y la captura del visor del 15) viven en
+`publicacion/logos/` y tienen prioridad sobre las de la presentación.
 """
 
 from __future__ import annotations

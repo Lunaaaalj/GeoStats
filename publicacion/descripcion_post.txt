@@ -1,0 +1,39 @@
+DESCRIPCIÓN DEL POST · carrusel de Instagram
+=============================================
+
+--- Versión completa (Instagram / Facebook / LinkedIn) ---
+
+En Monterrey ocurre un hecho de tránsito cada ocho minutos. Y cada dos días, en promedio, alguien sale de casa y no vuelve.
+
+Les decimos "accidentes", como si fueran mala suerte. Quisimos comprobarlo: tomamos seis años de registros del INEGI (2019–2024), 379,294 hechos de tránsito en la Zona Metropolitana, y los pusimos en un mapa.
+
+Lo que encontramos:
+📍 1,000 cruces (el 1.8 % de la ciudad) concentran 4 de cada 10 hechos.
+🛣️ Seis avenidas suman 60 mil hechos. El riesgo es de corredor, no de esquina.
+🕗 El pico no es de madrugada: es el martes a las 8 de la mañana.
+🗺️ Las mismas zonas aparecen año tras año, con todo y pandemia.
+📈 Si nada cambia, esperamos ≈74 mil hechos en 2027.
+
+No es azar. Tiene lugares, horarios y nombres de calle. Y un problema que se queda quieto se puede planear.
+
+No nos creas: compruébalo. El visor, el código y los datos son públicos. Escanea los QR de las últimas láminas o entra al link en nuestra bio. Busca tu cruce.
+
+¿Cuál es el cruce que más te preocupa en tu día a día? Te leemos en los comentarios 👇
+
+Datos: ATUS, INEGI 2019–2024.
+
+#Monterrey #MovilidadMTY #SeguridadVial #NuevoLeón #DatosAbiertos #VisiónCero #CiudadesSeguras #GeoStats
+
+
+--- Versión corta (X / historias, ~280 caracteres) ---
+
+En Monterrey hay un hecho de tránsito cada 8 minutos, y 1,000 cruces concentran 4 de cada 10. No es mala suerte: tiene lugares, horarios y nombres de calle. Analizamos 6 años de datos del INEGI y los pusimos en un mapa que puedes explorar 👉 geo-stats-three.vercel.app
+
+
+--- Notas antes de publicar ---
+
+- En Instagram los links no se pueden abrir desde la descripción: por eso se remite a los QR y a la bio. En LinkedIn y Facebook se pueden pegar directo:
+    Visor / presentación: geo-stats-three.vercel.app
+    Código y datos:       github.com/Lunaaaalj/GeoStats
+- Falta el crédito de autores y de SDLM (y etiquetar sus cuentas).
+- Revisar que #MovilidadMTY y #VisiónCero sean los que usa la comunidad local.
