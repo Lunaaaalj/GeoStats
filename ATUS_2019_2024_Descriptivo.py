@@ -208,7 +208,7 @@ tabla_dia = pd.crosstab(
 
 df_afectados=df[df['TIENE_AFECTADOS'] == 'Sí'].copy()
 
-df_muertos=df[df['TIENE_MUERTOS'] == 'Sí'].copy()
+df_muertos=df[df['TIENE_MUERTOS'] == 1].copy()
 
 print(f"Total de registros {len(df)}")
 
