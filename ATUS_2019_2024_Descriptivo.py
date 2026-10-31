@@ -157,8 +157,8 @@ prob_causa['Pct_Heridos_Totales_cu'] = (prob_causa['Total_HERIDOS'] / total_heri
 prob_causa['Pct_Muertos_Totales_cu'] = (prob_causa['Total_MUERTOS'] / total_muertos_df) * 100
 
 # Tasa de accidentes con heridos y muertos
-prob_causa['Tasa_Accidentes_con_Heridos (%)'] = (prob_causa['F_Herido']/ total_accidentes_zmm)*100
-prob_causa['Tasa_Accidentes_con_defunciones (%)'] = (prob_causa['F_Muerto']/ total_accidentes_zmm)*100
+prob_causa['Tasa_Accidentes_con_Heridos (%)'] = (prob_causa['F_Herido']/ prob_causa['Total_Accidentes'])*100
+prob_causa['Tasa_Accidentes_con_defunciones (%)'] = (prob_causa['F_Muerto']/ prob_causa['Total_Accidentes'])*100
 
 cols_ordenadas_causa = [
     'CAUSA_DESC',
