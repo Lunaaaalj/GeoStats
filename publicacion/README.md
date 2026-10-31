@@ -21,7 +21,7 @@ la 15 la ponen los autores y la numeración ya le deja su lugar:
 | 14 | Pronóstico 2027 y municipios con más riesgo | `14_pronostico_2027.png` |
 | 15 | Foto de la app | **la proveen los autores** |
 | 16 | Reflexiones | `16_reflexiones.png` |
-| 17 | Transición: revisa la info por ti mismo | `17_revisalo_tu.png` |
+| 17 | Transición: revisa la data por ti mismo | `17_revisalo_tu.png` |
 | 18 | QR del visor | `18_qr_visor.png` |
 | 19 | QR del repositorio | `19_qr_repositorio.png` |
 | 20 | QR de la presentación | `20_qr_presentacion.png` |
