@@ -173,7 +173,7 @@ cols_ordenadas_causa = [
 #Frecuencia :tipo de accidente, tipo de afectado, tipo de vehiculo
 
 # Tabla 4: Tipos de Accidente (TIPACCID)
-tabla_tipo = df.get('TIPACCID_DESC', df['TIPACCID']).value_counts().to_frame(name='Total')
+tabla_tipo = df['DESCRIP_TIPACCI'].value_counts().to_frame(name='Total')
 tabla_tipo['Porcentaje'] = (tabla_tipo['Total'] / len(df)) * 100
 
 
