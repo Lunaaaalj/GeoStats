@@ -1,7 +1,6 @@
 # Publicación — carrusel de Instagram
 
-Veinte láminas verticales de **1080 × 1350** (4:5). Diecinueve se generan aquí;
-la 15 la ponen los autores y la numeración ya le deja su lugar:
+Veinte láminas verticales de **1080 × 1350** (4:5), todas generadas aquí:
 
 | # | Lámina | Origen |
 |---|---|---|
@@ -19,7 +18,7 @@ la 15 la ponen los autores y la numeración ya le deja su lugar:
 | 12 | Tienen nombre y apellido | `12_nombre_y_apellido.png` |
 | 13 | La tendencia en seis años | `13_tendencia.png` |
 | 14 | Pronóstico 2027 y municipios con más riesgo | `14_pronostico_2027.png` |
-| 15 | Foto de la app | **la proveen los autores** |
+| 15 | El visor (captura de la app) | `15_visor.png` |
 | 16 | Reflexiones | `16_reflexiones.png` |
 | 17 | Transición: revisa la data por ti mismo | `17_revisalo_tu.png` |
 | 18 | QR del visor | `18_qr_visor.png` |
@@ -42,8 +41,10 @@ mismas fuentes, logotipos y generador de QR (`construir.py` importa el de la
 presentación). Si cambia `datos.json`, basta con volver a correr el script.
 
 `logos/` guarda las imágenes propias del carrusel y tienen prioridad sobre las
-de la presentación: el recorte de la nota periodística y el logotipo nuevo de
-SDLM (fondo transparente, para invertirlo sobre la portada oscura).
+de la presentación: el recorte de la nota periodística, el logotipo nuevo de
+SDLM (fondo transparente, para invertirlo sobre la portada oscura) y
+`visor.png`, un recorte vertical del panel del mapa de una captura del visor
+(sin el panel lateral ni los controles de zoom, para que quepa en 4:5).
 
 - Solo la portada lleva el logotipo de SDLM; todas las demás llevan el de
   GeoStats arriba a la derecha (lo agrega el script) y el número de lámina
