@@ -52,9 +52,7 @@ contraparte es que el hexágono no trae covariables censales. Esas tendrán
 que interpolarse desde el marco geoestadístico cuando se incorporen.
 
 Cada accidente se asigna a la celda que lo contiene. Se conservan solo las
-celdas con al menos un accidente en los seis años: una celda vacía en casi
-380 mil registros no tiene red vial donde pueda ocurrir uno (es cerro, presa
-o baldío), y tratarla como riesgo cero inflaría artificialmente los
+celdas con al menos un accidente en los seis años: en casi 380 mil registros, una celda vacía no tiene red vial donde pueda ocurrir uno (es un cerro, una presa o un baldío), y tratarla como riesgo cero inflaría artificialmente los
 agrupamientos de valores bajos. Se retiran además las celdas \emph{isla},
 cuyas seis vecinas no tienen ningún accidente. No tienen con quién
 correlacionarse, y cualquier estadístico local sobre ellas degenera. El
@@ -223,7 +221,7 @@ viven los factores no observados: obras, un semáforo descompuesto, la lluvia.
 Y_{it} \sim \NB(\mu_{it}, \theta),
 \quad \Var(Y_{it}) = \mu_{it} + \frac{\mu_{it}^2}{\theta}.
 \end{equation}
-Es la especificación habitual para frecuencia de accidentes
+Es la especificación habitual para la frecuencia de accidentes
 \cite{lord2010statistical}. Se compara con NB1, que tiene la varianza lineal
 en $\mu$, por AIC. La prueba de razón de verosimilitudes entre Poisson y NB2
 no es una $\chi^2_1$ ordinaria. La nula $1/\theta = 0$ está en la frontera del
@@ -293,15 +291,14 @@ M5  & NB2, $\log h$ + $\log h^{\text{rec}}$ \\
 % ---------------------------------------------------------------------------
 
 Los modelos de conteo dejan tres decisiones para este peldaño (los
-detalles están en §\ref{sec:res-conteo}). La verosimilitud es Binomial
-Negativa, sin inflación de ceros. El error de predicción tiene forma de
+detalles están en §\ref{sec:res-conteo}). La verosimilitud es binomial negativa, sin inflación de ceros. El error de predicción tiene forma de
 municipio y cambia de un año a otro. Y la historia de la celda deja de ser
 una covariable precalculada y pasa a ser un efecto aleatorio estimado con
 todos los años.
 
 \paragraph{Panel anual.} El modelo se ajusta sobre celda $\times$ año (2\,241
 $\times$ 5 $=$ 11\,205 observaciones de entrenamiento), no celda $\times$ mes.
-Hay dos razones. La estadística es que el efecto de mes es común a todas las
+Hay dos razones. La razón estadística es que el efecto de mes es común a todas las
 celdas y aportó poco sobre un promedio bien elegido, mientras que la
 estructura de interés (el régimen municipal y el perfil de cada celda) vive
 en el nivel anual. Es el supuesto de separabilidad espacio--tiempo: el patrón
@@ -439,7 +436,7 @@ anticipar el año siguiente con lo que se sabe hasta el anterior.
 \paragraph{Pronóstico del modelo jerárquico.} Para cada muestra a posteriori
 se fija el nivel municipal de 2024 en el de 2023,
 $m_{j,2024} = m_{j,2023}$, se combina con $\beta_0$ y $u_i$, y se simula un
-conteo Binomial Negativo con el $\theta$ de esa muestra. El ensamble de
+conteo binomial negativo con el $\theta$ de esa muestra. El ensamble de
 simulaciones propaga la incertidumbre de todos los parámetros y la
 dispersión NB. No se añade una innovación $t_3$ para 2024, aunque es lo que
 el modelo sugiere. Para cualquier $t$ de Student, $\E[e^{T}] = \infty$, así
@@ -468,7 +465,7 @@ escalas (celda-mes y celda-año) no son comparables entre sí.
   \mathrm{CRPS}(F, y) = \sum_{k \ge 0} \big(F(k) - \mathbb{1}\{y \le k\}\big)^2 ,
   \end{equation}
   que en los GLM se evalúa en forma cerrada truncando la suma. Para el
-  ensamble del jerárquico, con simulaciones $X, X'$ independientes de la
+  ensamble del modelo jerárquico, con simulaciones $X, X'$ independientes de la
   predictiva, se usa la forma equivalente
   $\E|X - y| - \tfrac{1}{2}\E|X - X'|$. Es una regla de puntuación propia:
   penaliza tanto errar el centro como errar la incertidumbre, y es la
@@ -486,7 +483,7 @@ escalas (celda-mes y celda-año) no son comparables entre sí.
   \mathrm{PAI}_a = \frac{n_{\text{sel}} / n}{a},
   \end{equation}
   con $n_{\text{sel}}$ los accidentes observados de 2024 en las celdas
-  seleccionadas y $n$ el total. $\mathrm{PAI} = 1$ es el azar. Se reporta
+  seleccionadas y $n$ el total. $\mathrm{PAI} = 1$ equivale al azar. Se reporta
   con $a$ igual al 5 y al 10\,\%. Como todas las celdas tienen la misma área,
   la fracción de territorio es la fracción de celdas.
 \end{itemize}
