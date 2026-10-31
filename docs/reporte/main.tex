@@ -1,0 +1,123 @@
+\documentclass[a4paper,fleqn]{cas-dc}
+
+% ---------------------------------------------------------------------------
+% Reporte técnico — GeoStats (plantilla Elsevier CAS, doble columna)
+% Compilar:  cd docs/reporte && latexmk -pdf main.tex
+% Cada sección vive en secciones/ y se incluye con \input (no \include:
+% forzaría saltos de página y rompería las dos columnas).
+% Las figuras vienen de los notebooks (notebooks/*.qmd) y viven en figuras/.
+% ---------------------------------------------------------------------------
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noquoting,es-noshorthands]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\graphicspath{{figuras/}}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{xcolor}
+\definecolor{azul}{HTML}{005991}
+\definecolor{rojo}{HTML}{8B2C1A}
+\definecolor{grafito}{HTML}{2C2C2C}
+\hypersetup{colorlinks=true,linkcolor=azul,citecolor=azul,urlcolor=azul}
+
+% Notación común
+\newcommand{\NB}{\mathrm{BinomialNegativa}}
+\newcommand{\Pois}{\mathrm{Poisson}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+
+% ---------------------------------------------------------------------------
+% Localización de cas-dc al español. La clase trae en duro "ARTICLE INFO",
+% "Preprint submitted to Elsevier", "Page x of y" y una nota "ORCID(s):"
+% aunque no haya ninguno; se redefinen aquí sin tocar la clase.
+% ---------------------------------------------------------------------------
+\ExplSyntaxOn
+\cs_set:Npn \__first_footerline:
+  { \group_begin: \small \sffamily \__short_authors: \group_end: }
+\cs_set:Npn \__first_foot:
+  {
+    \parbox[t]{\textwidth}
+      { \rule{\textwidth}{.2pt} \\
+        \__first_footerline: \hfill Página~\thepage{}~de~\lastpage }
+  }
+\cs_set:Npn \__cas_foot:
+  {
+    \parbox[t]{\textwidth}
+      { \rule{\textwidth}{.2pt} \\ \sffamily \small
+        \__first_footerline: \hfill Página~\thepage{}~de~\lastpage }
+  }
+\RenewDocumentCommand \printorcid { }
+  {
+    \seq_if_empty:NF \g_stm_orcid_seq
+      {
+        \group_begin:
+        \tex_let:D \thefootnote \relax \footnotetext
+          { \raggedright ORCID:~ \seq_use:Nn \g_stm_orcid_seq { ;~ } }
+        \group_end:
+      }
+  }
+\RenewDocumentEnvironment { keywords } { O{ Palabras~clave } }
+  {
+    \tex_global:D \tex_setbox:D \g_stm_key_box = \vtop \bgroup
+    \hsize=.25 \textwidth
+    \cs_set:Nn \sep: { \par }
+    \cs_set_eq:NN \sep \sep:
+    \parindent \c_zero_dim
+    I\,N\,F\,O\,R\,M\,A\,C\,I\,Ó\,N \par \skip_vertical:n { -3pt }
+    \rule{.25 \textwidth}{.2pt}\par\footnotesize
+    \noindent \textit { #1 }:  \par
+  }
+  { \egroup }
+\ExplSyntaxOff
+% babel reimpone \abstractname al iniciar el documento; se fija en sus captions.
+\addto\captionsspanish{\renewcommand{\abstractname}{R\,E\,S\,U\,M\,E\,N}}
+
+% Encabezados cortos de página
+\shorttitle{Predicción espacial de accidentes en la ZMM}
+\shortauthors{E. Luna}
+
+\begin{document}
+\let\WriteBookmarks\relax
+\def\floatpagepagefraction{1}
+\def\textpagefraction{.001}
+
+\title [mode = title]{Predicción espacial de accidentes de tránsito en la
+  Zona Metropolitana de Monterrey}
+
+\author[1]{Eduardo Luna}
+\affiliation[1]{organization={Tecnológico de Monterrey},
+  city={Monterrey}, state={Nuevo León}, country={México}}
+
+% El entorno abstract de cas-dc es tipo verbatim: su \end{abstract} tiene que
+% estar aquí; el texto vive en secciones/resumen.tex. El entorno descarta el
+% primer token de su cuerpo: el \relax es ese sacrificio (sin él se pierde el
+% \input). El "Overfull \hbox" que reporta \maketitle es propio de cas-dc.
+\begin{abstract}
+\relax\input{secciones/resumen}
+\end{abstract}
+
+\begin{keywords}
+accidentes de tránsito \sep geoestadística \sep
+modelo jerárquico bayesiano \sep CAR \sep Monterrey
+\end{keywords}
+
+\maketitle
+
+\input{secciones/01_introduccion}
+\input{secciones/02_datos}
+\input{secciones/03_metodologia}
+\input{secciones/04_resultados}
+\input{secciones/05_discusion}
+\input{secciones/06_conclusiones}
+
+\appendix
+\input{secciones/apendice_a_supuestos}
+\input{secciones/apendice_b_reproducibilidad}
+
+\bibliographystyle{cas-model2-names}
+\bibliography{referencias}
+
+\end{document}
