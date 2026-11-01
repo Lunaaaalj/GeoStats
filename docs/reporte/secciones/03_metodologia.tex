@@ -102,9 +102,9 @@ propiedad de la rejilla o del fenómeno.
 
 \paragraph{Autocorrelación global.} El $I$ de Moran \cite{moran1950notes},
 \begin{equation}
-I = \frac{N}{S_0}\,
-  \frac{\sum_i \sum_k w_{ik}\, z_i z_k}{\sum_i z_i^2},
-  \qquad z_i = y_i - \bar{y},
+	I = \frac{N}{S_0}\,
+	\frac{\sum_i \sum_k w_{ik}\, z_i z_k}{\sum_i z_i^2},
+	\qquad z_i = y_i - \bar{y},
 \end{equation}
 con $S_0 = \sum_{i,k} w_{ik}$, es la pendiente de la regresión del rezago
 espacial sobre el valor de la celda. Bajo independencia su esperanza es
@@ -112,15 +112,15 @@ $-1/(N-1) \approx 0$. La inferencia es por permutación condicional: se
 barajan los valores entre celdas 999 veces y se ubica el $I$ observado en
 esa distribución de referencia, lo que evita suponer normalidad. Con 999
 permutaciones, el menor $p$ alcanzable es $0{,}001$. En el texto, ``$p \le
-0{,}001$'' significa que el observado quedó fuera de todas las simulaciones,
+	0{,}001$'' significa que el observado quedó fuera de todas las simulaciones,
 no una probabilidad de un milésimo.
 
 \paragraph{Estructura local.} Dos estadísticos con lógica distinta. El LISA
 \cite{anselin1995lisa} descompone el $I$ global en una contribución por
 celda,
 \begin{equation}
-I_i = \frac{z_i}{m_2} \sum_k w_{ik}\, z_k,
-\qquad m_2 = \frac{1}{N}\sum_i z_i^2,
+	I_i = \frac{z_i}{m_2} \sum_k w_{ik}\, z_k,
+	\qquad m_2 = \frac{1}{N}\sum_i z_i^2,
 \end{equation}
 y clasifica cada celda significativa según su valor y el de sus vecinas:
 Alto--Alto (núcleo de un agrupamiento), Bajo--Bajo, y los dos atípicos
@@ -173,29 +173,29 @@ eventos y sobreestimara todo.
 \paragraph{Covariables.} Siguiendo el criterio de §\ref{sec:datos-variables},
 solo entran variables estructurales, que existen haya o no accidente:
 \begin{itemize}
-\item \textbf{Mes} como factor, para la estacionalidad.
-\item \textbf{Periodo} en tres niveles: prepandemia (hasta febrero de 2020),
-  pandemia (marzo de 2020 a diciembre de 2021) y 2022 en adelante. El
-  tercer corte corresponde al cambio en el procedimiento de
-  georreferenciación del INEGI que sugiere el análisis espacial. Sin él, el
-  modelo leería ese salto como tendencia.
-\item \textbf{Historia de la celda}, $\log h_i$, con $h_i$ el promedio
-  mensual de la celda calculado \emph{solo} con el periodo de
-  entrenamiento (más medio accidente en todo el periodo, para que el
-  logaritmo exista en celdas sin eventos de entrenamiento). Es un efecto de
-  celda resumido en un solo parámetro en lugar de 2\,241. Su coeficiente se
-  interpreta así: $\beta_h = 1$ significa que la historia entra como
-  \emph{offset}, y $\beta_h < 1$ significaría encogimiento hacia la media.
+	\item \textbf{Mes} como factor, para la estacionalidad.
+	\item \textbf{Periodo} en tres niveles: prepandemia (hasta febrero de 2020),
+	      pandemia (marzo de 2020 a diciembre de 2021) y 2022 en adelante. El
+	      tercer corte corresponde al cambio en el procedimiento de
+	      georreferenciación del INEGI que sugiere el análisis espacial. Sin él, el
+	      modelo leería ese salto como tendencia.
+	\item \textbf{Historia de la celda}, $\log h_i$, con $h_i$ el promedio
+	      mensual de la celda calculado \emph{solo} con el periodo de
+	      entrenamiento (más medio accidente en todo el periodo, para que el
+	      logaritmo exista en celdas sin eventos de entrenamiento). Es un efecto de
+	      celda resumido en un solo parámetro en lugar de 2\,241. Su coeficiente se
+	      interpreta así: $\beta_h = 1$ significa que la historia entra como
+	      \emph{offset}, y $\beta_h < 1$ significaría encogimiento hacia la media.
 \end{itemize}
 
 \paragraph{Poisson.} El primer modelo es un GLM de Poisson con enlace
 logarítmico, estimado por máxima verosimilitud:
 \begin{equation}
-\begin{aligned}
-Y_{it} &\sim \Pois(\mu_{it}),\\
-\log \mu_{it} &= \beta_0 + \gamma_{\mathrm{mes}(t)}
-  + \delta_{\mathrm{per}(t)} + \beta_h \log h_i .
-\end{aligned}
+	\begin{aligned}
+		Y_{it}        & \sim \Pois(\mu_{it}),                \\
+		\log \mu_{it} & = \beta_0 + \gamma_{\mathrm{mes}(t)}
+		+ \delta_{\mathrm{per}(t)} + \beta_h \log h_i .
+	\end{aligned}
 \end{equation}
 Se ajusta sabiendo que el supuesto de equidispersión,
 $\Var(Y) = \mu$, va a fallar. Sus coeficientes siguen siendo consistentes
@@ -205,8 +205,8 @@ formas: con el cociente $\chi^2_{\text{Pearson}}/\text{gl}$, y con la prueba
 de Cameron--Trivedi \cite{cameron1990regression}, que estima por mínimos
 cuadrados la regresión auxiliar
 \begin{equation}
-\frac{(y_{it} - \hat\mu_{it})^2 - y_{it}}{\hat\mu_{it}}
-  = \alpha\, \hat\mu_{it} + \varepsilon_{it}.
+	\frac{(y_{it} - \hat\mu_{it})^2 - y_{it}}{\hat\mu_{it}}
+	= \alpha\, \hat\mu_{it} + \varepsilon_{it}.
 \end{equation}
 Bajo Poisson $\alpha = 0$. Un $\alpha > 0$ significativo es la firma de la
 varianza cuadrática de la Binomial Negativa. Hay que distinguir la
@@ -218,8 +218,8 @@ covariables, que es la que decide la verosimilitud.
 tasa de cada celda-mes es una variable Gamma alrededor de $\mu_{it}$. Ahí
 viven los factores no observados: obras, un semáforo descompuesto, la lluvia.
 \begin{equation}
-Y_{it} \sim \NB(\mu_{it}, \theta),
-\quad \Var(Y_{it}) = \mu_{it} + \frac{\mu_{it}^2}{\theta}.
+	Y_{it} \sim \NB(\mu_{it}, \theta),
+	\quad \Var(Y_{it}) = \mu_{it} + \frac{\mu_{it}^2}{\theta}.
 \end{equation}
 Es la especificación habitual para la frecuencia de accidentes
 \cite{lord2010statistical}. Se compara con NB1, que tiene la varianza lineal
@@ -263,27 +263,27 @@ logaritmo del rezago espacial de $h$, es decir, el promedio de la historia
 de las vecinas. M4 y M5 prueban la ventana de la historia. Como $h_i$ se
 construye con la propia respuesta, dos ventanas distintas dan
 verosimilitudes que no miden lo mismo. \textbf{El AIC solo se usa entre
-modelos con la misma historia}; la elección de ventana se decide fuera de
+	modelos con la misma historia}; la elección de ventana se decide fuera de
 muestra.
 
 \begin{table}[t]
-\centering\footnotesize
-\caption{Escalera de modelos a escala celda $\times$ mes. Todos los GLM
-incluyen mes y periodo; difieren en la verosimilitud y en la historia.}
-\label{tab:escalera}
-\begin{tabular}{@{}ll@{}}
-\toprule
-Modelo & Especificación \\
-\midrule
-M0  & Media mensual 2019--2023 de la celda \\
-M0r & Media mensual 2022--2023 de la celda \\
-M1  & Poisson, $\log h$ \\
-M2  & NB2, $\log h$ \\
-M3  & NB2, $\log h$ + rezago espacial de $h$ \\
-M4  & NB2, $\log h^{\text{rec}}$ (2022--2023) \\
-M5  & NB2, $\log h$ + $\log h^{\text{rec}}$ \\
-\bottomrule
-\end{tabular}
+	\centering\footnotesize
+	\caption{Escalera de modelos a escala celda $\times$ mes. Todos los GLM
+		incluyen mes y periodo; difieren en la verosimilitud y en la historia.}
+	\label{tab:escalera}
+	\begin{tabular}{@{}ll@{}}
+		\toprule
+		Modelo & Especificación                          \\
+		\midrule
+		M0     & Media mensual 2019--2023 de la celda    \\
+		M0r    & Media mensual 2022--2023 de la celda    \\
+		M1     & Poisson, $\log h$                       \\
+		M2     & NB2, $\log h$                           \\
+		M3     & NB2, $\log h$ + rezago espacial de $h$  \\
+		M4     & NB2, $\log h^{\text{rec}}$ (2022--2023) \\
+		M5     & NB2, $\log h$ + $\log h^{\text{rec}}$   \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 % ---------------------------------------------------------------------------
@@ -311,23 +311,23 @@ modelo se puede iterar.
 \paragraph{Especificación.} Para la celda $i$, en el municipio $j(i)$, en el
 año $a$:
 \begin{equation}\label{eq:jerarquico}
-\begin{aligned}
-Y_{ia} &\sim \NB(\mu_{ia},\ \theta),\\
-\log \mu_{ia} &= \beta_0 + m_{j(i),a} + u_i .
-\end{aligned}
+	\begin{aligned}
+		Y_{ia}        & \sim \NB(\mu_{ia},\ \theta),   \\
+		\log \mu_{ia} & = \beta_0 + m_{j(i),a} + u_i .
+	\end{aligned}
 \end{equation}
 $\beta_0$ es el nivel metropolitano. El efecto municipal $m_{j,a}$ absorbe
 \emph{cuánto se reporta} en cada municipio y año. El efecto de celda $u_i$,
 constante en el tiempo, absorbe \emph{dónde, dentro del municipio, se
-concentra} el riesgo.
+	concentra} el riesgo.
 
 \paragraph{Nivel municipal.} Caminata aleatoria con innovaciones de colas
 pesadas:
 \begin{equation}
-\begin{aligned}
-m_{j,2019} &= \sigma_m z_j, & z &\sim \mathrm{NormalSumaCero}(1),\\
-m_{j,a} &= m_{j,a-1} + \sigma_{rw}\,\varepsilon_{j,a}, & \varepsilon_{j,a} &\sim t_3 .
-\end{aligned}
+	\begin{aligned}
+		m_{j,2019} & = \sigma_m z_j,                               & z                 & \sim \mathrm{NormalSumaCero}(1), \\
+		m_{j,a}    & = m_{j,a-1} + \sigma_{rw}\,\varepsilon_{j,a}, & \varepsilon_{j,a} & \sim t_3 .
+	\end{aligned}
 \end{equation}
 La restricción de suma cero en el nivel inicial identifica $\beta_0$: sin
 ella, subir todos los municipios y bajar $\beta_0$ da la misma
@@ -341,8 +341,8 @@ admite ambos.
 \paragraph{Nivel de celda: CAR propio.} El perfil de las celdas sigue un
 modelo condicional autorregresivo propio \cite{besag1974spatial}:
 \begin{equation}
-\mathbf{u} \sim \mathcal{N}\!\left(\mathbf{0},\
-  \sigma_u^2\,(D - \alpha A)^{-1}\right),
+	\mathbf{u} \sim \mathcal{N}\!\left(\mathbf{0},\
+	\sigma_u^2\,(D - \alpha A)^{-1}\right),
 \end{equation}
 con $A$ la adyacencia binaria de los hexágonos, $D$ la matriz diagonal con
 el número de vecinos de cada celda y $\alpha \in (0,1)$ la dependencia
@@ -374,22 +374,22 @@ informativos: fijan la escala del problema sin decidir el resultado. Su
 influencia se verifica reajustando con priors alternativos.
 
 \begin{table}[t]
-\centering\footnotesize
-\caption{Priors del modelo jerárquico y los alternativos del análisis de
-sensibilidad.}
-\label{tab:priors}
-\begin{tabular}{@{}lll@{}}
-\toprule
-Parámetro & Prior & Alternativo \\
-\midrule
-$\beta_0$     & $\mathcal{N}(\log(\bar y + 1),\ 2)$ & --- \\
-$\sigma_m$    & Semi-normal$(1{,}5)$ & --- \\
-$\sigma_{rw}$ & Semi-normal$(0{,}5)$ & --- \\
-$\alpha$      & Beta$(2, 1)$         & Beta$(1, 1)$ \\
-$\sigma_u$    & Semi-normal$(1{,}5)$ & Semi-normal$(3)$ \\
-$\theta$      & Gamma$(2;\ 0{,}1)$, media 20 & Gamma$(2;\ 0{,}4)$, media 5 \\
-\bottomrule
-\end{tabular}
+	\centering\footnotesize
+	\caption{Priors del modelo jerárquico y los alternativos del análisis de
+		sensibilidad.}
+	\label{tab:priors}
+	\begin{tabular}{@{}lll@{}}
+		\toprule
+		Parámetro     & Prior                               & Alternativo                 \\
+		\midrule
+		$\beta_0$     & $\mathcal{N}(\log(\bar y + 1),\ 2)$ & ---                         \\
+		$\sigma_m$    & Semi-normal$(1{,}5)$                & ---                         \\
+		$\sigma_{rw}$ & Semi-normal$(0{,}5)$                & ---                         \\
+		$\alpha$      & Beta$(2, 1)$                        & Beta$(1, 1)$                \\
+		$\sigma_u$    & Semi-normal$(1{,}5)$                & Semi-normal$(3)$            \\
+		$\theta$      & Gamma$(2;\ 0{,}1)$, media 20        & Gamma$(2;\ 0{,}4)$, media 5 \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 El prior Beta$(2,1)$ de $\alpha$ se inclina a dependencia positiva porque el
@@ -442,7 +442,7 @@ dispersión NB. No se añade una innovación $t_3$ para 2024, aunque es lo que
 el modelo sugiere. Para cualquier $t$ de Student, $\E[e^{T}] = \infty$, así
 que con esa innovación ni la media predictiva ni el CRPS existirían. El
 pronóstico es, por tanto, \textbf{condicional a que ningún municipio cambie
-de régimen de reporte en 2024}, y sus intervalos son un piso de la
+	de régimen de reporte en 2024}, y sus intervalos son un piso de la
 incertidumbre real.
 
 \paragraph{Baselines.} Los modelos se comparan contra predictores sin
@@ -455,37 +455,37 @@ escalas (celda-mes y celda-año) no son comparables entre sí.
 
 \paragraph{Métricas.} Cada una contesta una pregunta distinta.
 \begin{itemize}
-\item \textbf{Devianza de Poisson y MAE}: ¿acierta la predicción puntual? El
-  MAE se calcula sobre la media de los GLM y sobre la mediana del ensamble
-  en el jerárquico.
-\item \textbf{CRPS} \cite{gneiting2007strictly}: ¿acierta la distribución
-  predictiva entera? Para una predictiva con función de distribución $F$ y
-  un conteo observado $y$,
-  \begin{equation}
-  \mathrm{CRPS}(F, y) = \sum_{k \ge 0} \big(F(k) - \mathbb{1}\{y \le k\}\big)^2 ,
-  \end{equation}
-  que en los GLM se evalúa en forma cerrada truncando la suma. Para el
-  ensamble del modelo jerárquico, con simulaciones $X, X'$ independientes de la
-  predictiva, se usa la forma equivalente
-  $\E|X - y| - \tfrac{1}{2}\E|X - X'|$. Es una regla de puntuación propia:
-  penaliza tanto errar el centro como errar la incertidumbre, y es la
-  métrica principal para elegir entre modelos.
-\item \textbf{Cobertura del intervalo del 90\,\%}: ¿qué fracción de los
-  conteos de 2024 cae entre los cuantiles 5 y 95 de la predictiva? Un
-  intervalo que no cubre lo que dice cubrir no sirve para decidir. Con
-  conteos discretos y muchos ceros, la cobertura tiende a quedar por
-  encima del nominal.
-\item \textbf{PAI} (índice de precisión predictiva)
-  \cite{chainey2008utility}: ¿sirve el modelo para elegir dónde intervenir?
-  Se seleccionan las celdas con mayor predicción hasta cubrir una fracción
-  $a$ del territorio y
-  \begin{equation}
-  \mathrm{PAI}_a = \frac{n_{\text{sel}} / n}{a},
-  \end{equation}
-  con $n_{\text{sel}}$ los accidentes observados de 2024 en las celdas
-  seleccionadas y $n$ el total. $\mathrm{PAI} = 1$ equivale al azar. Se reporta
-  con $a$ igual al 5 y al 10\,\%. Como todas las celdas tienen la misma área,
-  la fracción de territorio es la fracción de celdas.
+	\item \textbf{Devianza de Poisson y MAE}: ¿acierta la predicción puntual? El
+	      MAE se calcula sobre la media de los GLM y sobre la mediana del ensamble
+	      en el jerárquico.
+	\item \textbf{CRPS} \cite{gneiting2007strictly}: ¿acierta la distribución
+	      predictiva entera? Para una predictiva con función de distribución $F$ y
+	      un conteo observado $y$,
+	      \begin{equation}
+		      \mathrm{CRPS}(F, y) = \sum_{k \ge 0} \big(F(k) - \mathbb{1}\{y \le k\}\big)^2 ,
+	      \end{equation}
+	      que en los GLM se evalúa en forma cerrada truncando la suma. Para el
+	      ensamble del jerárquico, con simulaciones $X, X'$ independientes de la
+	      predictiva, se usa la forma equivalente
+	      $\E|X - y| - \tfrac{1}{2}\E|X - X'|$. Es una regla de puntuación propia:
+	      penaliza tanto errar el centro como errar la incertidumbre, y es la
+	      métrica principal para elegir entre modelos.
+	\item \textbf{Cobertura del intervalo del 90\,\%}: ¿qué fracción de los
+	      conteos de 2024 cae entre los cuantiles 5 y 95 de la predictiva? Un
+	      intervalo que no cubre lo que dice cubrir no sirve para decidir. Con
+	      conteos discretos y muchos ceros, la cobertura tiende a quedar por
+	      encima del nominal.
+	\item \textbf{PAI} (índice de precisión predictiva)
+	      \cite{chainey2008utility}: ¿sirve el modelo para elegir dónde intervenir?
+	      Se seleccionan las celdas con mayor predicción hasta cubrir una fracción
+	      $a$ del territorio y
+	      \begin{equation}
+		      \mathrm{PAI}_a = \frac{n_{\text{sel}} / n}{a},
+	      \end{equation}
+	      con $n_{\text{sel}}$ los accidentes observados de 2024 en las celdas
+	      seleccionadas y $n$ el total. $\mathrm{PAI} = 1$ es el azar. Se reporta
+	      con $a$ igual al 5 y al 10\,\%. Como todas las celdas tienen la misma área,
+	      la fracción de territorio es la fracción de celdas.
 \end{itemize}
 
 El PAI depende solo del orden de las celdas, no de los niveles predichos.
