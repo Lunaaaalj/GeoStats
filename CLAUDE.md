@@ -10,6 +10,10 @@ una aplicación. Todo el repo (código, comentarios, docs, commits) está en
 **español**; mantener ese idioma. Los commits siguen Conventional Commits en
 español (`feat(zonas): …`, `docs(datos): …`).
 
+Todo texto (docs, prosa de notebooks, reporte, docstrings, commits) sigue
+[`STYLE.md`](STYLE.md): redacción técnica, impersonal y densa. Leerlo antes
+de escribir o editar documentación.
+
 ## Comandos
 
 ```bash
