@@ -9,8 +9,7 @@ conteo frecuentistas (§\ref{sec:met-conteo}) deciden la verosimilitud y dónde
 vive el error; el modelo jerárquico (§\ref{sec:met-jerarquico}) convierte ese
 diagnóstico en estructura. Todos comparten la misma partición del territorio
 (§\ref{sec:met-unidad}) y el mismo protocolo de validación
-(§\ref{sec:met-validacion}). Cada peldaño corresponde a un notebook del
-repositorio: \texttt{analisis\_espacial}, \texttt{modelo\_conteo} y
+(§\ref{sec:met-validacion}). Cada peldaño corresponde a un \emph{notebook} del repositorio: \texttt{analisis\_espacial}, \texttt{modelo\_conteo} y
 \texttt{modelo\_jerarquico}.
 
 % ---------------------------------------------------------------------------
@@ -30,10 +29,10 @@ límites se trazan con frecuencia sobre vialidades principales, que es
 justamente donde se concentran los accidentes: un choque sobre una avenida
 cae en la frontera entre dos polígonos y su asignación es arbitraria. Es el
 problema de la unidad de área modificable (MAUP)
-\cite{openshaw1984maup} en su forma más dañina para este fenómeno.
+\cite{openshaw1984maup} en una forma que afecta directamente la asignación de los accidentes viales.
 Segunda, el área de los AGEB es heterogénea, y comparar conteos exigiría un
 denominador de superficie o de exposición. Tercera, en polígonos irregulares
-el número de vecinos varía mucho, y la matriz de pesos espaciales hereda esa
+el número de vecinos varía considerablemente, y la matriz de pesos espaciales hereda esa
 irregularidad. Tampoco se trabajó directamente sobre los puntos: como se
 documentó en §\ref{sec:datos-calidad}, ATUS geocodifica la intersección
 reportada y no el sitio físico del choque, así que el dato es un conteo sobre
@@ -42,7 +41,7 @@ nodos de la red y no un patrón de puntos continuo en el plano.
 \paragraph{La rejilla.} Los accidentes se agregan a una rejilla regular de
 hexágonos con orientación de vértice lateral (\emph{flat-top}) y lado
 $\ell = 500$\,m, con un área por celda de
-$\tfrac{3\sqrt{3}}{2}\ell^2 \approx 0{,}65$\,km$^2$, comparable a un AGEB
+$\tfrac{3\sqrt{3}}{2}\ell^2 \approx 0.65$\,km$^2$, comparable a un AGEB
 urbano. El hexágono tiene tres propiedades que el AGEB no tiene: área
 constante (el conteo \emph{es} la densidad), ausencia de sesgo de frontera
 (la rejilla no sabe dónde están las calles) y una vecindad sin ambigüedad
@@ -52,11 +51,11 @@ contraparte es que el hexágono no trae covariables censales. Esas tendrán
 que interpolarse desde el marco geoestadístico cuando se incorporen.
 
 Cada accidente se asigna a la celda que lo contiene. Se conservan solo las
-celdas con al menos un accidente en los seis años: en casi 380 mil registros, una celda vacía no tiene red vial donde pueda ocurrir uno (es un cerro, una presa o un baldío), y tratarla como riesgo cero inflaría artificialmente los
+celdas con al menos un accidente en los seis años: en 379,294 registros, una celda vacía no tiene red vial donde pueda ocurrir uno (es un cerro, una presa o un baldío), y tratarla como riesgo cero inflaría artificialmente los
 agrupamientos de valores bajos. Se retiran además las celdas \emph{isla},
 cuyas seis vecinas no tienen ningún accidente. No tienen con quién
 correlacionarse, y cualquier estadístico local sobre ellas degenera. El
-resultado son \textbf{2\,241 celdas}. A cada celda se le asigna el municipio
+resultado son \textbf{2,241 celdas}. A cada celda se le asigna el municipio
 modal entre sus accidentes; esa es la pertenencia que usa el nivel municipal
 del modelo jerárquico.
 
@@ -70,13 +69,13 @@ jerárquico usa la adyacencia binaria $A$, sin estandarizar.
 viven en una función del paquete (\texttt{geostats.espacial.celdas}) y no en
 los notebooks. Así el análisis exploratorio y los modelos usan exactamente la
 misma partición, y cada notebook verifica con una aserción que obtiene las
-mismas 2\,241 celdas sin islas.
+mismas 2,241 celdas sin islas.
 
 \paragraph{Elección de escala.} Los 500\,m son un compromiso: es suficiente
 resolución para distinguir corredores viales y suficiente agregación para
 que la celda típica acumule decenas de eventos y no uno. Como todo
 estadístico sobre datos agregados depende de la agregación, la concentración
-y la autocorrelación global se recalculan con lados de 250 y 1\,000\,m. El
+y la autocorrelación global se recalculan con lados de 250 y 1,000\,m. El
 criterio es que la conclusión cualitativa no cambie con la escala, aunque
 la magnitud lo haga.
 
@@ -132,7 +131,7 @@ positivo grande es un punto caliente y uno negativo, un punto frío. Ambos usan
 inferencia por permutación condicional, con 999 permutaciones y semilla fija.
 
 \paragraph{Comparaciones múltiples.} Un estadístico local es una prueba por
-celda. Con 2\,241 pruebas al 5\,\%, el azar solo produce del orden de 112
+celda. Con 2,241 pruebas al 5\,\%, el azar solo produce del orden de 112
 rechazos. Todo mapa local se corrige por tasa de falsos descubrimientos con
 el procedimiento de Benjamini--Hochberg \cite{benjamini1995fdr} al 5\,\%, y
 se reporta cuántas celdas son significativas antes y después de la
@@ -158,7 +157,7 @@ vial, y contrastar contra un nulo plano sobreestimaría el agrupamiento. Las
 versiones restringidas a red \cite{okabe2012network} exigen la geometría de
 las calles, que todavía no forma parte del repositorio. Se decidió no
 correrlas: contestarían una pregunta que los estadísticos de rejilla ya
-responden (si hay agrupamiento y a qué escalas) a un costo alto.
+responden (si hay agrupamiento y a qué escalas) a un costo computacional y de datos que se estima en horas de cómputo y en la geometría vial faltante.
 
 % ---------------------------------------------------------------------------
 \subsection{Modelos de conteo}\label{sec:met-conteo}
@@ -296,8 +295,8 @@ municipio y cambia de un año a otro. Y la historia de la celda deja de ser
 una covariable precalculada y pasa a ser un efecto aleatorio estimado con
 todos los años.
 
-\paragraph{Panel anual.} El modelo se ajusta sobre celda $\times$ año (2\,241
-$\times$ 5 $=$ 11\,205 observaciones de entrenamiento), no celda $\times$ mes.
+\paragraph{Panel anual.} El modelo se ajusta sobre celda $\times$ año (2,241
+$\times$ 5 $=$ 11,205 observaciones de entrenamiento), no celda $\times$ mes.
 Hay dos razones. La razón estadística es que el efecto de mes es común a todas las
 celdas y aportó poco sobre un promedio bien elegido, mientras que la
 estructura de interés (el régimen municipal y el perfil de cada celda) vive
@@ -305,7 +304,7 @@ en el nivel anual. Es el supuesto de separabilidad espacio--tiempo: el patrón
 espacial no cambia de forma dentro del año. Si hiciera falta el detalle
 mensual, se repone con un perfil estacional multiplicativo fijo. La
 computacional es que el muestreo sobre 161 mil observaciones con
-$\sim$2\,300 parámetros tarda horas; sobre 11 mil, minutos. Eso decide si el
+$\sim$2,300 parámetros tarda horas; sobre 11 mil, minutos. Eso decide si el
 modelo se puede iterar.
 
 \paragraph{Especificación.} Para la celda $i$, en el municipio $j(i)$, en el
@@ -399,14 +398,14 @@ corresponde a un cambio anual típico de menos del 60\,\%.
 
 \paragraph{Ajuste.} El modelo se implementó en PyMC
 \cite{abrilpla2023pymc} y se muestreó con NUTS \cite{hoffman2014nuts}
-mediante \texttt{nutpie}: cuatro cadenas, 1\,000 iteraciones de
-calentamiento y 2\,000 muestras por cadena, semilla 42. El reajuste de
+mediante \texttt{nutpie}: cuatro cadenas, 1,000 iteraciones de
+calentamiento y 2,000 muestras por cadena, semilla 42. El reajuste de
 sensibilidad usa 500 muestras por cadena.
 
-\paragraph{Diagnósticos.} Se exigen tres criterios: $\hat{R} < 1{,}01$ con
+\paragraph{Diagnósticos.} Se exigen tres criterios: $\hat{R} < 1.01$ con
 la versión normalizada por rangos \cite{vehtari2021rank}, un tamaño efectivo
 de muestra suficiente y cero transiciones divergentes. Se diagnostican las
-cantidades \emph{identificadas}: los 11\,205 predictores lineales
+cantidades \emph{identificadas}: los 11,205 predictores lineales
 $\log \mu_{ia}$ y los hiperparámetros. $\beta_0$ por separado no lo está
 del todo, porque compite con la media de $\mathbf{u}$, que el CAR propio
 solo ata débilmente a cero. Por eso ninguna conclusión se apoya en $\beta_0$
@@ -426,8 +425,8 @@ especificación base con el mismo protocolo de validación.
 \paragraph{Protocolo.} Todos los modelos se ajustan con 2019--2023 y se
 evalúan en 2024, que ninguno vio. La regla se fijó desde el principio:
 \emph{ningún modelo se compara en los datos con que se ajustó}. La razón es
-más fuerte en el jerárquico que en los GLM: con 2\,241 efectos de celda
-ajusta el pasado casi a la perfección, y eso no es evidencia de nada. Todas
+más fuerte en el jerárquico que en los GLM: con 2,241 efectos de celda
+reproduce el periodo de entrenamiento con un error mínimo, que no valida la predicción. Todas
 las cantidades derivadas de la respuesta, como $h_i$, $h_i^{\text{rec}}$ y
 los promedios de los \emph{baselines}, se calculan solo con entrenamiento.
 La partición es temporal y no aleatoria porque la pregunta es predictiva:
@@ -489,6 +488,5 @@ escalas (celda-mes y celda-año) no son comparables entre sí.
 \end{itemize}
 
 El PAI depende solo del orden de las celdas, no de los niveles predichos.
-Un modelo puede mejorar mucho el CRPS sin mover el PAI si no cambia el
-ranking. Por eso se reportan ambos y no se resume el desempeño en un solo
+Un modelo puede reducir el CRPS en una fracción apreciable (indicar el porcentaje) sin mover el PAI si no cambia el orden de las celdas. Por eso se reportan ambos y no se resume el desempeño en un solo
 número.
