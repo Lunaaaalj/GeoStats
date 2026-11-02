@@ -105,6 +105,7 @@ notebooks/*.quarto_ipynb
 .idea/
 *.swp
 *~
+.nvim/
 
 # ---------------------------------------------------------------
 # Sistema operativo
