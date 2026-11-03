@@ -146,4 +146,4 @@ docs/reporte/*.abs
 
 
 #editor
-./nvim
+.nvim/
