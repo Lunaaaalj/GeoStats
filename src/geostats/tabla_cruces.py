@@ -217,6 +217,10 @@ NOTAS = [
     ("Intersección (dos calles)", "Sí si el nombre del cruce tiene dos calles distintas; No si "
                                   "solo nombra una. Todos los puntos de la tabla están marcados "
                                   "como intersección por el agente (URBANA = 1)."),
+    ("Cruces con «No»", "Un «No» con muchos hechos casi siempre es un punto por defecto, no un "
+                        "cruce: el agente ubicó la calle sin el cruce y todos los partes caen "
+                        "en la misma coordenada. Ej.: «Sendero Norte», 227 hechos de 2019 a "
+                        "2024 en una sola coordenada (98 %). Cuéntelos con cautela."),
     ("Ranking", "El ranking va junto a los hechos de tránsito de su sección; 1 = el cruce con más. Empates comparten el lugar más alto (método «min»), "
                  "así que muchos cruces con 0 defunciones empatan en el mismo lugar."),
     ("Coordenadas", "Mediana de LATITUD y LONGITUD de los hechos del cruce (WGS84)."),
