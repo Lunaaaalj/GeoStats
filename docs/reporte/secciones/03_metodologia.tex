@@ -1,16 +1,492 @@
 \section{Metodología}\label{sec:metodologia}
 
+La metodología es una escalera: cada peldaño se diseñó para contestar una
+pregunta que el anterior dejó abierta, y la especificación del modelo final
+salió de los diagnósticos de los modelos más simples, no de una elección
+previa. El análisis exploratorio (§\ref{sec:met-exploratorio}) decide si hay
+estructura espacial que modelar y si persiste en el tiempo; los modelos de
+conteo frecuentistas (§\ref{sec:met-conteo}) deciden la verosimilitud y dónde
+vive el error; el modelo jerárquico (§\ref{sec:met-jerarquico}) convierte ese
+diagnóstico en estructura. Todos comparten la misma partición del territorio
+(§\ref{sec:met-unidad}) y el mismo protocolo de validación
+(§\ref{sec:met-validacion}). Cada peldaño corresponde a un \emph{notebook} del repositorio: \texttt{analisis\_espacial}, \texttt{modelo\_conteo} y
+\texttt{modelo\_jerarquico}.
+
+% ---------------------------------------------------------------------------
 \subsection{Unidad espacial}\label{sec:met-unidad}
-% Rejilla hexagonal en UTM 14N; por qué hexágonos y qué tamaño (MAUP).
+% ---------------------------------------------------------------------------
 
+\paragraph{Proyección.} Las coordenadas del INEGI vienen en WGS\,84, en
+grados. A la latitud de Monterrey un grado de longitud mide $\sim$100\,km y
+uno de latitud $\sim$111\,km, de modo que una distancia en grados no es una
+distancia. Antes de cualquier cálculo de áreas, vecindades o rejillas los
+puntos se proyectan a UTM zona 14 Norte (EPSG:32614), cuya franja
+($-102^\circ$ a $-96^\circ$) contiene toda la ZMM.
+
+\paragraph{Por qué no el AGEB.} La unidad propuesta inicialmente fue el AGEB
+urbano. Se descartó como unidad de análisis por tres razones. Primera, sus
+límites se trazan con frecuencia sobre vialidades principales, que es
+justamente donde se concentran los accidentes: un choque sobre una avenida
+cae en la frontera entre dos polígonos y su asignación es arbitraria. Es el
+problema de la unidad de área modificable (MAUP)
+\cite{openshaw1984maup} en una forma que afecta directamente la asignación de los accidentes viales.
+Segunda, el área de los AGEB es heterogénea, y comparar conteos exigiría un
+denominador de superficie o de exposición. Tercera, en polígonos irregulares
+el número de vecinos varía considerablemente, y la matriz de pesos espaciales hereda esa
+irregularidad. Tampoco se trabajó directamente sobre los puntos: como se
+documentó en §\ref{sec:datos-calidad}, ATUS geocodifica la intersección
+reportada y no el sitio físico del choque, así que el dato es un conteo sobre
+nodos de la red y no un patrón de puntos continuo en el plano.
+
+\paragraph{La rejilla.} Los accidentes se agregan a una rejilla regular de
+hexágonos con orientación de vértice lateral (\emph{flat-top}) y lado
+$\ell = 500$\,m, con un área por celda de
+$\tfrac{3\sqrt{3}}{2}\ell^2 \approx 0.65$\,km$^2$, comparable a un AGEB
+urbano. El hexágono tiene tres propiedades que el AGEB no tiene: área
+constante (el conteo \emph{es} la densidad), ausencia de sesgo de frontera
+(la rejilla no sabe dónde están las calles) y una vecindad sin ambigüedad
+(seis vecinos que comparten arista, sin la distinción entre vecindad por
+arista y por vértice de la malla cuadrada) \cite{birch2007grids}. La
+contraparte es que el hexágono no trae covariables censales. Esas tendrán
+que interpolarse desde el marco geoestadístico cuando se incorporen.
+
+Cada accidente se asigna a la celda que lo contiene. Se conservan solo las
+celdas con al menos un accidente en los seis años: en 379,294 registros, una celda vacía no tiene red vial donde pueda ocurrir uno (es un cerro, una presa o un baldío), y tratarla como riesgo cero inflaría artificialmente los
+agrupamientos de valores bajos. Se retiran además las celdas \emph{isla},
+cuyas seis vecinas no tienen ningún accidente. No tienen con quién
+correlacionarse, y cualquier estadístico local sobre ellas degenera. El
+resultado son \textbf{2,241 celdas}. A cada celda se le asigna el municipio
+modal entre sus accidentes; esa es la pertenencia que usa el nivel municipal
+del modelo jerárquico.
+
+\paragraph{Vecindad.} Dos celdas son vecinas si comparten arista. Para los
+estadísticos exploratorios la matriz de pesos $W$ se estandariza por fila
+($w_{ik} = 1/|\mathcal{N}_i|$ si $k \in \mathcal{N}_i$), de modo que el
+rezago espacial de una celda es el promedio de sus vecinas. El modelo
+jerárquico usa la adyacencia binaria $A$, sin estandarizar.
+
+\paragraph{Una sola partición.} La rejilla, el filtrado y la matriz de pesos
+viven en una función del paquete (\texttt{geostats.espacial.celdas}) y no en
+los notebooks. Así el análisis exploratorio y los modelos usan exactamente la
+misma partición, y cada notebook verifica con una aserción que obtiene las
+mismas 2,241 celdas sin islas.
+
+\paragraph{Elección de escala.} Los 500\,m son un compromiso: es suficiente
+resolución para distinguir corredores viales y suficiente agregación para
+que la celda típica acumule decenas de eventos y no uno. Como todo
+estadístico sobre datos agregados depende de la agregación, la concentración
+y la autocorrelación global se recalculan con lados de 250 y 1,000\,m. El
+criterio es que la conclusión cualitativa no cambie con la escala, aunque
+la magnitud lo haga.
+
+% ---------------------------------------------------------------------------
 \subsection{Análisis espacial exploratorio}\label{sec:met-exploratorio}
-% Concentración (Lorenz), I de Moran, LISA y G* de Getis--Ord, persistencia.
+% ---------------------------------------------------------------------------
 
+Sea $n_i$ el total de accidentes 2019--2024 en la celda $i$. La distribución
+de $n_i$ tiene una cola pesada (dos órdenes de magnitud entre la mediana y
+el máximo), y en un estadístico basado en productos cruzados unas cuantas
+celdas decidirían el resultado. Por eso la autocorrelación se calcula sobre
+$y_i = \log(1 + n_i)$, que comprime la cola sin reordenar las celdas. El $I$
+de Moran global se repite sobre el conteo crudo para comprobar que la
+conclusión no depende de la transformación.
+
+\paragraph{Concentración.} La curva de Lorenz ordena las celdas de menor a
+mayor conteo y grafica la fracción acumulada de accidentes contra la de
+celdas. El coeficiente de Gini resume la distancia a la diagonal. Como
+medida operativa se reporta además qué fracción de los accidentes concentra
+el 1, 5, 10 y 20\,\% de las celdas con más eventos. Las mismas medidas se
+calculan a escala de intersección para ver si la concentración es una
+propiedad de la rejilla o del fenómeno.
+
+\paragraph{Autocorrelación global.} El $I$ de Moran \cite{moran1950notes},
+\begin{equation}
+	I = \frac{N}{S_0}\,
+	\frac{\sum_i \sum_k w_{ik}\, z_i z_k}{\sum_i z_i^2},
+	\qquad z_i = y_i - \bar{y},
+\end{equation}
+con $S_0 = \sum_{i,k} w_{ik}$, es la pendiente de la regresión del rezago
+espacial sobre el valor de la celda. Bajo independencia su esperanza es
+$-1/(N-1) \approx 0$. La inferencia es por permutación condicional: se
+barajan los valores entre celdas 999 veces y se ubica el $I$ observado en
+esa distribución de referencia, lo que evita suponer normalidad. Con 999
+permutaciones, el menor $p$ alcanzable es $0{,}001$. En el texto, ``$p \le
+	0{,}001$'' significa que el observado quedó fuera de todas las simulaciones,
+no una probabilidad de un milésimo.
+
+\paragraph{Estructura local.} Dos estadísticos con lógica distinta. El LISA
+\cite{anselin1995lisa} descompone el $I$ global en una contribución por
+celda,
+\begin{equation}
+	I_i = \frac{z_i}{m_2} \sum_k w_{ik}\, z_k,
+	\qquad m_2 = \frac{1}{N}\sum_i z_i^2,
+\end{equation}
+y clasifica cada celda significativa según su valor y el de sus vecinas:
+Alto--Alto (núcleo de un agrupamiento), Bajo--Bajo, y los dos atípicos
+Alto--Bajo y Bajo--Alto. El $G_i^*$ de Getis--Ord
+\cite{getis1992analysis,ord1995local} pregunta algo más laxo y más
+operativo: si la suma de la celda \emph{y} sus vecinas (el asterisco indica
+que la celda se incluye a sí misma) es alta respecto al total. Un $z$
+positivo grande es un punto caliente y uno negativo, un punto frío. Ambos usan
+inferencia por permutación condicional, con 999 permutaciones y semilla fija.
+
+\paragraph{Comparaciones múltiples.} Un estadístico local es una prueba por
+celda. Con 2,241 pruebas al 5\,\%, el azar solo produce del orden de 112
+rechazos. Todo mapa local se corrige por tasa de falsos descubrimientos con
+el procedimiento de Benjamini--Hochberg \cite{benjamini1995fdr} al 5\,\%, y
+se reporta cuántas celdas son significativas antes y después de la
+corrección. Se prefirió FDR a Bonferroni porque el objetivo es un mapa
+(controlar la proporción de celdas falsamente marcadas) y no una afirmación
+sobre cada celda por separado.
+
+\paragraph{Persistencia.} La autocorrelación dice que hay estructura en un
+momento dado. Para predecir hace falta que la estructura se mantenga de un
+año a otro. Se mide de dos formas: el $I$ de Moran de cada año por separado
+(¿la estructura existe todos los años?) y la matriz de correlaciones de
+Spearman entre los conteos por celda de cada par de años (¿es la
+\emph{misma} estructura?). La prueba operativa es el PAI del ranking
+histórico (definido en §\ref{sec:met-validacion}): ordenar las celdas por
+su total 2019--2023 y medir qué fracción de los accidentes de 2024 cae en
+la cabeza del ranking. Es un predictor sin parámetros, y por eso es la cota
+que cualquier modelo tiene que superar.
+
+\paragraph{Lo que no se hizo.} La función $K$ de Ripley y la estimación de
+densidad por núcleo, en sus versiones planas, suponen que un evento puede
+ocurrir en cualquier punto del plano. Aquí solo puede ocurrir sobre la red
+vial, y contrastar contra un nulo plano sobreestimaría el agrupamiento. Las
+versiones restringidas a red \cite{okabe2012network} exigen la geometría de
+las calles, que todavía no forma parte del repositorio. Se decidió no
+correrlas: contestarían una pregunta que los estadísticos de rejilla ya
+responden (si hay agrupamiento y a qué escalas) a un costo computacional y de datos que se estima en horas de cómputo y en la geometría vial faltante.
+
+% ---------------------------------------------------------------------------
 \subsection{Modelos de conteo}\label{sec:met-conteo}
-% Poisson, Binomial Negativa, tratamiento de ceros; panel y protocolo.
+% ---------------------------------------------------------------------------
 
+\paragraph{El panel.} La unidad de observación es la celda-mes: 2\,241
+celdas $\times$ 72 meses $=$ 161\,352 filas. Los meses sin accidentes se
+incluyen explícitamente con $Y_{it} = 0$. Son observaciones tan reales como
+las demás, y omitirlas haría que el modelo aprendiera solo de los meses con
+eventos y sobreestimara todo.
+
+\paragraph{Covariables.} Siguiendo el criterio de §\ref{sec:datos-variables},
+solo entran variables estructurales, que existen haya o no accidente:
+\begin{itemize}
+	\item \textbf{Mes} como factor, para la estacionalidad.
+	\item \textbf{Periodo} en tres niveles: prepandemia (hasta febrero de 2020),
+	      pandemia (marzo de 2020 a diciembre de 2021) y 2022 en adelante. El
+	      tercer corte corresponde al cambio en el procedimiento de
+	      georreferenciación del INEGI que sugiere el análisis espacial. Sin él, el
+	      modelo leería ese salto como tendencia.
+	\item \textbf{Historia de la celda}, $\log h_i$, con $h_i$ el promedio
+	      mensual de la celda calculado \emph{solo} con el periodo de
+	      entrenamiento (más medio accidente en todo el periodo, para que el
+	      logaritmo exista en celdas sin eventos de entrenamiento). Es un efecto de
+	      celda resumido en un solo parámetro en lugar de 2\,241. Su coeficiente se
+	      interpreta así: $\beta_h = 1$ significa que la historia entra como
+	      \emph{offset}, y $\beta_h < 1$ significaría encogimiento hacia la media.
+\end{itemize}
+
+\paragraph{Poisson.} El primer modelo es un GLM de Poisson con enlace
+logarítmico, estimado por máxima verosimilitud:
+\begin{equation}
+	\begin{aligned}
+		Y_{it}        & \sim \Pois(\mu_{it}),                \\
+		\log \mu_{it} & = \beta_0 + \gamma_{\mathrm{mes}(t)}
+		+ \delta_{\mathrm{per}(t)} + \beta_h \log h_i .
+	\end{aligned}
+\end{equation}
+Se ajusta sabiendo que el supuesto de equidispersión,
+$\Var(Y) = \mu$, va a fallar. Sus coeficientes siguen siendo consistentes
+bajo sobredispersión (lo que se rompe son los errores estándar), así que
+sirve como referencia y como diagnóstico. La sobredispersión se mide de dos
+formas: con el cociente $\chi^2_{\text{Pearson}}/\text{gl}$, y con la prueba
+de Cameron--Trivedi \cite{cameron1990regression}, que estima por mínimos
+cuadrados la regresión auxiliar
+\begin{equation}
+	\frac{(y_{it} - \hat\mu_{it})^2 - y_{it}}{\hat\mu_{it}}
+	= \alpha\, \hat\mu_{it} + \varepsilon_{it}.
+\end{equation}
+Bajo Poisson $\alpha = 0$. Un $\alpha > 0$ significativo es la firma de la
+varianza cuadrática de la Binomial Negativa. Hay que distinguir la
+sobredispersión \emph{marginal} (razón varianza/media del panel crudo), que
+mezcla la heterogeneidad entre celdas, de la \emph{condicional} a las
+covariables, que es la que decide la verosimilitud.
+
+\paragraph{Binomial Negativa.} La mezcla Poisson--Gamma (NB2) supone que la
+tasa de cada celda-mes es una variable Gamma alrededor de $\mu_{it}$. Ahí
+viven los factores no observados: obras, un semáforo descompuesto, la lluvia.
+\begin{equation}
+	Y_{it} \sim \NB(\mu_{it}, \theta),
+	\quad \Var(Y_{it}) = \mu_{it} + \frac{\mu_{it}^2}{\theta}.
+\end{equation}
+Es la especificación habitual para la frecuencia de accidentes
+\cite{lord2010statistical}. Se compara con NB1, que tiene la varianza lineal
+en $\mu$, por AIC. La prueba de razón de verosimilitudes entre Poisson y NB2
+no es una $\chi^2_1$ ordinaria. La nula $1/\theta = 0$ está en la frontera del
+espacio de parámetros, y la distribución nula correcta es una mezcla 50:50
+de una masa en cero y una $\chi^2_1$ \cite{self1987asymptotic}, de modo que
+el valor $p$ es la mitad del de tablas.
+
+\paragraph{Diagnósticos de ajuste.} Los residuales de Pearson y de devianza
+son discretos y sesgados en conteos con muchos ceros, así que no sirven para
+diagnosticar. Se usan dos herramientas específicas. El rootograma colgante
+\cite{kleiber2016visualizing} compara, para cada valor $k$, la raíz de la
+frecuencia esperada con la de la observada; las barras que no tocan el cero
+señalan los valores sub- o sobrepredichos. Los residuales cuantil
+aleatorizados \cite{dunn1996randomized} toman un punto uniforme entre
+$F(y-1)$ y $F(y)$ y lo pasan por la normal inversa. Si el modelo es
+correcto, son exactamente $\mathcal{N}(0,1)$. Promediados por celda,
+permiten calcular el $I$ de Moran del residual y ver si queda estructura
+espacial sin modelar. También permiten descomponer esa estructura en
+una parte entre municipios y otra dentro de cada municipio, restando la
+media municipal.
+
+\paragraph{Ceros.} Los modelos inflados en ceros (ZIP, ZINB)
+\cite{lambert1992zero} suponen dos procesos: uno que decide si la
+observación puede tener eventos (cero estructural) y un conteo. La
+partición ya retira las celdas sin red vial, que eran el cero estructural
+obvio. Para el exceso que pudiera quedar, el ZINB no se usa como modelo
+candidato sino como instrumento de medición. Se ajusta con una probabilidad
+de inflación constante para cuantificar el exceso, y luego se pregunta
+\emph{de dónde sale}: se compara, por par municipio $\times$ periodo, el
+número de ceros observados con el esperado bajo NB2. Si el exceso estuviera
+disperso entre celdas, el ZINB sería la respuesta. Si se concentrara en
+municipios y periodos concretos, sería un fenómeno de reporte, que corresponde
+a un término municipal del modelo jerárquico y no a una segunda ecuación.
+
+\paragraph{La escalera de modelos.} La tabla~\ref{tab:escalera} resume los
+modelos de este peldaño. M3 adelanta una pregunta del modelo jerárquico: si
+la vecindad aporta algo que la celda sola no tenga. Para eso añade el
+logaritmo del rezago espacial de $h$, es decir, el promedio de la historia
+de las vecinas. M4 y M5 prueban la ventana de la historia. Como $h_i$ se
+construye con la propia respuesta, dos ventanas distintas dan
+verosimilitudes que no miden lo mismo. \textbf{El AIC solo se usa entre
+	modelos con la misma historia}; la elección de ventana se decide fuera de
+muestra.
+
+\begin{table}[t]
+	\centering\footnotesize
+	\caption{Escalera de modelos a escala celda $\times$ mes. Todos los GLM
+		incluyen mes y periodo; difieren en la verosimilitud y en la historia.}
+	\label{tab:escalera}
+	\begin{tabular}{@{}ll@{}}
+		\toprule
+		Modelo & Especificación                          \\
+		\midrule
+		M0     & Media mensual 2019--2023 de la celda    \\
+		M0r    & Media mensual 2022--2023 de la celda    \\
+		M1     & Poisson, $\log h$                       \\
+		M2     & NB2, $\log h$                           \\
+		M3     & NB2, $\log h$ + rezago espacial de $h$  \\
+		M4     & NB2, $\log h^{\text{rec}}$ (2022--2023) \\
+		M5     & NB2, $\log h$ + $\log h^{\text{rec}}$   \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------------------
 \subsection{Modelo jerárquico bayesiano}\label{sec:met-jerarquico}
-% Especificación: efecto municipal dinámico + efecto espacial CAR por celda.
+% ---------------------------------------------------------------------------
 
+Los modelos de conteo dejan tres decisiones para este peldaño (los
+detalles están en §\ref{sec:res-conteo}). La verosimilitud es binomial negativa, sin inflación de ceros. El error de predicción tiene forma de
+municipio y cambia de un año a otro. Y la historia de la celda deja de ser
+una covariable precalculada y pasa a ser un efecto aleatorio estimado con
+todos los años.
+
+\paragraph{Panel anual.} El modelo se ajusta sobre celda $\times$ año (2,241
+$\times$ 5 $=$ 11,205 observaciones de entrenamiento), no celda $\times$ mes.
+Hay dos razones. La razón estadística es que el efecto de mes es común a todas las
+celdas y aportó poco sobre un promedio bien elegido, mientras que la
+estructura de interés (el régimen municipal y el perfil de cada celda) vive
+en el nivel anual. Es el supuesto de separabilidad espacio--tiempo: el patrón
+espacial no cambia de forma dentro del año. Si hiciera falta el detalle
+mensual, se repone con un perfil estacional multiplicativo fijo. La
+computacional es que el muestreo sobre 161 mil observaciones con
+$\sim$2,300 parámetros tarda horas; sobre 11 mil, minutos. Eso decide si el
+modelo se puede iterar.
+
+\paragraph{Especificación.} Para la celda $i$, en el municipio $j(i)$, en el
+año $a$:
+\begin{equation}\label{eq:jerarquico}
+	\begin{aligned}
+		Y_{ia}        & \sim \NB(\mu_{ia},\ \theta),   \\
+		\log \mu_{ia} & = \beta_0 + m_{j(i),a} + u_i .
+	\end{aligned}
+\end{equation}
+$\beta_0$ es el nivel metropolitano. El efecto municipal $m_{j,a}$ absorbe
+\emph{cuánto se reporta} en cada municipio y año. El efecto de celda $u_i$,
+constante en el tiempo, absorbe \emph{dónde, dentro del municipio, se
+	concentra} el riesgo.
+
+\paragraph{Nivel municipal.} Caminata aleatoria con innovaciones de colas
+pesadas:
+\begin{equation}
+	\begin{aligned}
+		m_{j,2019} & = \sigma_m z_j,                               & z                 & \sim \mathrm{NormalSumaCero}(1), \\
+		m_{j,a}    & = m_{j,a-1} + \sigma_{rw}\,\varepsilon_{j,a}, & \varepsilon_{j,a} & \sim t_3 .
+	\end{aligned}
+\end{equation}
+La restricción de suma cero en el nivel inicial identifica $\beta_0$: sin
+ella, subir todos los municipios y bajar $\beta_0$ da la misma
+verosimilitud. Las innovaciones son $t$ de Student con tres grados de
+libertad, y no normales, porque las series municipales muestran que la
+mayoría de los municipios cambia poco de un año a otro y unos pocos saltan
+órdenes de magnitud. Una normal tendría que elegir entre una escala grande
+que no describe a nadie y una pequeña que no admite los saltos. La $t$
+admite ambos.
+
+\paragraph{Nivel de celda: CAR propio.} El perfil de las celdas sigue un
+modelo condicional autorregresivo propio \cite{besag1974spatial}:
+\begin{equation}
+	\mathbf{u} \sim \mathcal{N}\!\left(\mathbf{0},\
+	\sigma_u^2\,(D - \alpha A)^{-1}\right),
+\end{equation}
+con $A$ la adyacencia binaria de los hexágonos, $D$ la matriz diagonal con
+el número de vecinos de cada celda y $\alpha \in (0,1)$ la dependencia
+espacial. Con $\alpha = 0$ las celdas son independientes, y conforme
+$\alpha \to 1$ cada una se parece más al promedio de sus vecinas. Es este
+término el que produce el \emph{shrinkage}: una celda con pocos datos toma
+prestada información de sus vecinas, en proporción a lo poco que sabe de sí
+misma.
+
+\paragraph{Por qué CAR propio y no BYM2.} La propuesta original era el modelo
+BYM \cite{besag1991bayesian} en la reparametrización BYM2
+\cite{riebler2016intuitive},
+$u_i = \sigma\big(\sqrt{1-\phi}\, v_i + \sqrt{\phi}\, s_i\big)$, con $v$
+independiente, $s$ un ICAR escalado y $\phi$ interpretable como la fracción
+espacial de la varianza. Se intentó en sus parametrizaciones centrada y no
+centrada, y no se identificó: el muestreador colapsó a $\phi \to 0$ en una y a
+$\phi \to 1$ en la otra, sin convergencia (§\ref{sec:res-jerarquico}). El
+motivo es de estructura, no de ajuste fino. Con cinco años de conteos por
+celda, los datos fijan cada $u_i$ casi por completo, y su reparto entre una
+parte ``espacial'' y otra ``independiente'' solo lo sostienen los priors. El
+CAR propio tiene una sola varianza y un solo parámetro de dependencia, es un
+prior propio y se identifica con datos fuertes. $\alpha$ responde la misma
+pregunta que $\phi$ (cuánto se parecen las vecinas) de forma directamente
+estimable. Es la alternativa usual cuando BYM no converge
+\cite{banerjee2015hierarchical}.
+
+\paragraph{Priors.} La tabla~\ref{tab:priors} los resume. Son débilmente
+informativos: fijan la escala del problema sin decidir el resultado. Su
+influencia se verifica reajustando con priors alternativos.
+
+\begin{table}[t]
+	\centering\footnotesize
+	\caption{Priors del modelo jerárquico y los alternativos del análisis de
+		sensibilidad.}
+	\label{tab:priors}
+	\begin{tabular}{@{}lll@{}}
+		\toprule
+		Parámetro     & Prior                               & Alternativo                 \\
+		\midrule
+		$\beta_0$     & $\mathcal{N}(\log(\bar y + 1),\ 2)$ & ---                         \\
+		$\sigma_m$    & Semi-normal$(1{,}5)$                & ---                         \\
+		$\sigma_{rw}$ & Semi-normal$(0{,}5)$                & ---                         \\
+		$\alpha$      & Beta$(2, 1)$                        & Beta$(1, 1)$                \\
+		$\sigma_u$    & Semi-normal$(1{,}5)$                & Semi-normal$(3)$            \\
+		$\theta$      & Gamma$(2;\ 0{,}1)$, media 20        & Gamma$(2;\ 0{,}4)$, media 5 \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+El prior Beta$(2,1)$ de $\alpha$ se inclina a dependencia positiva porque el
+análisis exploratorio ya la midió. La alternativa uniforme comprueba que esa
+inclinación no es la que produce el resultado. La escala de $\sigma_{rw}$
+corresponde a un cambio anual típico de menos del 60\,\%.
+
+\paragraph{Ajuste.} El modelo se implementó en PyMC
+\cite{abrilpla2023pymc} y se muestreó con NUTS \cite{hoffman2014nuts}
+mediante \texttt{nutpie}: cuatro cadenas, 1,000 iteraciones de
+calentamiento y 2,000 muestras por cadena, semilla 42. El reajuste de
+sensibilidad usa 500 muestras por cadena.
+
+\paragraph{Diagnósticos.} Se exigen tres criterios: $\hat{R} < 1.01$ con
+la versión normalizada por rangos \cite{vehtari2021rank}, un tamaño efectivo
+de muestra suficiente y cero transiciones divergentes. Se diagnostican las
+cantidades \emph{identificadas}: los 11,205 predictores lineales
+$\log \mu_{ia}$ y los hiperparámetros. $\beta_0$ por separado no lo está
+del todo, porque compite con la media de $\mathbf{u}$, que el CAR propio
+solo ata débilmente a cero. Por eso ninguna conclusión se apoya en $\beta_0$
+solo, sino en $m_{j,a}$, $u_i$ y $\mu_{ia}$. Las trayectorias municipales a
+posteriori se contrastan con las series observadas como verificación del
+supuesto de caminata aleatoria (apéndice~\ref{app:supuestos}).
+
+\paragraph{Especificaciones alternativas.} Se evaluó también una variante con
+deriva lineal por municipio (tendencia local además de la caminata), para
+capturar el crecimiento sostenido de la periferia. Se comparó con la
+especificación base con el mismo protocolo de validación.
+
+% ---------------------------------------------------------------------------
 \subsection{Validación fuera de muestra}\label{sec:met-validacion}
-% Entrenamiento 2019--2023, prueba 2024; métricas CRPS y PAI.
+% ---------------------------------------------------------------------------
+
+\paragraph{Protocolo.} Todos los modelos se ajustan con 2019--2023 y se
+evalúan en 2024, que ninguno vio. La regla se fijó desde el principio:
+\emph{ningún modelo se compara en los datos con que se ajustó}. La razón es
+más fuerte en el jerárquico que en los GLM: con 2,241 efectos de celda
+reproduce el periodo de entrenamiento con un error mínimo, que no valida la predicción. Todas
+las cantidades derivadas de la respuesta, como $h_i$, $h_i^{\text{rec}}$ y
+los promedios de los \emph{baselines}, se calculan solo con entrenamiento.
+La partición es temporal y no aleatoria porque la pregunta es predictiva:
+anticipar el año siguiente con lo que se sabe hasta el anterior.
+
+\paragraph{Pronóstico del modelo jerárquico.} Para cada muestra a posteriori
+se fija el nivel municipal de 2024 en el de 2023,
+$m_{j,2024} = m_{j,2023}$, se combina con $\beta_0$ y $u_i$, y se simula un
+conteo binomial negativo con el $\theta$ de esa muestra. El ensamble de
+simulaciones propaga la incertidumbre de todos los parámetros y la
+dispersión NB. No se añade una innovación $t_3$ para 2024, aunque es lo que
+el modelo sugiere. Para cualquier $t$ de Student, $\E[e^{T}] = \infty$, así
+que con esa innovación ni la media predictiva ni el CRPS existirían. El
+pronóstico es, por tanto, \textbf{condicional a que ningún municipio cambie
+	de régimen de reporte en 2024}, y sus intervalos son un piso de la
+incertidumbre real.
+
+\paragraph{Baselines.} Los modelos se comparan contra predictores sin
+parámetros: la media histórica de la celda en 2019--2023 (M0) y en
+2022--2023 (M0r). Con ellos el PAI no requiere modelo, solo contar y
+ordenar. Sus intervalos predictivos son Poisson con esa media. En la
+validación del jerárquico, M0, M0r y M4 se recalculan a escala anual para
+que la comparación sea sobre la misma unidad. Las métricas de las dos
+escalas (celda-mes y celda-año) no son comparables entre sí.
+
+\paragraph{Métricas.} Cada una contesta una pregunta distinta.
+\begin{itemize}
+	\item \textbf{Devianza de Poisson y MAE}: ¿acierta la predicción puntual? El
+	      MAE se calcula sobre la media de los GLM y sobre la mediana del ensamble
+	      en el jerárquico.
+	\item \textbf{CRPS} \cite{gneiting2007strictly}: ¿acierta la distribución
+	      predictiva entera? Para una predictiva con función de distribución $F$ y
+	      un conteo observado $y$,
+	      \begin{equation}
+		      \mathrm{CRPS}(F, y) = \sum_{k \ge 0} \big(F(k) - \mathbb{1}\{y \le k\}\big)^2 ,
+	      \end{equation}
+	      que en los GLM se evalúa en forma cerrada truncando la suma. Para el
+	      ensamble del jerárquico, con simulaciones $X, X'$ independientes de la
+	      predictiva, se usa la forma equivalente
+	      $\E|X - y| - \tfrac{1}{2}\E|X - X'|$. Es una regla de puntuación propia:
+	      penaliza tanto errar el centro como errar la incertidumbre, y es la
+	      métrica principal para elegir entre modelos.
+	\item \textbf{Cobertura del intervalo del 90\,\%}: ¿qué fracción de los
+	      conteos de 2024 cae entre los cuantiles 5 y 95 de la predictiva? Un
+	      intervalo que no cubre lo que dice cubrir no sirve para decidir. Con
+	      conteos discretos y muchos ceros, la cobertura tiende a quedar por
+	      encima del nominal.
+	\item \textbf{PAI} (índice de precisión predictiva)
+	      \cite{chainey2008utility}: ¿sirve el modelo para elegir dónde intervenir?
+	      Se seleccionan las celdas con mayor predicción hasta cubrir una fracción
+	      $a$ del territorio y
+	      \begin{equation}
+		      \mathrm{PAI}_a = \frac{n_{\text{sel}} / n}{a},
+	      \end{equation}
+	      con $n_{\text{sel}}$ los accidentes observados de 2024 en las celdas
+	      seleccionadas y $n$ el total. $\mathrm{PAI} = 1$ es el azar. Se reporta
+	      con $a$ igual al 5 y al 10\,\%. Como todas las celdas tienen la misma área,
+	      la fracción de territorio es la fracción de celdas.
+\end{itemize}
+
+El PAI depende solo del orden de las celdas, no de los niveles predichos.
+Un modelo puede reducir el CRPS en una fracción apreciable (indicar el porcentaje) sin mover el PAI si no cambia el orden de las celdas. Por eso se reportan ambos y no se resume el desempeño en un solo
+número.

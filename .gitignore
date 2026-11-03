@@ -105,6 +105,7 @@ notebooks/*.quarto_ipynb
 .idea/
 *.swp
 *~
+.nvim/
 
 # ---------------------------------------------------------------
 # Sistema operativo
@@ -145,3 +146,7 @@ docs/reporte/*.blg
 docs/reporte/*.abs
 docs/reporte/*.bcf
 docs/reporte/*.run.xml
+
+
+#editor
+.nvim/
