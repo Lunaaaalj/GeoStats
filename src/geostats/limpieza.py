@@ -320,8 +320,11 @@ def limpiar(datos: pd.DataFrame) -> pd.DataFrame:
     d["dos_vialidades"] = d["vialidades_hom"].str.contains(SEPARADOR_CRUCE, regex=False,
                                                            na=False)
     # Una intersección tiene dos vialidades por definición, así que aquí el
-    # hueco es faltante real y no estructural.
-    d["falta_calle2"] = d["en_interseccion"] & d["calle2_norm"].isna()
+    # hueco es faltante real y no estructural. Se mide sobre `_hom` para que el
+    # relleno («NINGUNO», «SIN REFERENCIA») cuente como lo que es: no escribir
+    # la calle. La versión amplia, que suma la calle 1 repetida, es
+    # `en_interseccion & ~dos_vialidades`.
+    d["falta_calle2"] = d["en_interseccion"] & d["calle2_hom"].isna()
 
     # --- Coordenadas -------------------------------------------------------
     d["id_punto"] = _id_punto(d)
@@ -458,7 +461,10 @@ def diagnostico(limpio: pd.DataFrame) -> dict[str, int | float]:
             limpio[columna_tolerancia].nunique()
         ),
         "precisión baja (<=3 decimales)": int(limpio["precision_baja"].sum()),
-        "CALLE2 ausente en intersección": int(limpio["falta_calle2"].sum()),
+        "CALLE2 ausente o relleno en intersección": int(limpio["falta_calle2"].sum()),
+        "intersección que nombra una sola vialidad": int(
+            (limpio["en_interseccion"] & ~limpio["dos_vialidades"]).sum()
+        ),
         "valores de texto que cambiaron al normalizar": texto_cambiado,
         "vialidades distintas (normalizadas)": int(
             pd.concat([limpio["calle1_norm"], limpio["calle2_norm"]]).nunique()

@@ -69,12 +69,14 @@ def calle_limpia(calle) -> str | None:
 def nombres_de_cruce(d: pd.DataFrame) -> pd.DataFrame:
     """Nombre de cada nodo y si nombra dos calles distintas.
 
-    El nombre es el valor más frecuente de `vialidades_hom` (de
-    `geostats.limpieza`) entre los partes del nodo: «A × B» cuando el parte
-    nombra dos calles distintas y «A» sola cuando falta la calle 2, viene
-    relleno («NINGUNO») o repite la calle 1. El par ya viene en orden
-    alfabético, así que «A × B» y «B × A» votan juntos. Cada calle se muestra
-    con su escritura más frecuente en toda la base.
+    El nombre sale de `vialidades_hom` (de `geostats.limpieza`): «A × B» cuando
+    el parte nombra dos calles distintas y «A» sola cuando falta la calle 2,
+    viene relleno («NINGUNO») o repite la calle 1. Votan primero los partes con
+    dos calles: el par más frecuente gana aunque la mayoría del nodo nombre una
+    sola, porque el parte que trae la segunda calle aporta lo que a los otros
+    les falta. «A» sola queda solo si ningún parte del nodo trae un par. El par
+    ya viene en orden alfabético, así que «A × B» y «B × A» votan juntos. Cada
+    calle se muestra con su escritura más frecuente en toda la base.
     """
     if "vialidades_hom" not in d:
         raise KeyError("Falta vialidades_hom: vuelve a correr `uv run limpiar-atus`.")
@@ -87,10 +89,14 @@ def nombres_de_cruce(d: pd.DataFrame) -> pd.DataFrame:
                  .sort_values(["k", "n", "v"], ascending=[True, False, True])
                  .drop_duplicates("k").set_index("k").v)
 
+    def mas_frecuente(votos: pd.DataFrame) -> pd.Series:
+        return (votos.groupby(["nodo", "v"]).size().reset_index(name="n")
+                .sort_values(["nodo", "n", "v"], ascending=[True, False, True])
+                .drop_duplicates("nodo").set_index("nodo").v)
+
     votos = pd.DataFrame({"nodo": d.id_punto_4d, "v": d.vialidades_hom}).dropna()
-    moda = (votos.groupby(["nodo", "v"]).size().reset_index(name="n")
-            .sort_values(["nodo", "n", "v"], ascending=[True, False, True])
-            .drop_duplicates("nodo").set_index("nodo").v)
+    par = votos.v.str.contains(SEPARADOR_CRUCE, regex=False)
+    moda = mas_frecuente(votos[par]).combine_first(mas_frecuente(votos[~par]))
     nombre = moda.map(lambda v: " × ".join(escritura.get(c, c.title())
                                            for c in v.split(SEPARADOR_CRUCE)))
     return pd.DataFrame({
@@ -205,8 +211,9 @@ NOTAS = [
                           "alias), así «Lázaro Cárdenas» y «Av. Lazaro Cardenas» son la misma "
                           "calle; se muestra la escritura más común."),
     ("Cruce: «A × B» o «A»", "«A × B» cuando los partes nombran dos calles distintas (el orden "
-                             "no importa). Solo «A» cuando la mayoría de los partes no trae calle 2, "
-                             "escribe «NINGUNO»/«SIN REFERENCIA»/«SIN NOMBRE» o repite la calle 1."),
+                             "no importa); si algún parte del cruce trae dos calles, gana el par más "
+                             "frecuente. Solo «A» cuando ningún parte trae una segunda calle distinta: "
+                             "falta, dice «NINGUNO»/«SIN REFERENCIA»/«SIN NOMBRE» o repite la calle 1."),
     ("Intersección (dos calles)", "Sí si el nombre del cruce tiene dos calles distintas; No si "
                                   "solo nombra una. Todos los puntos de la tabla están marcados "
                                   "como intersección por el agente (URBANA = 1)."),
