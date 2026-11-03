@@ -143,3 +143,5 @@ docs/reporte/*.toc
 docs/reporte/*.bbl
 docs/reporte/*.blg
 docs/reporte/*.abs
+docs/reporte/*.bcf
+docs/reporte/*.run.xml
