@@ -23,13 +23,13 @@ La redacción es **técnica, impersonal y densa**.
 
 ## Voz y persona
 
-| Evitar | Usar |
-|---|---|
-| Encontramos que el 64.4 % de las defunciones… | El 64.4 % de las defunciones… |
-| Decidimos usar hexágonos porque… | Se eligió la rejilla hexagonal porque… |
-| Vemos en la gráfica que… | La figura 3 muestra… |
-| Nuestro modelo predice… | El modelo jerárquico predice… |
-| Puedes regenerar el archivo con… | El archivo se regenera con… |
+| Evitar                                        | Usar                                   |
+| --------------------------------------------- | -------------------------------------- |
+| Encontramos que el 64.4 % de las defunciones… | El 64.4 % de las defunciones…          |
+| Decidimos usar hexágonos porque…              | Se eligió la rejilla hexagonal porque… |
+| Vemos en la gráfica que…                      | La figura 3 muestra…                   |
+| Nuestro modelo predice…                       | El modelo jerárquico predice…          |
+| Puedes regenerar el archivo con…              | El archivo se regenera con…            |
 
 - Preferir, en este orden: sujeto no humano en voz activa ("la rejilla
   elimina el sesgo de frontera") › pasiva refleja ("se descartó el AGEB") ›
@@ -47,10 +47,10 @@ La redacción es **técnica, impersonal y densa**.
 - **Sin preámbulos ni cierres.** Prohibido: "En esta sección se
   presentará…", "Como se mencionó anteriormente…", "Es importante señalar
   que…", "En conclusión…". La sección empieza con su primer hecho.
-- **Sin intensificadores ni adjetivos valorativos**: *muy*, *bastante*,
-  *claramente*, *significativamente* (salvo en sentido estadístico, con su
-  prueba y valor *p*), *interesante*, *robusto* (salvo en sentido técnico),
-  *crucial*, *clave*.
+- **Sin intensificadores ni adjetivos valorativos**: _muy_, _bastante_,
+  _claramente_, _significativamente_ (salvo en sentido estadístico, con su
+  prueba y valor _p_), _interesante_, _robusto_ (salvo en sentido técnico),
+  _crucial_, _clave_.
 - **Cuantificar en lugar de calificar.** No "la mayoría de los accidentes
   ocurren en intersecciones", sino "366,484 de 379,294 accidentes (96.6 %)
   ocurren en intersecciones".
@@ -87,26 +87,26 @@ La redacción es **técnica, impersonal y densa**.
 - **Idioma**: español en todo el repositorio, incluidos commits,
   comentarios y nombres de funciones y variables.
 - **Anglicismos**: se usa el término en español cuando existe y es de uso
-  técnico corriente (*rejilla*, no *grid*; *conjunto de datos* o *base*, no
-  *dataset*; *faltante*, no *missing*). Si no existe equivalente
+  técnico corriente (_rejilla_, no _grid_; _conjunto de datos_ o _base_, no
+  _dataset_; _faltante_, no _missing_). Si no existe equivalente
   establecido, el término inglés va en cursiva la primera vez y, si
-  conviene, con su traducción entre paréntesis (*flat-top*, *notebook*,
-  *pipeline*). Las siglas técnicas establecidas se conservan en inglés
+  conviene, con su traducción entre paréntesis (_flat-top_, _notebook_,
+  _pipeline_). Las siglas técnicas establecidas se conservan en inglés
   (MNAR, MAR, MAUP, CRS, STL, UTM).
 - **Siglas**: se desarrollan en su primera aparición en cada documento,
   "Zona Metropolitana de Monterrey (ZMM)"; después, solo la sigla. Sin
-  plural con *s* ("los AGEB", no "los AGEBs").
+  plural con _s_ ("los AGEB", no "los AGEBs").
 - **Glosario del proyecto** (usar siempre la misma forma):
 
-  | Término | Uso |
-  |---|---|
-  | accidente | Unidad de registro de ATUS. *Hecho de tránsito* solo en material de divulgación. |
-  | ZMM | Los 18 municipios de `zonas.ZMM_MONTERREY`. |
-  | celda, hexágono | Unidad de la rejilla de `espacial.celdas()`. |
-  | centinela | Código que representa un faltante (`99`, `0`, etc.); no se llama "nulo". |
-  | faltante | Ausencia de dato, codificada o `NaN`. |
-  | derivada | Columna construida por el repo (minúsculas). |
-  | crudo / procesado | Contenido de `data/raw/` / `data/processed/`. |
+  | Término           | Uso                                                                              |
+  | ----------------- | -------------------------------------------------------------------------------- |
+  | accidente         | Unidad de registro de ATUS. _Hecho de tránsito_ solo en material de divulgación. |
+  | ZMM               | Los 18 municipios de `zonas.ZMM_MONTERREY`.                                      |
+  | celda, hexágono   | Unidad de la rejilla de `espacial.celdas()`.                                     |
+  | centinela         | Código que representa un faltante (`99`, `0`, etc.); no se llama "nulo".         |
+  | faltante          | Ausencia de dato, codificada o `NaN`.                                            |
+  | derivada          | Columna construida por el repo (minúsculas).                                     |
+  | crudo / procesado | Contenido de `data/raw/` / `data/processed/`.                                    |
 
 - **Columnas y código** siempre en formato de código: `CVE_MUN`,
   `atus_zmm.parquet`, `espacial.celdas()`. Los nombres de columna

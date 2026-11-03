@@ -22,6 +22,8 @@
 \definecolor{rojo}{HTML}{8B2C1A}
 \definecolor{grafito}{HTML}{2C2C2C}
 \hypersetup{colorlinks=true,linkcolor=azul,citecolor=azul,urlcolor=azul}
+\usepackage[backend=biber,style=apa]{biblatex}
+\addbibresource{referencias.bib}
 
 % Notación común
 \newcommand{\NB}{\mathrm{BinomialNegativa}}
@@ -117,7 +119,6 @@
 \input{secciones/apendice_a_supuestos}
 \input{secciones/apendice_b_reproducibilidad}
 
-\bibliographystyle{cas-model2-names}
-\bibliography{referencias}
+\printbibliography
 
 \end{document}
