@@ -46,7 +46,7 @@ siguen la nomenclatura de claves geoestadísticas del INEGI.
 | `vialidades_hom` | `string` | El lugar: «A × B» (orden alfabético) si hay dos calles distintas; «A» si falta la calle 2, viene relleno o repite la calle 1 | 0.11 % |
 | `dos_vialidades` | `bool` | `vialidades_hom` nombra dos calles distintas | — |
 | `carretera_norm` | `string` | Igual | 98.51 % |
-| `falta_calle2` | `bool` | `en_interseccion` y `calle2_norm` en NA | 3,072 `True` |
+| `falta_calle2` | `bool` | `en_interseccion` y `calle2_hom` en NA: calle 2 vacía o relleno | 3,586 `True` (3,072 vacías + 514 relleno) |
 | `id_punto` | `string` | `"lon,lat"` exacto, vía `str(float)` | 0 |
 | `id_punto_4d` | `string` | `"lon,lat"` a 4 decimales (~10 m) | 0 |
 | `precision_baja` | `bool` | Los **dos** ejes con ≤ 3 decimales | 3 `True` |
@@ -98,6 +98,18 @@ pero son calles) y la calle 1 repetida («MANUEL L. BARRAGAN × MANUEL L.
 BARRAGAN»). En los tres se escribe la calle sola, sin borrar el parte. El par va
 en orden alfabético para que «A × B» y «B × A» sean el mismo cruce.
 «CARRETERA CARRETERA A REYNOSA» se deduplica a «CARRETERA A REYNOSA».
+
+La calle 1 repetida incluye la que solo se repite tras homologar: 1,185
+registros como «AVENIDA CASA BLANCA × CALLE CASA BLANCA» o «DOCTOR IGNACIO
+MORONES PRIETO × IGNACIO MORONES PRIETO». Se revisó si «AVENIDA X» y «CALLE X»
+podían ser dos calles distintas que se cruzan: en los nodos donde otro parte sí
+trae segunda calle, esta es otra («Casa Blanca × Miguel Alemán», 54 partes;
+«De la Aurora» repetida a lo largo de cinco cruces consecutivos). Es la misma
+vía escrita dos veces, así que no hay excepciones al quitar el genérico.
+
+En `tabla_cruces`, el nombre de un nodo lo deciden primero los partes con dos
+calles; «A» sola queda solo si ningún parte del nodo trae un par. Votar todo
+junto dejaba a ~600 cruces con una calle aunque algún parte nombrara la segunda.
 
 ## Lo que decide no hacer
 
