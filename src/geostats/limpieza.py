@@ -104,6 +104,14 @@ ALIAS_VIALIDAD = {
     "CARRETERA A MIGUEL ALEMAN": "MIGUEL ALEMAN",
 }
 
+# Lo que el agente escribe cuando no hay calle: equivale a dejar el campo
+# vacío. Lista cerrada, revisada contra los valores reales; «NO REELECCION» y
+# «NO ME OLVIDES» parecen relleno pero son calles.
+SIN_CALLE = r"^(?:NINGUNO(?: \d+)?|SIN REFERENCIA|SIN NOMBRE|0)$"
+
+# Separador de las dos vialidades de un cruce en `vialidades_hom`.
+SEPARADOR_CRUCE = " × "
+
 LLAVE = ["ANIO", "EDO", "MPIO", "ID"]
 
 # Redondeo del identificador de punto con tolerancia. A la latitud de la ZMM
@@ -147,7 +155,7 @@ def _normalizar_texto(columna: pd.Series) -> pd.Series:
 def _homologar_vialidad(normalizada: pd.Series) -> pd.Series:
     """Un solo nombre por vialidad, para contar calles y corredores.
 
-    Parte de la columna `_norm` y hace cuatro cosas, en este orden:
+    Parte de la columna `_norm` y hace cinco cosas, en este orden:
 
     1. Separa el punto pegado («AV.LINCOLN») y le pone punto a la inicial que
        lo perdió («MANUEL L BARRAGAN» → «MANUEL L. BARRAGAN»). Las vocales y la
@@ -156,6 +164,8 @@ def _homologar_vialidad(normalizada: pd.Series) -> pd.Series:
     3. Quita el genérico, las veces que venga («CALZADA CALZADA DEL VALLE»),
        siempre que quede un nombre con letras: «CALLE 5» se queda como está.
     4. Aplica los alias verificados de `ALIAS_VIALIDAD`.
+    5. Deja en NA el relleno de `SIN_CALLE` («NINGUNO», «SIN REFERENCIA»):
+       decir que no hay calle es lo mismo que no escribirla.
     """
     h = (
         normalizada.str.replace(r"\.(?=[^\s\d])", ". ", regex=True)
@@ -165,11 +175,29 @@ def _homologar_vialidad(normalizada: pd.Series) -> pd.Series:
     for generico, abreviaturas in ABREVIATURAS_GENERICO.items():
         h = h.str.replace(rf"^(?:{abreviaturas})\b\.?\s*", f"{generico} ", regex=True)
     h = h.str.replace(r"\s+", " ", regex=True).str.strip()
+    # «CARRETERA CARRETERA A REYNOSA»: el genérico que no se quita sí se
+    # deduplica, o la misma carretera cuenta como dos.
+    h = h.str.replace(r"^(CARRETERA|PROLONGACION|PRIVADA) (?=\1 )", "", regex=True)
     genericos = "|".join(GENERICOS)
     # Cada pasada quita un genérico; tres bastan para «AVENIDA CALLE CALZADA X».
     for _ in range(3):
         h = h.str.replace(rf"^(?:{genericos}) (?=.*[A-Z]{{3}})", "", regex=True)
-    return h.replace(ALIAS_VIALIDAD)
+    h = h.replace(ALIAS_VIALIDAD)
+    return h.mask(h.str.fullmatch(SIN_CALLE, na=False), pd.NA)
+
+
+def _vialidades(calle1: pd.Series, calle2: pd.Series) -> pd.Series:
+    """El lugar del accidente: «A × B» si hay dos calles distintas, «A» si no.
+
+    Falta calle 2, viene relleno o repite la calle 1: en los tres casos el
+    parte solo nombra una vialidad, así que se escribe esa sola. El par va en
+    orden alfabético, para que «A × B» y «B × A» sean el mismo cruce.
+    """
+    una = calle1.fillna(calle2)
+    dos = calle1.notna() & calle2.notna() & (calle1 != calle2)
+    pares = pd.Series(pd.NA, index=calle1.index, dtype="object")
+    pares[dos] = [SEPARADOR_CRUCE.join(sorted(p)) for p in zip(calle1[dos], calle2[dos])]
+    return pares.fillna(una)
 
 
 def _fecha(datos: pd.DataFrame) -> pd.Series:
@@ -288,6 +316,9 @@ def limpiar(datos: pd.DataFrame) -> pd.DataFrame:
     # quitar el genérico ya es una decisión sobre qué cuenta como la misma calle.
     for columna in ("calle1", "calle2"):
         d[f"{columna}_hom"] = _homologar_vialidad(d[f"{columna}_norm"])
+    d["vialidades_hom"] = _vialidades(d["calle1_hom"], d["calle2_hom"])
+    d["dos_vialidades"] = d["vialidades_hom"].str.contains(SEPARADOR_CRUCE, regex=False,
+                                                           na=False)
     # Una intersección tiene dos vialidades por definición, así que aquí el
     # hueco es faltante real y no estructural.
     d["falta_calle2"] = d["en_interseccion"] & d["calle2_norm"].isna()
@@ -311,6 +342,10 @@ def validar(limpio: pd.DataFrame, n_original: int) -> None:
     """
     edad_valida = limpio.loc[~limpio["EDAD"].isin(CENTINELAS["EDAD"]), "EDAD"]
     victimas = limpio["TOTMUERTOS"] + limpio["TOTHERIDOS"]
+
+    # El relleno puede venir con genérico («CALLE SIN NOMBRE»); la homologación
+    # lo quita antes de reconocerlo.
+    relleno = rf"^(?:(?:{'|'.join(GENERICOS)}) )*{SIN_CALLE[1:]}"
 
     fallas = {
         "TOTMUERTOS != suma de componentes":
@@ -346,11 +381,17 @@ def validar(limpio: pd.DataFrame, n_original: int) -> None:
             - limpio["id_punto"].nunique()
         ),
         # Homologar renombra; si deja un nombre vacío o llena un hueco, borró
-        # o inventó una calle.
+        # o inventó una calle. El único vacío nuevo permitido es el relleno.
         "calle_hom vacía donde calle_norm no (o al revés)": sum(
-            int((limpio[f"{c}_hom"].isna() != limpio[f"{c}_norm"].isna()).sum()
+            int((limpio[f"{c}_hom"].isna()
+                 != (limpio[f"{c}_norm"].isna()
+                     | limpio[f"{c}_norm"].str.fullmatch(relleno, na=False))).sum()
                 + (limpio[f"{c}_hom"] == "").sum())
             for c in ("calle1", "calle2")
+        ),
+        "vialidades_hom vacía con alguna calle": int(
+            (limpio["vialidades_hom"].isna()
+             & (limpio["calle1_hom"].notna() | limpio["calle2_hom"].notna())).sum()
         ),
     }
 

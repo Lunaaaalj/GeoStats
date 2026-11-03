@@ -26,12 +26,15 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 from geostats import rutas
+from geostats.limpieza import SEPARADOR_CRUCE
 
 SALIDA = rutas.RAIZ / "docs" / "cruces_zmm.xlsx"
 
-GENERICO = re.compile(r"^(AVENIDA|AV\.?|CALLE|CALZADA|BOULEVARD|BLVD\.?|CARRETERA|"
-                      r"PROLONGACI[OÓ]N|PRIVADA|ANDADOR)\s+", re.IGNORECASE)
-MINUSCULAS = {"De", "Del", "La", "Las", "Los", "Y", "El"}
+# Los mismos genéricos que quita `limpieza._homologar_vialidad`; «Carretera»,
+# «Prolongación» y «Privada» se quedan, igual que en la columna homologada.
+GENERICO = re.compile(r"^(AVENIDA|AVDA\.?|AVE\.?|AV\.?|CALLE|CALZADA|CALZ\.?|BOULEVARD|"
+                      r"BLVD\.?|BLVR\.?)\s+", re.IGNORECASE)
+MINUSCULAS = {"A", "De", "Del", "La", "Las", "Los", "Y", "El"}
 
 # Identidad GeoStats: secciones en la rampa ordinal de azules, texto grafito,
 # rejilla y subencabezados en gris claro.
@@ -46,48 +49,55 @@ GRIS_TEXTO = "6B6B6B"  # rankings: secundarios frente a la cuenta
 
 
 def calle_limpia(calle) -> str | None:
-    """Quita el genérico («Avenida», «Calle»…) y normaliza mayúsculas."""
+    """Quita el genérico («Avenida», «Calle»…) y normaliza mayúsculas.
+
+    El genérico se queda si sin él el nombre empezaría con «de», «la», «los»…
+    («Avenida de las Cumbres», no «De las Cumbres») o no tendría letras
+    («Calle 5»), igual que en la homologación.
+    """
     if not isinstance(calle, str) or not calle.strip():
         return None
-    nombre = GENERICO.sub("", re.sub(r"\s+", " ", calle.strip()))
+    completo = re.sub(r"\s+", " ", calle.strip())
+    nombre = GENERICO.sub("", completo)
+    if nombre.split()[0].title() in MINUSCULAS or not re.search(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3}", nombre):
+        nombre = completo
     palabras = nombre.title().split()
-    return " ".join(p.lower() if p in MINUSCULAS and k else p
+    return " ".join(p.lower() if p in MINUSCULAS and 0 < k < len(palabras) - 1 else p
                     for k, p in enumerate(palabras))
 
 
-def nombres_de_cruce(d: pd.DataFrame) -> pd.Series:
-    """Nombre de cada nodo: el par ordenado de calles más frecuente.
+def nombres_de_cruce(d: pd.DataFrame) -> pd.DataFrame:
+    """Nombre de cada nodo y si nombra dos calles distintas.
 
-    Las calles se comparan por su forma sin acentos ni mayúsculas
-    (`calle*_hom` de `geostats.limpieza` si existe; si no, `calle*_norm` sin el
-    genérico), para que «Lázaro Cárdenas» y «Lazaro Cardenas» sean la misma.
-    Se muestra la escritura más frecuente de cada una. Si un nodo no tiene
-    ningún par completo, se usa la calle 1 más frecuente.
+    El nombre es el valor más frecuente de `vialidades_hom` (de
+    `geostats.limpieza`) entre los partes del nodo: «A × B» cuando el parte
+    nombra dos calles distintas y «A» sola cuando falta la calle 2, viene
+    relleno («NINGUNO») o repite la calle 1. El par ya viene en orden
+    alfabético, así que «A × B» y «B × A» votan juntos. Cada calle se muestra
+    con su escritura más frecuente en toda la base.
     """
-    def llave(c: str) -> pd.Series:
-        if f"{c}_hom" in d:
-            return d[f"{c}_hom"]
-        return d[f"{c}_norm"].str.replace(GENERICO, "", regex=True).str.strip()
-
-    k1, k2 = llave("calle1"), llave("calle2")
+    if "vialidades_hom" not in d:
+        raise KeyError("Falta vialidades_hom: vuelve a correr `uv run limpiar-atus`.")
     bonitas = pd.DataFrame({
-        "k": pd.concat([k1, k2], ignore_index=True),
+        "k": pd.concat([d.calle1_hom, d.calle2_hom], ignore_index=True),
         "v": pd.concat([d.CALLE1.map(calle_limpia), d.CALLE2.map(calle_limpia)],
                        ignore_index=True),
     }).dropna()
-    escritura = bonitas.groupby(["k", "v"]).size().reset_index(name="n")         .sort_values(["k", "n", "v"], ascending=[True, False, True])         .drop_duplicates("k").set_index("k").v
+    escritura = (bonitas.groupby(["k", "v"]).size().reset_index(name="n")
+                 .sort_values(["k", "n", "v"], ascending=[True, False, True])
+                 .drop_duplicates("k").set_index("k").v)
 
-    completo = k1.notna() & k2.notna()
-    par = pd.Series(pd.NA, index=d.index, dtype="object")
-    par[completo] = [" × ".join(escritura[a] if a in escritura else a for a in sorted(p))
-                     for p in zip(k1[completo], k2[completo])]
-    sola = k1.map(escritura)
-
-    def moda(s: pd.Series) -> pd.Series:
-        s = pd.DataFrame({"nodo": d.id_punto_4d, "v": s}).dropna()
-        return s.groupby(["nodo", "v"]).size().reset_index(name="n")                 .sort_values(["nodo", "n", "v"], ascending=[True, False, True])                 .drop_duplicates("nodo").set_index("nodo").v
-
-    return moda(par).combine_first(moda(sola))
+    votos = pd.DataFrame({"nodo": d.id_punto_4d, "v": d.vialidades_hom}).dropna()
+    moda = (votos.groupby(["nodo", "v"]).size().reset_index(name="n")
+            .sort_values(["nodo", "n", "v"], ascending=[True, False, True])
+            .drop_duplicates("nodo").set_index("nodo").v)
+    nombre = moda.map(lambda v: " × ".join(escritura.get(c, c.title())
+                                           for c in v.split(SEPARADOR_CRUCE)))
+    return pd.DataFrame({
+        "nombre": nombre,
+        "interseccion": moda.str.contains(SEPARADOR_CRUCE, regex=False)
+                            .map({True: "Sí", False: "No"}),
+    })
 
 
 def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
@@ -126,7 +136,9 @@ def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
         "lon": g.LONGITUD.median(),
     })
     cruces = nodos[nodos.ubicacion == "Intersección"].copy()
-    cruces["nombre"] = nombres_de_cruce(d).reindex(cruces.index).fillna("Sin nombre")
+    nombres = nombres_de_cruce(d).reindex(cruces.index)
+    cruces["nombre"] = nombres.nombre.fillna("Sin nombre")
+    cruces["interseccion"] = nombres.interseccion.fillna("No")
 
     # Cada cuenta lleva su ranking en la columna «r_<cuenta>».
     for col in [c for c, _ in columnas_de(SECCIONES) if c.startswith("r_")]:
@@ -150,7 +162,7 @@ def _conteo(titulo: str, hechos: str, defunciones: str):
 
 
 SECCIONES = [
-    ("Cruce", [("nombre", "Cruce")]),
+    ("Cruce", [("nombre", "Cruce"), ("interseccion", "Intersección (dos calles)")]),
     _conteo("Totales", "hechos", "defunciones"),
     _conteo("Solo peatones", "hechos_peaton", "def_peaton"),
     _conteo("Solo ciclistas", "hechos_ciclista", "def_ciclista"),
@@ -189,8 +201,15 @@ NOTAS = [
                            "ómnibus. Defunciones: todas las de esos hechos."),
     ("Transporte de carga", "Hechos con camión de carga o tractocamión. Defunciones: todas "
                             "las de esos hechos."),
-    ("Nombres de calles", "Se comparan sin acentos ni mayúsculas, así «Lázaro Cárdenas» y "
-                          "«Lazaro Cardenas» son la misma calle; se muestra la escritura más común."),
+    ("Nombres de calles", "Se comparan homologados (sin acentos, sin «Avenida»/«Calle», con "
+                          "alias), así «Lázaro Cárdenas» y «Av. Lazaro Cardenas» son la misma "
+                          "calle; se muestra la escritura más común."),
+    ("Cruce: «A × B» o «A»", "«A × B» cuando los partes nombran dos calles distintas (el orden "
+                             "no importa). Solo «A» cuando la mayoría de los partes no trae calle 2, "
+                             "escribe «NINGUNO»/«SIN REFERENCIA»/«SIN NOMBRE» o repite la calle 1."),
+    ("Intersección (dos calles)", "Sí si el nombre del cruce tiene dos calles distintas; No si "
+                                  "solo nombra una. Todos los puntos de la tabla están marcados "
+                                  "como intersección por el agente (URBANA = 1)."),
     ("Ranking", "El ranking va junto a los hechos de tránsito de su sección; 1 = el cruce con más. Empates comparten el lugar más alto (método «min»), "
                  "así que muchos cruces con 0 defunciones empatan en el mismo lugar."),
     ("Coordenadas", "Mediana de LATITUD y LONGITUD de los hechos del cruce (WGS84)."),
@@ -237,7 +256,7 @@ def escribir_excel(tabla: pd.DataFrame, ruta) -> None:
         hoja.freeze_panes = "B3"
         hoja.auto_filter.ref = f"A2:{get_column_letter(len(tabla.columns))}{n}"
 
-        anchos = {"Cruce": 48, "Municipio": 22, "Google Maps": 15,
+        anchos = {"Cruce": 48, "Intersección (dos calles)": 14, "Municipio": 22, "Google Maps": 15,
                   "Coordenadas (lat, lon)": 24, "Ranking": 9}
         for k, nombre in enumerate(tabla.columns, start=1):
             letra = get_column_letter(k)

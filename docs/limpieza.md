@@ -42,7 +42,9 @@ siguen la nomenclatura de claves geoestadísticas del INEGI.
 | `calle1_norm` | `string` | Recorte, espacios, mayúsculas, sin acentos | 0.11 % |
 | `calle2_norm` | `string` | Igual | 1.58 % |
 | `calle1_hom` | `string` | `calle1_norm` homologada: sin genérico ni abreviatura, con alias verificados | 0.11 % |
-| `calle2_hom` | `string` | Igual, desde `calle2_norm` | 1.58 % |
+| `calle2_hom` | `string` | Igual, desde `calle2_norm`; el relleno («NINGUNO», «SIN REFERENCIA», «SIN NOMBRE», «CALLE SIN NOMBRE», «0») queda en NA | ~1.8 % |
+| `vialidades_hom` | `string` | El lugar: «A × B» (orden alfabético) si hay dos calles distintas; «A» si falta la calle 2, viene relleno o repite la calle 1 | 0.11 % |
+| `dos_vialidades` | `bool` | `vialidades_hom` nombra dos calles distintas | — |
 | `carretera_norm` | `string` | Igual | 98.51 % |
 | `falta_calle2` | `bool` | `en_interseccion` y `calle2_norm` en NA | 3,072 `True` |
 | `id_punto` | `string` | `"lon,lat"` exacto, vía `str(float)` | 0 |
@@ -88,6 +90,14 @@ Las formas cortas y largas se unen solo con `ALIAS_VIALIDAD`, diez alias
 escritos a mano, y cada uno entra si al menos el 75 % de sus registros cae a
 menos de 100 m del nombre canónico. «LEONES» a secas se quedó fuera con 74.8 %.
 Caso límite aceptado: «CALLE CALZADA SUR» (un registro) queda como «SUR».
+
+**`vialidades_hom` trata igual los tres casos en que el parte nombra una sola
+calle**: calle 2 vacía, relleno en vez de calle (`SIN_CALLE`: «NINGUNO», «SIN
+REFERENCIA», «SIN NOMBRE», «0»; «NO REELECCION» y «NO ME OLVIDES» parecen relleno
+pero son calles) y la calle 1 repetida («MANUEL L. BARRAGAN × MANUEL L.
+BARRAGAN»). En los tres se escribe la calle sola, sin borrar el parte. El par va
+en orden alfabético para que «A × B» y «B × A» sean el mismo cruce.
+«CARRETERA CARRETERA A REYNOSA» se deduplica a «CARRETERA A REYNOSA».
 
 ## Lo que decide no hacer
 
