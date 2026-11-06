@@ -26,12 +26,15 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 from geostats import rutas
+from geostats.limpieza import SEPARADOR_CRUCE
 
 SALIDA = rutas.RAIZ / "docs" / "cruces_zmm.xlsx"
 
-GENERICO = re.compile(r"^(AVENIDA|AV\.?|CALLE|CALZADA|BOULEVARD|BLVD\.?|CARRETERA|"
-                      r"PROLONGACI[OÓ]N|PRIVADA|ANDADOR)\s+", re.IGNORECASE)
-MINUSCULAS = {"De", "Del", "La", "Las", "Los", "Y", "El"}
+# Los mismos genéricos que quita `limpieza._homologar_vialidad`; «Carretera»,
+# «Prolongación» y «Privada» se quedan, igual que en la columna homologada.
+GENERICO = re.compile(r"^(AVENIDA|AVDA\.?|AVE\.?|AV\.?|CALLE|CALZADA|CALZ\.?|BOULEVARD|"
+                      r"BLVD\.?|BLVR\.?)\s+", re.IGNORECASE)
+MINUSCULAS = {"A", "De", "Del", "La", "Las", "Los", "Y", "El"}
 
 # Identidad GeoStats: secciones en la rampa ordinal de azules, texto grafito,
 # rejilla y subencabezados en gris claro.
@@ -46,48 +49,61 @@ GRIS_TEXTO = "6B6B6B"  # rankings: secundarios frente a la cuenta
 
 
 def calle_limpia(calle) -> str | None:
-    """Quita el genérico («Avenida», «Calle»…) y normaliza mayúsculas."""
+    """Quita el genérico («Avenida», «Calle»…) y normaliza mayúsculas.
+
+    El genérico se queda si sin él el nombre empezaría con «de», «la», «los»…
+    («Avenida de las Cumbres», no «De las Cumbres») o no tendría letras
+    («Calle 5»), igual que en la homologación.
+    """
     if not isinstance(calle, str) or not calle.strip():
         return None
-    nombre = GENERICO.sub("", re.sub(r"\s+", " ", calle.strip()))
+    completo = re.sub(r"\s+", " ", calle.strip())
+    nombre = GENERICO.sub("", completo)
+    if nombre.split()[0].title() in MINUSCULAS or not re.search(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3}", nombre):
+        nombre = completo
     palabras = nombre.title().split()
-    return " ".join(p.lower() if p in MINUSCULAS and k else p
+    return " ".join(p.lower() if p in MINUSCULAS and 0 < k < len(palabras) - 1 else p
                     for k, p in enumerate(palabras))
 
 
-def nombres_de_cruce(d: pd.DataFrame) -> pd.Series:
-    """Nombre de cada nodo: el par ordenado de calles más frecuente.
+def nombres_de_cruce(d: pd.DataFrame) -> pd.DataFrame:
+    """Nombre de cada nodo y si nombra dos calles distintas.
 
-    Las calles se comparan por su forma sin acentos ni mayúsculas
-    (`calle*_hom` de `geostats.limpieza` si existe; si no, `calle*_norm` sin el
-    genérico), para que «Lázaro Cárdenas» y «Lazaro Cardenas» sean la misma.
-    Se muestra la escritura más frecuente de cada una. Si un nodo no tiene
-    ningún par completo, se usa la calle 1 más frecuente.
+    El nombre sale de `vialidades_hom` (de `geostats.limpieza`): «A × B» cuando
+    el parte nombra dos calles distintas y «A» sola cuando falta la calle 2,
+    viene relleno («NINGUNO») o repite la calle 1. Votan primero los partes con
+    dos calles: el par más frecuente gana aunque la mayoría del nodo nombre una
+    sola, porque el parte que trae la segunda calle aporta lo que a los otros
+    les falta. «A» sola queda solo si ningún parte del nodo trae un par. El par
+    ya viene en orden alfabético, así que «A × B» y «B × A» votan juntos. Cada
+    calle se muestra con su escritura más frecuente en toda la base.
     """
-    def llave(c: str) -> pd.Series:
-        if f"{c}_hom" in d:
-            return d[f"{c}_hom"]
-        return d[f"{c}_norm"].str.replace(GENERICO, "", regex=True).str.strip()
-
-    k1, k2 = llave("calle1"), llave("calle2")
+    if "vialidades_hom" not in d:
+        raise KeyError("Falta vialidades_hom: vuelve a correr `uv run limpiar-atus`.")
     bonitas = pd.DataFrame({
-        "k": pd.concat([k1, k2], ignore_index=True),
+        "k": pd.concat([d.calle1_hom, d.calle2_hom], ignore_index=True),
         "v": pd.concat([d.CALLE1.map(calle_limpia), d.CALLE2.map(calle_limpia)],
                        ignore_index=True),
     }).dropna()
-    escritura = bonitas.groupby(["k", "v"]).size().reset_index(name="n")         .sort_values(["k", "n", "v"], ascending=[True, False, True])         .drop_duplicates("k").set_index("k").v
+    escritura = (bonitas.groupby(["k", "v"]).size().reset_index(name="n")
+                 .sort_values(["k", "n", "v"], ascending=[True, False, True])
+                 .drop_duplicates("k").set_index("k").v)
 
-    completo = k1.notna() & k2.notna()
-    par = pd.Series(pd.NA, index=d.index, dtype="object")
-    par[completo] = [" × ".join(escritura[a] if a in escritura else a for a in sorted(p))
-                     for p in zip(k1[completo], k2[completo])]
-    sola = k1.map(escritura)
+    def mas_frecuente(votos: pd.DataFrame) -> pd.Series:
+        return (votos.groupby(["nodo", "v"]).size().reset_index(name="n")
+                .sort_values(["nodo", "n", "v"], ascending=[True, False, True])
+                .drop_duplicates("nodo").set_index("nodo").v)
 
-    def moda(s: pd.Series) -> pd.Series:
-        s = pd.DataFrame({"nodo": d.id_punto_4d, "v": s}).dropna()
-        return s.groupby(["nodo", "v"]).size().reset_index(name="n")                 .sort_values(["nodo", "n", "v"], ascending=[True, False, True])                 .drop_duplicates("nodo").set_index("nodo").v
-
-    return moda(par).combine_first(moda(sola))
+    votos = pd.DataFrame({"nodo": d.id_punto_4d, "v": d.vialidades_hom}).dropna()
+    par = votos.v.str.contains(SEPARADOR_CRUCE, regex=False)
+    moda = mas_frecuente(votos[par]).combine_first(mas_frecuente(votos[~par]))
+    nombre = moda.map(lambda v: " × ".join(escritura.get(c, c.title())
+                                           for c in v.split(SEPARADOR_CRUCE)))
+    return pd.DataFrame({
+        "nombre": nombre,
+        "interseccion": moda.str.contains(SEPARADOR_CRUCE, regex=False)
+                            .map({True: "Sí", False: "No"}),
+    })
 
 
 def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
@@ -126,20 +142,35 @@ def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
         "lon": g.LONGITUD.median(),
     })
     cruces = nodos[nodos.ubicacion == "Intersección"].copy()
-    cruces["nombre"] = nombres_de_cruce(d).reindex(cruces.index).fillna("Sin nombre")
+    nombres = nombres_de_cruce(d).reindex(cruces.index)
+    cruces["nombre"] = nombres.nombre.fillna("Sin nombre")
+    cruces["interseccion"] = nombres.interseccion.fillna("No")
 
-    # Cada cuenta lleva su ranking en la columna «r_<cuenta>».
-    for col in [c for c, _ in columnas_de(SECCIONES) if c.startswith("r_")]:
-        base = col[2:]
-        cruces[col] = cruces[base].rank(ascending=False, method="min").astype(int)
     cruces["maps"] = [f"https://www.google.com/maps?q={la:.6f},{lo:.6f}"
                       for la, lo in zip(cruces.lat, cruces.lon)]
     cruces["coordenadas"] = [f"{la:.6f}, {lo:.6f}" for la, lo in zip(cruces.lat, cruces.lon)]
 
-    cruces = cruces.sort_values(["hechos", "defunciones", "nombre"],
-                                ascending=[False, False, True])
+    # Los puntos que no identifican la segunda calle no son un cruce: se juntan
+    # en una fila por calle y municipio. Sin coordenadas, porque una avenida
+    # recorre kilómetros y la mediana de sus puntos no ubica nada.
+    sin_cruce = cruces.interseccion == "No"
+    conteos = [c for c, _ in columnas_de(SECCIONES[1:-1]) if not c.startswith("r_")]
+    calles = (cruces[sin_cruce].groupby(["nombre", "municipio"], as_index=False)[conteos].sum()
+              .assign(nombre=lambda f: "A lo largo de " + f.nombre, interseccion="No",
+                      maps=None, coordenadas=None, lat=None, lon=None))
+    return _rankear(cruces[~sin_cruce]), _rankear(calles)
+
+
+def _rankear(tabla: pd.DataFrame) -> pd.DataFrame:
+    """Rankings dentro de la propia hoja, orden por hechos y encabezados finales."""
+    tabla = tabla.copy()
+    # Cada cuenta lleva su ranking en la columna «r_<cuenta>».
+    for col in [c for c, _ in columnas_de(SECCIONES) if c.startswith("r_")]:
+        tabla[col] = tabla[col[2:]].rank(ascending=False, method="min").astype(int)
+    tabla = tabla.sort_values(["hechos", "defunciones", "nombre"],
+                              ascending=[False, False, True])
     columnas = columnas_de(SECCIONES)
-    return cruces[[c for c, _ in columnas]].set_axis([e for _, e in columnas], axis=1)
+    return tabla[[c for c, _ in columnas]].set_axis([e for _, e in columnas], axis=1)
 
 
 # Secciones de la hoja: (título, [(columna, encabezado), ...]). Cada sección de
@@ -150,7 +181,7 @@ def _conteo(titulo: str, hechos: str, defunciones: str):
 
 
 SECCIONES = [
-    ("Cruce", [("nombre", "Cruce")]),
+    ("Cruce", [("nombre", "Cruce"), ("interseccion", "Intersección (dos calles)")]),
     _conteo("Totales", "hechos", "defunciones"),
     _conteo("Solo peatones", "hechos_peaton", "def_peaton"),
     _conteo("Solo ciclistas", "hechos_ciclista", "def_ciclista"),
@@ -189,8 +220,24 @@ NOTAS = [
                            "ómnibus. Defunciones: todas las de esos hechos."),
     ("Transporte de carga", "Hechos con camión de carga o tractocamión. Defunciones: todas "
                             "las de esos hechos."),
-    ("Nombres de calles", "Se comparan sin acentos ni mayúsculas, así «Lázaro Cárdenas» y "
-                          "«Lazaro Cardenas» son la misma calle; se muestra la escritura más común."),
+    ("Nombres de calles", "Se comparan homologados (sin acentos, sin «Avenida»/«Calle», con "
+                          "alias), así «Lázaro Cárdenas» y «Av. Lazaro Cardenas» son la misma "
+                          "calle; se muestra la escritura más común."),
+    ("Cruce: «A × B» o «A»", "«A × B» cuando los partes nombran dos calles distintas (el orden "
+                             "no importa); si algún parte del cruce trae dos calles, gana el par más "
+                             "frecuente. Solo «A» cuando ningún parte trae una segunda calle distinta: "
+                             "falta, dice «NINGUNO»/«SIN REFERENCIA»/«SIN NOMBRE» o repite la calle 1."),
+    ("Intersección (dos calles)", "Sí si el nombre del cruce tiene dos calles distintas; No si "
+                                  "solo nombra una. Todos los puntos de la tabla están marcados "
+                                  "como intersección por el agente (URBANA = 1)."),
+    ("Calles sin cruce", "Hoja aparte con los puntos que no identifican la segunda calle "
+                         "(«Intersección» = No), sumados en una fila por calle y municipio. "
+                         "Sin coordenadas: una calle recorre kilómetros. Sus rankings son "
+                         "solo entre calles; los de la hoja «Cruces», solo entre cruces."),
+    ("Calles sin cruce con muchos hechos", "Una fila con muchos hechos casi siempre es un punto por defecto, no un "
+                        "cruce: el agente ubicó la calle sin el cruce y todos los partes caen "
+                        "en la misma coordenada. Ej.: «Sendero Norte», 227 hechos de 2019 a "
+                        "2024 en una sola coordenada (98 %). Cuéntelos con cautela."),
     ("Ranking", "El ranking va junto a los hechos de tránsito de su sección; 1 = el cruce con más. Empates comparten el lugar más alto (método «min»), "
                  "así que muchos cruces con 0 defunciones empatan en el mismo lugar."),
     ("Coordenadas", "Mediana de LATITUD y LONGITUD de los hechos del cruce (WGS84)."),
@@ -198,66 +245,17 @@ NOTAS = [
 ]
 
 
-def escribir_excel(tabla: pd.DataFrame, ruta) -> None:
-    """Dos filas de encabezado: la sección (celdas combinadas) y la columna."""
+def escribir_excel(cruces: pd.DataFrame, calles: pd.DataFrame, ruta) -> None:
+    """Una hoja de cruces, una de calles sin cruce y las notas."""
     with pd.ExcelWriter(ruta, engine="openpyxl") as xl:
-        tabla.to_excel(xl, sheet_name="Cruces", index=False, startrow=1)
+        for nombre, tabla in (("Cruces", cruces), ("Calles sin cruce", calles)):
+            tabla.to_excel(xl, sheet_name=nombre, index=False, startrow=1)
+            _dar_formato(xl.sheets[nombre], tabla)
         pd.DataFrame(NOTAS, columns=["Concepto", "Definición"]).to_excel(
             xl, sheet_name="Notas", index=False)
-
-        hoja = xl.sheets["Cruces"]
-        blanco = Font(bold=True, color="FFFFFF")
-        grafito = Font(bold=True, color=GRAFITO)
-        centro = Alignment(horizontal="center", vertical="center", wrap_text=True)
-        separador = Side(style="medium", color=GRAFITO)
-        n = len(tabla) + 2
-
-        col = 1
-        for k, (titulo, pares) in enumerate(SECCIONES):
-            ini, fin = col, col + len(pares) - 1
-            # Alterna los dos tonos de la rampa ordinal para distinguir secciones.
-            tono = RAMPA[k % 2]
-            hoja.merge_cells(start_row=1, start_column=ini, end_row=1, end_column=fin)
-            celda = hoja.cell(row=1, column=ini, value=titulo)
-            celda.font, celda.alignment = blanco, centro
-            for c in range(ini, fin + 1):
-                hoja.cell(row=1, column=c).fill = PatternFill("solid", fgColor=tono)
-                sub = hoja.cell(row=2, column=c)
-                sub.font, sub.alignment = grafito, centro
-                sub.fill = PatternFill("solid", fgColor=GRIS)
-            # Línea gruesa a la izquierda de cada sección, de arriba abajo.
-            if ini > 1:
-                for fila in range(1, n + 1):
-                    celda = hoja.cell(row=fila, column=ini)
-                    celda.border = Border(left=separador)
-            col = fin + 1
-
-        hoja.row_dimensions[1].height = 22
-        hoja.row_dimensions[2].height = 45
-        hoja.freeze_panes = "B3"
-        hoja.auto_filter.ref = f"A2:{get_column_letter(len(tabla.columns))}{n}"
-
-        anchos = {"Cruce": 48, "Municipio": 22, "Google Maps": 15,
-                  "Coordenadas (lat, lon)": 24, "Ranking": 9}
-        for k, nombre in enumerate(tabla.columns, start=1):
-            letra = get_column_letter(k)
-            hoja.column_dimensions[letra].width = anchos.get(nombre, 12)
-            if nombre == "Ranking":
-                for fila in range(3, n + 1):
-                    hoja.cell(row=fila, column=k).font = Font(color=GRIS_TEXTO)
-            elif nombre in ("Latitud", "Longitud"):
-                for fila in range(3, n + 1):
-                    hoja.cell(row=fila, column=k).number_format = "0.000000"
-
-        col_maps = list(tabla.columns).index("Google Maps") + 1
-        for fila in range(3, n + 1):
-            celda = hoja.cell(row=fila, column=col_maps)
-            celda.hyperlink, celda.value = celda.value, "Abrir en Maps"
-            celda.style = "Hyperlink"
-
         notas = xl.sheets["Notas"]
         for celda in notas[1]:
-            celda.font = blanco
+            celda.font = Font(bold=True, color="FFFFFF")
             celda.fill = PatternFill("solid", fgColor=AZUL)
         notas.column_dimensions["A"].width = 34
         notas.column_dimensions["B"].width = 100
@@ -266,12 +264,67 @@ def escribir_excel(tabla: pd.DataFrame, ruta) -> None:
                 celda.alignment = Alignment(wrap_text=True, vertical="top")
 
 
+def _dar_formato(hoja, tabla: pd.DataFrame) -> None:
+    """Dos filas de encabezado: la sección (celdas combinadas) y la columna."""
+    blanco = Font(bold=True, color="FFFFFF")
+    grafito = Font(bold=True, color=GRAFITO)
+    centro = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    separador = Side(style="medium", color=GRAFITO)
+    n = len(tabla) + 2
+
+    col = 1
+    for k, (titulo, pares) in enumerate(SECCIONES):
+        ini, fin = col, col + len(pares) - 1
+        # Alterna los dos tonos de la rampa ordinal para distinguir secciones.
+        tono = RAMPA[k % 2]
+        hoja.merge_cells(start_row=1, start_column=ini, end_row=1, end_column=fin)
+        celda = hoja.cell(row=1, column=ini, value=titulo)
+        celda.font, celda.alignment = blanco, centro
+        for c in range(ini, fin + 1):
+            hoja.cell(row=1, column=c).fill = PatternFill("solid", fgColor=tono)
+            sub = hoja.cell(row=2, column=c)
+            sub.font, sub.alignment = grafito, centro
+            sub.fill = PatternFill("solid", fgColor=GRIS)
+        # Línea gruesa a la izquierda de cada sección, de arriba abajo.
+        if ini > 1:
+            for fila in range(1, n + 1):
+                celda = hoja.cell(row=fila, column=ini)
+                celda.border = Border(left=separador)
+        col = fin + 1
+
+    hoja.row_dimensions[1].height = 22
+    hoja.row_dimensions[2].height = 45
+    hoja.freeze_panes = "B3"
+    hoja.auto_filter.ref = f"A2:{get_column_letter(len(tabla.columns))}{n}"
+
+    anchos = {"Cruce": 48, "Intersección (dos calles)": 14, "Municipio": 22, "Google Maps": 15,
+              "Coordenadas (lat, lon)": 24, "Ranking": 9}
+    for k, nombre in enumerate(tabla.columns, start=1):
+        letra = get_column_letter(k)
+        hoja.column_dimensions[letra].width = anchos.get(nombre, 12)
+        if nombre == "Ranking":
+            for fila in range(3, n + 1):
+                hoja.cell(row=fila, column=k).font = Font(color=GRIS_TEXTO)
+        elif nombre in ("Latitud", "Longitud"):
+            for fila in range(3, n + 1):
+                hoja.cell(row=fila, column=k).number_format = "0.000000"
+
+    col_maps = list(tabla.columns).index("Google Maps") + 1
+    for fila in range(3, n + 1):
+        celda = hoja.cell(row=fila, column=col_maps)
+        if not celda.value:
+            continue
+        celda.hyperlink, celda.value = celda.value, "Abrir en Maps"
+        celda.style = "Hyperlink"
+
+
 def main() -> None:
     argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
     d = pd.read_parquet(rutas.ATUS_ZMM_LIMPIO)
-    tabla = construir_tabla(d)
-    escribir_excel(tabla, SALIDA)
-    print(f"{len(tabla):,} cruces -> {SALIDA.relative_to(rutas.RAIZ)}")
+    cruces, calles = construir_tabla(d)
+    escribir_excel(cruces, calles, SALIDA)
+    print(f"{len(cruces):,} cruces y {len(calles):,} calles sin cruce -> "
+          f"{SALIDA.relative_to(rutas.RAIZ)}")
 
 
 if __name__ == "__main__":

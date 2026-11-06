@@ -67,6 +67,7 @@ from esda.getisord import G_Local
 from statsmodels.stats.multitest import multipletests
 
 from geostats import espacial, rutas
+from geostats.tabla_cruces import nombres_de_cruce
 
 np.random.seed(42)
 
@@ -708,10 +709,12 @@ exactamente lo que hace un modelo jerárquico con *shrinkage*, y es la razón po
 la que el promedio simple por punto no sirve como predictor.
 
 ```{python}
+# El nombre es el de `docs/cruces_zmm.xlsx` (`nombres_de_cruce`): el par
+# homologado más frecuente del punto, no el del primer parte que aparezca.
 top15 = (cruces.groupby("id_punto_4d")
-         .agg(n=("ID", "size"), calle1=("calle1_norm", "first"),
-              calle2=("calle2_norm", "first"), municipio=("NOM_MUN", "first"))
+         .agg(n=("ID", "size"), municipio=("NOM_MUN", lambda s: s.mode().iloc[0]))
          .sort_values("n", ascending=False).head(15))
+top15.insert(0, "cruce", nombres_de_cruce(g).nombre.reindex(top15.index))
 top15["por mes"] = top15.n / 72
 top15 = top15.reset_index(drop=True)
 top15.index = top15.index + 1
