@@ -29,7 +29,7 @@ límites se trazan con frecuencia sobre vialidades principales, que es
 justamente donde se concentran los accidentes: un choque sobre una avenida
 cae en la frontera entre dos polígonos y su asignación es arbitraria. Es el
 problema de la unidad de área modificable (MAUP)
-\cite{openshaw1984maup} en una forma que afecta directamente la asignación de los accidentes viales.
+\parencite{openshaw1984maup} en una forma que afecta directamente la asignación de los accidentes viales.
 Segunda, el área de los AGEB es heterogénea, y comparar conteos exigiría un
 denominador de superficie o de exposición. Tercera, en polígonos irregulares
 el número de vecinos varía considerablemente, y la matriz de pesos espaciales hereda esa
@@ -46,7 +46,7 @@ urbano. El hexágono tiene tres propiedades que el AGEB no tiene: área
 constante (el conteo \emph{es} la densidad), ausencia de sesgo de frontera
 (la rejilla no sabe dónde están las calles) y una vecindad sin ambigüedad
 (seis vecinos que comparten arista, sin la distinción entre vecindad por
-arista y por vértice de la malla cuadrada) \cite{birch2007grids}. La
+arista y por vértice de la malla cuadrada) \parencite{birch2007grids}. La
 contraparte es que el hexágono no trae covariables censales. Esas tendrán
 que interpolarse desde el marco geoestadístico cuando se incorporen.
 
@@ -99,7 +99,7 @@ el 1, 5, 10 y 20\,\% de las celdas con más eventos. Las mismas medidas se
 calculan a escala de intersección para ver si la concentración es una
 propiedad de la rejilla o del fenómeno.
 
-\paragraph{Autocorrelación global.} El $I$ de Moran \cite{moran1950notes},
+\paragraph{Autocorrelación global.} El $I$ de Moran \parencite{moran1950notes},
 \begin{equation}
 	I = \frac{N}{S_0}\,
 	\frac{\sum_i \sum_k w_{ik}\, z_i z_k}{\sum_i z_i^2},
@@ -115,7 +115,7 @@ permutaciones, el menor $p$ alcanzable es $0{,}001$. En el texto, ``$p \le
 no una probabilidad de un milésimo.
 
 \paragraph{Estructura local.} Dos estadísticos con lógica distinta. El LISA
-\cite{anselin1995lisa} descompone el $I$ global en una contribución por
+\parencite{anselin1995lisa} descompone el $I$ global en una contribución por
 celda,
 \begin{equation}
 	I_i = \frac{z_i}{m_2} \sum_k w_{ik}\, z_k,
@@ -124,16 +124,19 @@ celda,
 y clasifica cada celda significativa según su valor y el de sus vecinas:
 Alto--Alto (núcleo de un agrupamiento), Bajo--Bajo, y los dos atípicos
 Alto--Bajo y Bajo--Alto. El $G_i^*$ de Getis--Ord
-\cite{getis1992analysis,ord1995local} pregunta algo más laxo y más
+\parencite{getis1992analysis,ord1995local} pregunta algo más laxo y más
 operativo: si la suma de la celda \emph{y} sus vecinas (el asterisco indica
 que la celda se incluye a sí misma) es alta respecto al total. Un $z$
 positivo grande es un punto caliente y uno negativo, un punto frío. Ambos usan
 inferencia por permutación condicional, con 999 permutaciones y semilla fija.
+El $I$ de Moran, el LISA y el $G_i^*$ se calcularon con \texttt{esda} y la
+matriz de pesos con \texttt{libpysal}, ambos paquetes de PySAL
+\parencite{rey2007pysal,rey2022pysal}.
 
 \paragraph{Comparaciones múltiples.} Un estadístico local es una prueba por
 celda. Con 2,241 pruebas al 5\,\%, el azar solo produce del orden de 112
 rechazos. Todo mapa local se corrige por tasa de falsos descubrimientos con
-el procedimiento de Benjamini--Hochberg \cite{benjamini1995fdr} al 5\,\%, y
+el procedimiento de Benjamini--Hochberg \parencite{benjamini1995fdr} al 5\,\%, y
 se reporta cuántas celdas son significativas antes y después de la
 corrección. Se prefirió FDR a Bonferroni porque el objetivo es un mapa
 (controlar la proporción de celdas falsamente marcadas) y no una afirmación
@@ -154,7 +157,7 @@ que cualquier modelo tiene que superar.
 densidad por núcleo, en sus versiones planas, suponen que un evento puede
 ocurrir en cualquier punto del plano. Aquí solo puede ocurrir sobre la red
 vial, y contrastar contra un nulo plano sobreestimaría el agrupamiento. Las
-versiones restringidas a red \cite{okabe2012network} exigen la geometría de
+versiones restringidas a red \parencite{okabe2012network} exigen la geometría de
 las calles, que todavía no forma parte del repositorio. Se decidió no
 correrlas: contestarían una pregunta que los estadísticos de rejilla ya
 responden (si hay agrupamiento y a qué escalas) a un costo computacional y de datos que se estima en horas de cómputo y en la geometría vial faltante.
@@ -201,7 +204,7 @@ $\Var(Y) = \mu$, va a fallar. Sus coeficientes siguen siendo consistentes
 bajo sobredispersión (lo que se rompe son los errores estándar), así que
 sirve como referencia y como diagnóstico. La sobredispersión se mide de dos
 formas: con el cociente $\chi^2_{\text{Pearson}}/\text{gl}$, y con la prueba
-de Cameron--Trivedi \cite{cameron1990regression}, que estima por mínimos
+de Cameron--Trivedi \parencite{cameron1990regression}, que estima por mínimos
 cuadrados la regresión auxiliar
 \begin{equation}
 	\frac{(y_{it} - \hat\mu_{it})^2 - y_{it}}{\hat\mu_{it}}
@@ -221,20 +224,20 @@ viven los factores no observados: obras, un semáforo descompuesto, la lluvia.
 	\quad \Var(Y_{it}) = \mu_{it} + \frac{\mu_{it}^2}{\theta}.
 \end{equation}
 Es la especificación habitual para la frecuencia de accidentes
-\cite{lord2010statistical}. Se compara con NB1, que tiene la varianza lineal
+\parencite{lord2010statistical}. Se compara con NB1, que tiene la varianza lineal
 en $\mu$, por AIC. La prueba de razón de verosimilitudes entre Poisson y NB2
 no es una $\chi^2_1$ ordinaria. La nula $1/\theta = 0$ está en la frontera del
 espacio de parámetros, y la distribución nula correcta es una mezcla 50:50
-de una masa en cero y una $\chi^2_1$ \cite{self1987asymptotic}, de modo que
+de una masa en cero y una $\chi^2_1$ \parencite{self1987asymptotic}, de modo que
 el valor $p$ es la mitad del de tablas.
 
 \paragraph{Diagnósticos de ajuste.} Los residuales de Pearson y de devianza
 son discretos y sesgados en conteos con muchos ceros, así que no sirven para
 diagnosticar. Se usan dos herramientas específicas. El rootograma colgante
-\cite{kleiber2016visualizing} compara, para cada valor $k$, la raíz de la
+\parencite{kleiber2016visualizing} compara, para cada valor $k$, la raíz de la
 frecuencia esperada con la de la observada; las barras que no tocan el cero
 señalan los valores sub- o sobrepredichos. Los residuales cuantil
-aleatorizados \cite{dunn1996randomized} toman un punto uniforme entre
+aleatorizados \parencite{dunn1996randomized} toman un punto uniforme entre
 $F(y-1)$ y $F(y)$ y lo pasan por la normal inversa. Si el modelo es
 correcto, son exactamente $\mathcal{N}(0,1)$. Promediados por celda,
 permiten calcular el $I$ de Moran del residual y ver si queda estructura
@@ -243,7 +246,7 @@ una parte entre municipios y otra dentro de cada municipio, restando la
 media municipal.
 
 \paragraph{Ceros.} Los modelos inflados en ceros (ZIP, ZINB)
-\cite{lambert1992zero} suponen dos procesos: uno que decide si la
+\parencite{lambert1992zero} suponen dos procesos: uno que decide si la
 observación puede tener eventos (cero estructural) y un conteo. La
 partición ya retira las celdas sin red vial, que eran el cero estructural
 obvio. Para el exceso que pudiera quedar, el ZINB no se usa como modelo
@@ -338,7 +341,7 @@ que no describe a nadie y una pequeña que no admite los saltos. La $t$
 admite ambos.
 
 \paragraph{Nivel de celda: CAR propio.} El perfil de las celdas sigue un
-modelo condicional autorregresivo propio \cite{besag1974spatial}:
+modelo condicional autorregresivo propio \parencite{besag1974spatial}:
 \begin{equation}
 	\mathbf{u} \sim \mathcal{N}\!\left(\mathbf{0},\
 	\sigma_u^2\,(D - \alpha A)^{-1}\right),
@@ -352,8 +355,8 @@ prestada información de sus vecinas, en proporción a lo poco que sabe de sí
 misma.
 
 \paragraph{Por qué CAR propio y no BYM2.} La propuesta original era el modelo
-BYM \cite{besag1991bayesian} en la reparametrización BYM2
-\cite{riebler2016intuitive},
+BYM \parencite{besag1991bayesian} en la reparametrización BYM2
+\parencite{riebler2016intuitive},
 $u_i = \sigma\big(\sqrt{1-\phi}\, v_i + \sqrt{\phi}\, s_i\big)$, con $v$
 independiente, $s$ un ICAR escalado y $\phi$ interpretable como la fracción
 espacial de la varianza. Se intentó en sus parametrizaciones centrada y no
@@ -366,7 +369,7 @@ CAR propio tiene una sola varianza y un solo parámetro de dependencia, es un
 prior propio y se identifica con datos fuertes. $\alpha$ responde la misma
 pregunta que $\phi$ (cuánto se parecen las vecinas) de forma directamente
 estimable. Es la alternativa usual cuando BYM no converge
-\cite{banerjee2015hierarchical}.
+\parencite{banerjee2015hierarchical}.
 
 \paragraph{Priors.} La tabla~\ref{tab:priors} los resume. Son débilmente
 informativos: fijan la escala del problema sin decidir el resultado. Su
@@ -397,13 +400,13 @@ inclinación no es la que produce el resultado. La escala de $\sigma_{rw}$
 corresponde a un cambio anual típico de menos del 60\,\%.
 
 \paragraph{Ajuste.} El modelo se implementó en PyMC
-\cite{abrilpla2023pymc} y se muestreó con NUTS \cite{hoffman2014nuts}
+\parencite{abrilpla2023pymc} y se muestreó con NUTS \parencite{hoffman2014nuts}
 mediante \texttt{nutpie}: cuatro cadenas, 1,000 iteraciones de
 calentamiento y 2,000 muestras por cadena, semilla 42. El reajuste de
 sensibilidad usa 500 muestras por cadena.
 
 \paragraph{Diagnósticos.} Se exigen tres criterios: $\hat{R} < 1.01$ con
-la versión normalizada por rangos \cite{vehtari2021rank}, un tamaño efectivo
+la versión normalizada por rangos \parencite{vehtari2021rank}, un tamaño efectivo
 de muestra suficiente y cero transiciones divergentes. Se diagnostican las
 cantidades \emph{identificadas}: los 11,205 predictores lineales
 $\log \mu_{ia}$ y los hiperparámetros. $\beta_0$ por separado no lo está
@@ -457,7 +460,7 @@ escalas (celda-mes y celda-año) no son comparables entre sí.
 	\item \textbf{Devianza de Poisson y MAE}: ¿acierta la predicción puntual? El
 	      MAE se calcula sobre la media de los GLM y sobre la mediana del ensamble
 	      en el jerárquico.
-	\item \textbf{CRPS} \cite{gneiting2007strictly}: ¿acierta la distribución
+	\item \textbf{CRPS} \parencite{gneiting2007strictly}: ¿acierta la distribución
 	      predictiva entera? Para una predictiva con función de distribución $F$ y
 	      un conteo observado $y$,
 	      \begin{equation}
@@ -475,7 +478,7 @@ escalas (celda-mes y celda-año) no son comparables entre sí.
 	      conteos discretos y muchos ceros, la cobertura tiende a quedar por
 	      encima del nominal.
 	\item \textbf{PAI} (índice de precisión predictiva)
-	      \cite{chainey2008utility}: ¿sirve el modelo para elegir dónde intervenir?
+	      \parencite{chainey2008utility}: ¿sirve el modelo para elegir dónde intervenir?
 	      Se seleccionan las celdas con mayor predicción hasta cubrir una fracción
 	      $a$ del territorio y
 	      \begin{equation}
