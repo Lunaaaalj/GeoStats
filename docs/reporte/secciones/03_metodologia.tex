@@ -129,6 +129,9 @@ operativo: si la suma de la celda \emph{y} sus vecinas (el asterisco indica
 que la celda se incluye a sí misma) es alta respecto al total. Un $z$
 positivo grande es un punto caliente y uno negativo, un punto frío. Ambos usan
 inferencia por permutación condicional, con 999 permutaciones y semilla fija.
+El $I$ de Moran, el LISA y el $G_i^*$ se calcularon con \texttt{esda} y la
+matriz de pesos con \texttt{libpysal}, ambos paquetes de PySAL
+\parencite{rey2007pysal,rey2022pysal}.
 
 \paragraph{Comparaciones múltiples.} Un estadístico local es una prueba por
 celda. Con 2,241 pruebas al 5\,\%, el azar solo produce del orden de 112
