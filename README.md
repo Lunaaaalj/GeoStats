@@ -168,7 +168,7 @@ usuario y gravedad.
 flowchart LR
     A["data/raw/<br/>CSV + shapefile<br/>INEGI · ATUS 2019–2024"] -->|"consolidar-atus"| B[("atus_georreferenciado<br/>.parquet<br/>1.3M filas · nacional")]
     B -->|"zona-atus"| C[("atus_zmm.parquet<br/>379K filas · ZMM<br/>18 municipios")]
-    C -->|"limpieza"| D[("atus_zmm_limpio.parquet<br/>+20 columnas derivadas")]
+    C -->|"limpieza"| D[("atus_zmm_limpio.parquet<br/>+22 columnas derivadas")]
     D --> E["notebooks/*.qmd<br/>análisis espacial,<br/>modelo jerárquico"]
     D --> F["docs/presentacion/<br/>datos.json → index.html"]
     E --> G["docs/*.pdf<br/>reporte técnico"]
@@ -189,7 +189,7 @@ Python + `uv`, con una regla fija: **nunca se escribe en `data/raw/`**.
 uv sync
 uv run consolidar-atus   # raw/ → atus_georreferenciado.parquet (nacional)
 uv run zona-atus         # → atus_zmm.parquet (Zona Metropolitana de Monterrey)
-uv run limpiar-atus      # → atus_zmm_limpio.parquet (+20 columnas derivadas)
+uv run limpiar-atus      # → atus_zmm_limpio.parquet (+22 columnas derivadas)
 ```
 
 El resto — estructura de carpetas, cómo se limpia el encoding, por qué `ID`
