@@ -1,2 +1,144 @@
 \section{Reproducibilidad}\label{app:reproducibilidad}
-% Comandos del pipeline (uv), notebooks Quarto, versiones de software, semilla.
+
+El entorno se reconstruye con \texttt{uv sync} desde \texttt{uv.lock}, que fija
+115 paquetes, y los datos, con los comandos de \texttt{[project.scripts]} en
+\texttt{pyproject.toml} (tabla~\ref{tab:comandos}). Cada comando depende de la
+salida del anterior. \texttt{consolidar-atus} exige las descargas del INEGI en
+\texttt{data/raw/} ($\sim$5\,GB), fuera de git y de solo lectura;
+\texttt{atus\_georreferenciado} y \texttt{atus\_zmm}, con sus versiones
+GeoParquet, están versionados, de modo que un clon parte de
+\texttt{uv run limpiar-atus --geo}, único paso obligatorio para los
+\emph{notebooks}. Los archivos \texttt{*\_limpio*} no se versionan.
+
+\begin{table*}
+	\centering\footnotesize
+	\caption{Comandos del \emph{pipeline}. Los archivos de salida están en
+		\texttt{data/processed/}, salvo el indicado.}
+	\label{tab:comandos}
+	\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.3\textwidth}>{\raggedright\arraybackslash}p{0.3\textwidth}>{\raggedright\arraybackslash}p{0.33\textwidth}@{}}
+		\toprule
+		Comando                                   & Entrada                                    & Salida                                                   \\
+		\midrule
+		\texttt{uv sync}                          & \texttt{uv.lock}                           & Entorno virtual \texttt{.venv/}                          \\
+		\texttt{uv run consolidar-atus [--geo]}   & \texttt{data/raw/ATUS\_20XX/*.csv}         & \texttt{atus\_georreferenciado.parquet} y, con
+		\texttt{--geo}, \texttt{atus\_georreferenciado\_geo.parquet}                                                                                          \\
+		\texttt{uv run consolidar-atus --verificar} & \texttt{.shp} y \texttt{.csv} de \texttt{data/raw/} & Contraste por año en pantalla; no escribe archivos       \\
+		\texttt{uv run zona-atus [--geo]}         & \texttt{atus\_georreferenciado.parquet}    & \texttt{atus\_zmm.parquet} y, con \texttt{--geo},
+		\texttt{atus\_zmm\_geo.parquet}                                                                                                                       \\
+		\texttt{uv run limpiar-atus [--geo]}      & \texttt{atus\_zmm.parquet}                 & \texttt{atus\_zmm\_limpio.parquet} y, con \texttt{--geo},
+		\texttt{atus\_zmm\_limpio\_geo.parquet}                                                                                                               \\
+		\texttt{uv run tabla-cruces}              & \texttt{atus\_zmm\_limpio.parquet}         & \texttt{docs/cruces\_zmm.xlsx}                           \\
+		\bottomrule
+	\end{tabular}
+\end{table*}
+
+\paragraph{Notebooks.} Los análisis son archivos Quarto (\texttt{.qmd}) en
+\texttt{notebooks/}, y ninguno lee la salida de otro, de modo que el orden de
+ejecución entre ellos no importa (tabla~\ref{tab:notebooks}). El \texttt{.qmd} no guarda salidas: las
+cifras del reporte se contrastan con el PDF de \texttt{docs/}, que se produce con
+\begingroup\footnotesize
+\begin{verbatim}
+PYTHONPATH=$PWD/src \
+QUARTO_PYTHON=.venv/bin/python \
+quarto render notebooks/<nombre>.qmd \
+  --to html --execute-daemon-restart
+chrome --headless --no-pdf-header-footer \
+  --print-to-pdf=docs/<nombre>.pdf \
+  notebooks/<nombre>.html
+\end{verbatim}
+\endgroup
+\noindent El reporte se compila desde \texttt{docs/reporte/} con
+\texttt{latexmk -pdf main.tex}, y requiere \texttt{biber}.
+\texttt{notebooks/calidad\_datos.ipynb}, \texttt{notebooks/revisiones.ipynb} y
+\texttt{notebooks/mapa\_calor.py} no producen cifras de este reporte.
+
+\begin{table*}
+	\centering\footnotesize
+	\caption{\emph{Notebooks}, insumo, sección del reporte que alimentan y
+		semillas. Sin semilla significa que el código no usa generadores aleatorios.}
+	\label{tab:notebooks}
+	\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.13\textwidth}>{\raggedright\arraybackslash}p{0.41\textwidth}@{}}
+		\toprule
+		\emph{Notebook} & Insumo & Sección & Semillas \\
+		\midrule
+		\texttt{calidad\_datos} & \texttt{atus\_zmm.parquet} & §\ref{sec:datos-calidad} & Sin semilla \\
+		\addlinespace
+		\texttt{analisis\_espacial} & \texttt{atus\_zmm\_limpio\_geo} & §\ref{sec:res-espacial}
+		& 42: \texttt{np.random.seed} (estado global, $I$ de Moran con 999 y 199
+		permutaciones) y \texttt{seed} de \texttt{Moran\_Local} y \texttt{G\_Local} \\
+		\addlinespace
+		\texttt{modelo\_conteo} & \texttt{atus\_zmm\_limpio\_geo} & §\ref{sec:res-conteo}
+		& 42: \texttt{default\_rng} (residuales cuantil). Los \texttt{Moran} con 999
+		permutaciones usan \texttt{np.random} sin semilla \\
+		\addlinespace
+		\texttt{modelo\_jerarquico} & \texttt{atus\_zmm\_limpio\_geo} & §\ref{sec:res-jerarquico},
+		§\ref{sec:res-validacion}
+		& 42 (\texttt{SEMILLA}): \texttt{default\_rng} (simulación predictiva) y
+		\texttt{random\_seed} de \texttt{pm.sample} \\
+		\addlinespace
+		\texttt{pronostico\_2027} & \texttt{atus\_zmm\_limpio\_geo} & No citado
+		& 42 (\texttt{SEMILLA}): \texttt{default\_rng} y \texttt{random\_seed} de
+		\texttt{pm.sample}. Escribe \texttt{pronostico\_2027\_geo.parquet} \\
+		\addlinespace
+		\texttt{analisis\_multivariado} & \texttt{atus\_zmm\_limpio} & No citado
+		& 20260915: \texttt{default\_rng} (submuestras) y \texttt{random\_state} de la
+		muestra de Kendall; 7: datos de control de normalidad; 0:
+		\texttt{FactorAnalysis} \\
+		\addlinespace
+		\texttt{patrones\_espaciales} & \texttt{atus\_zmm\_limpio} & No citado
+		& 0: \texttt{KMeans}; 1, 7 y 42: estabilidad de la partición \\
+		\addlinespace
+		\texttt{cruces\_peatones} & \texttt{atus\_zmm\_limpio} y descargas por red & No citado
+		& Sin semilla \\
+		\bottomrule
+	\end{tabular}
+\end{table*}
+
+\paragraph{Versiones de software.} La tabla~\ref{tab:versiones} lista las
+versiones de \texttt{uv.lock}. El modelo se escribió en PyMC
+\parencite{abrilpla2023pymc} y se muestreó con \texttt{nutpie}; \texttt{esda} y
+\texttt{libpysal} calculan los estadísticos espaciales y la contigüidad.
+\texttt{arviz} es dependencia indirecta, a través de PyMC. Python se fija en 3.14
+(\texttt{.python-version}, \texttt{requires-python = ">=3.14"}), sin fijar el
+parche. El repositorio no fija las versiones de Quarto, de la distribución de
+\LaTeX\ ni de Chrome, ni la de \texttt{uv}; solo acota el empaquetador
+\texttt{uv\_build} a \texttt{>=0.12.7,<0.13.0}.
+
+\begin{table}
+	\centering\small
+	\caption{Versiones fijadas en \texttt{uv.lock}.}
+	\label{tab:versiones}
+	\begin{tabular}{@{}lrlr@{}}
+		\toprule
+		Paquete             & Versión & Paquete               & Versión \\
+		\midrule
+		\texttt{pymc}       & 6.3.2   & \texttt{geopandas}    & 1.1.4   \\
+		\texttt{pytensor}   & 3.3.2   & \texttt{shapely}      & 2.1.2   \\
+		\texttt{nutpie}     & 0.16.11 & \texttt{pyproj}       & 3.7.2   \\
+		\texttt{arviz}      & 1.3.0   & \texttt{libpysal}     & 4.15.0  \\
+		\texttt{numpy}      & 2.5.2   & \texttt{esda}         & 2.10.0  \\
+		\texttt{pandas}     & 3.0.5   & \texttt{statsmodels}  & 0.15.0  \\
+		\texttt{scipy}      & 1.18.1  & \texttt{scikit-learn} & 1.9.1   \\
+		\texttt{matplotlib} & 3.11.1  & \texttt{pyarrow}      & 25.0.1  \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\paragraph{Semillas.} No hay una semilla global: \texttt{src/} no usa generadores
+aleatorios, y cada \emph{notebook} fija las suyas (tabla~\ref{tab:notebooks}). La
+de los tres \emph{notebooks} de modelos y del análisis espacial es 42. En
+\texttt{modelo\_jerarquico} el generador \texttt{rng} se consume en orden, así que
+los resultados de la simulación dependen de ejecutar las celdas en secuencia.
+
+\paragraph{Límites de la reproducción.} Primero, cuatro resultados de
+\texttt{modelo\_jerarquico.qmd} constan solo en su prosa, sin celda que los
+produzca: los ajustes de BYM2 ($\hat{R}$ de 2.06 y 1.65), las innovaciones normales
+($\sigma_{rw} = 0.61$), la deriva municipal ($\sigma_d = 0.07$, 46 divergencias) y
+el $I$ de Moran de 0.41 neto del municipio. Segundo, en
+\texttt{modelo\_conteo.qmd} los valores $z$ de Moran dependen de permutaciones sin
+semilla; el estadístico $I$ no. Tercero, la prosa de
+\texttt{modelo\_jerarquico.qmd} conserva $\hat{R} = 1.009$ y $\alpha = 0.84$,
+mientras que la salida del PDF da 1.005 y 0.848; este reporte usa la salida. La
+igualdad numérica entre dos ejecuciones con la misma semilla no se comprobó: las
+semillas fijan el flujo aleatorio, no la igualdad de resultados entre máquinas o
+versiones.
