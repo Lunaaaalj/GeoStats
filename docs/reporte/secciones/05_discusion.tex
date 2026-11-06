@@ -1,3 +1,194 @@
 \section{Discusión}\label{sec:discusion}
-% Régimen de reporte municipal como fuente dominante de error; lo que la base
-% puede y no puede decir; limitaciones; caminos que no funcionaron.
+
+Los resultados de la sección~\ref{sec:resultados} cuentan dos historias que
+conviene separar. Una es espacial y es robusta: la siniestralidad registrada
+en la ZMM se concentra en corredores, la estructura persiste entre años y
+sobrevive a la escala y a la corrección por pruebas múltiples. La otra es
+temporal y es administrativa: el nivel de cada municipio cambia de un año a
+otro por razones que no tienen que ver con el tránsito.
+
+\subsection{El régimen de reporte municipal como fuente principal de error}\label{sec:disc-regimen}
+
+El supuesto implícito de cualquier modelo de conteos sobre registros
+administrativos es que el subregistro existe pero es estable: si un municipio
+captura la mitad de sus accidentes, los captura así todos los años, y el sesgo
+se absorbe en el intercepto. La literatura vial documenta que el subregistro
+es la norma y no la excepción, y que su nivel varía con la severidad y con el
+país \parencite{elvik1999}. Lo que esta base muestra es que en la ZMM
+tampoco es estable en el tiempo. Santa Catarina pasa de 3 registros en 2020 a
+cerca de tres mil en 2023; Guadalupe alcanza su máximo en plena pandemia y cae
+a un tercio en 2024; Salinas Victoria alterna entre dos niveles año con año.
+Ninguna dinámica vial produce saltos de ese tamaño en un solo periodo: lo que
+cambia es la práctica de captura.
+
+Tres resultados independientes apuntan a la misma causa. Primero, el residual
+de la Binomial Negativa tiene forma de municipio: su $I$ de Moran cae de 0.31
+a 0.07 al quitar la media municipal (sección~\ref{sec:res-conteo}), de modo que
+lo que parecía un proceso espacial fino que faltaba modelar eran 18 bloques
+con un nivel distinto cada uno. Eso explica también por qué el rezago espacial
+no aportó nada: las vecinas de una celda comparten municipio y se equivocan en
+la misma dirección. Segundo, el exceso de ceros sobre la Binomial Negativa se
+concentra en unos pocos pares municipio$\times$periodo, con Santa Catarina antes
+de 2022 a la cabeza; son celdas cuyo municipio no reportaba, no celdas sin
+riesgo. \textcite{lord2005} advierten que la inflación de ceros en datos de
+accidentes suele ser un artefacto de subregistro o de una unidad de análisis
+mal elegida y no un segundo proceso generador; aquí el diagnóstico es
+explícito. Tercero, dos años recientes de historia predicen 2024 mejor que
+cinco, lo que solo tiene sentido si los años viejos describen un régimen de
+reporte que ya no rige.
+
+La consecuencia de diseño fue convertir el diagnóstico en estructura: el
+modelo jerárquico separa un efecto municipal dinámico $m_{j,a}$, que absorbe
+\emph{cuánto se reporta}, de un efecto espacial $u_i$ por celda, que absorbe
+\emph{dónde, dentro del municipio, se concentra}. La separación tiene un
+precio que hay que declarar: $m_{j,a}$ no es siniestralidad. Es la mezcla
+inseparable de riesgo real y de intensidad de captura, y con esta base no hay
+forma de repartirla. Lo que sí se gana es que $u_i$ queda neto del régimen:
+es el primer producto del proyecto que compara a Guadalupe con Guadalupe.
+
+La misma lógica pone un techo al pronóstico. El régimen de 2024 no está en los
+datos de 2019--2023, y ningún modelo entrenado con el pasado puede anticipar
+que un municipio empiece o deje de reportar. El pronóstico del jerárquico es
+por persistencia —toma el nivel municipal de 2023— y sus intervalos son, por
+construcción, un piso de la incertidumbre real: no incluyen el riesgo de
+cambio de régimen. La alternativa natural, propagar una innovación $t_3$ más,
+no está disponible: $\E[e^{T}] = \infty$ para cualquier $t$ de Student, y la
+media predictiva y el CRPS dejarían de existir. Que el jerárquico cubra el
+87\,\% con un intervalo nominal del 90\,\% aun sin ese término indica que el
+resto de la incertidumbre está bien representada; el faltante es precisamente
+el régimen.
+
+\subsection{Lo que la base puede y no puede decir}\label{sec:disc-alcance}
+
+La distinción anterior permite delimitar con precisión el alcance de los
+resultados.
+
+\paragraph{Lo que puede decir.} Dónde se concentra el \emph{reporte} de
+accidentes, con qué estructura espacial y con qué persistencia. El índice de
+Gini, el $I$ de Moran y los mapas locales con FDR coinciden a 250, 500 y
+1\,000\,m de lado, lo que descarta que la estructura sea un artefacto de la
+rejilla \parencite{openshaw1984}. El ranking de celdas de 2019 correlaciona 0,83
+con el de 2024, con una pandemia de por medio. Y, dentro de cada municipio,
+la base sostiene un perfil de riesgo relativo $u_i$ con la incertidumbre que
+corresponde a cada celda: las celdas con pocos accidentes no se encogen mucho
+en su estimación puntual, pero su intervalo es tres veces más ancho que el de
+las celdas con más de cien, y esa diferencia es información para decidir.
+
+\paragraph{Lo que no puede decir.} Primero, no distingue un municipio donde
+bajó el riesgo de uno que dejó de capturar accidentes; quien use $m_{j,a}$ o
+las series municipales como indicador de seguridad vial tiene que resolver esa
+ambigüedad por fuera, con otra fuente. Segundo, no anticipa cambios de régimen.
+Tercero, no dice \emph{por qué} una celda es riesgosa: sin exposición (tránsito,
+kilómetros de vialidad) un corredor con muchos accidentes puede ser un corredor
+peligroso o un corredor transitado. La exposición es la
+covariable central de los modelos de frecuencia de accidentes
+\parencite{lord2010}; sin ella, lo que aquí se estima es frecuencia y no tasa.
+Cuarto, no permite inferencia causal sobre intervenciones: todas las
+covariables son estructurales y ninguna es manipulable.
+
+\paragraph{El PAI como síntesis.} El índice de precisión predictiva al 5\,\%
+vale 8.4 en todos los modelos, desde el conteo histórico hasta el jerárquico.
+Es la expresión cuantitativa de los dos párrafos anteriores. El \emph{dónde} lo
+decide el historial, que es lo que la base mide bien; las
+mejoras del jerárquico están en el \emph{cuánto} y en el \emph{con qué
+	certeza} (CRPS 6.17 contra 6.56), que es donde el régimen pesa. El PAI es la
+métrica habitual para juzgar mapas de puntos calientes \parencite{chainey2008}, y
+moverlo exige covariables que varíen por celda y que el historial no contenga, y esas
+no están en ATUS.
+
+\subsection{Limitaciones}\label{sec:disc-limitaciones}
+
+\paragraph{Geocodificación por intersección.} ATUS georreferencia la
+intersección reportada, no el punto físico del choque: el 97,6\,\% de las
+coordenadas distintas corresponde a un único par de calles. La rejilla de
+500\,m tolera bien ese error de posición, pero cualquier análisis a escala de
+cuadra o de tramo hereda un dato discreto sobre unos 60\,000 nodos, no un
+patrón de puntos continuo.
+
+\paragraph{Cambio de procedimiento en 2022.} La matriz de Spearman entre años
+tiene dos bloques, 2019--2021 y 2022--2024, que coinciden con la aparición del
+campo \texttt{OID} en los archivos del INEGI. La hipótesis más económica es un
+cambio en el procedimiento de georreferenciación. Se incorporó como indicador
+de periodo, pero no se pudo verificar con documentación de la fuente; si la
+causa fuera otra, la lectura de la discontinuidad cambiaría, aunque no la del
+régimen municipal, que opera sobre el volumen y no sobre la posición.
+
+\paragraph{Faltantes no aleatorios.} Los campos con códigos centinela tienen
+un mecanismo MNAR: en accidentes fatales el aliento alcohólico se ignora 2.4
+veces más seguido (sección~\ref{sec:datos-calidad}). El modelo de conteo no
+usa esos campos, así que no lo afecta; cualquier modelo de severidad futuro
+tendrá que tratarlos explícitamente.
+
+\paragraph{Una sola ventana de validación.} La validación fuera de muestra se
+hizo en un solo año, 2024. Es la única prueba honesta disponible —un
+jerárquico con 2\,241 efectos de celda ajusta el pasado casi a la perfección—,
+pero un solo año no permite estimar la variabilidad de las métricas entre
+ventanas, y 2024 pudo ser un año con más o menos cambios de régimen que el
+típico.
+
+\paragraph{Escala anual.} El jerárquico se ajusta sobre celda$\times$año. El
+supuesto de separabilidad espacio-tiempo está apoyado (el efecto de mes es
+común a todas las celdas y aportó casi nada), pero el modelo no dice nada
+sobre estacionalidad local ni sobre horarios, que son preguntas operativas.
+
+\paragraph{Cobertura territorial.} Se retiraron las celdas sin accidentes en
+6 años y las 103 celdas isla. La decisión se justifica porque una celda vacía
+en 379 mil registros no tiene red vial, pero implica que el modelo no
+predice para territorio donde la urbanización todavía no llega, que es
+donde crece la periferia.
+
+\subsection{Caminos que no funcionaron}\label{sec:disc-caminos}
+
+Se documentan porque cada uno descarta una explicación y porque, sin el
+registro, alguien volvería a intentarlos.
+
+\paragraph{BYM2.} La especificación original del nivel de celda era BYM2
+\parencite{riebler2016}, que separa un componente espacial ICAR de uno
+independiente y hace interpretable la fracción espacial $\phi$. No se
+identificó en ninguna de sus dos parametrizaciones: la no centrada llevó
+$\phi$ a 0 y la centrada a 1, con $\hat{R}$ de 2.06 y 1.65. El motivo es de
+estructura y no de ajuste fino del muestreador. Con 5 años de conteos por
+celda los datos fijan cada $u_i$ casi por completo, y el reparto entre
+``espacial'' e ``independiente'' solo lo sostienen los priors. La estructura
+espacial existe —el Moran de la tasa por celda neta del municipio es 0.41—; lo
+que falta es información para descomponerla. El CAR propio, con una sola
+varianza y un solo $\alpha$, se identifica sin problema. La lección es general:
+BYM2 está pensado para mapeo de enfermedades con conteos escasos por área, y
+pierde su ventaja cuando cada área tiene información de sobra.
+
+\paragraph{Rezago espacial en el GLM.} Incluir el promedio de las vecinas como
+covariable, con un Moran de 0,65 en los conteos, parecía obvio. Su coeficiente
+fue $-0{,}002$ ($t = -0{,}6$). Fue el primer indicio de que el residual no era
+espacial fino sino municipal (sección~\ref{sec:disc-regimen}).
+
+\paragraph{Inflación de ceros.} El ZINB con inflación constante mejora el AIC,
+pero reparte la probabilidad de cero estructural entre todas las celdas por
+igual, cuando el exceso está concentrado en unos pocos municipios y periodos.
+Ganar AIC con un mecanismo equivocado no es mejorar el modelo; el fenómeno se
+modeló donde ocurre, en el nivel municipal.
+
+\paragraph{Innovaciones normales.} Con una caminata aleatoria normal para el
+municipio, $\sigma_{rw}$ salió en 0.61: inflada por los pocos municipios que
+saltan, y por tanto demasiado ancha para los que apenas se mueven. Con
+innovaciones $t_3$ bajó a 0.29, que describe al municipio típico, y los saltos
+quedan en las colas.
+
+\paragraph{Deriva municipal.} Una tendencia local por municipio, pensada para
+capturar el crecimiento de la periferia, se encogió a cero ($\sigma_d = 0{,}07$),
+introdujo 46 divergencias y no mejoró el CRPS. Con cinco años y cambios de
+régimen, los datos no distinguen una tendencia de una racha de innovaciones.
+
+\paragraph{Ventanas de historia por AIC.} Cuando el GLM recibe la historia
+completa y la reciente, elige la completa, porque en entrenamiento explica
+mejor 2019--2021 al incluirlos; fuera de muestra pierde. Es la razón por la que
+ninguna comparación del proyecto se hace con criterios de información sobre
+el periodo de ajuste, sino con la validación en 2024.
+
+\paragraph{Lo que no se intentó.} La función $K$ de Ripley y la densidad kernel
+en su versión plana suponen que un accidente puede ocurrir en cualquier punto
+del plano; aquí solo puede ocurrir sobre la red vial, y el nulo plano
+sobreestimaría el agrupamiento. Las versiones restringidas a red
+\parencite{okabe2001} exigen la geometría de las calles, que el proyecto no tiene.
+Habrían confirmado algo ya establecido —que hay agrupamiento y a qué escalas—,
+así que se pospusieron hasta tener la red vial, que es también la covariable
+de exposición que falta (sección~\ref{sec:conclusiones}).
