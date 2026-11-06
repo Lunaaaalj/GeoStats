@@ -10,6 +10,10 @@ una aplicación. Todo el repo (código, comentarios, docs, commits) está en
 **español**; mantener ese idioma. Los commits siguen Conventional Commits en
 español (`feat(zonas): …`, `docs(datos): …`).
 
+Todo texto (docs, prosa de notebooks, reporte, docstrings, commits) sigue
+[`STYLE.md`](STYLE.md): redacción técnica, impersonal y densa. Leerlo antes
+de escribir o editar documentación.
+
 ## Comandos
 
 ```bash
@@ -21,9 +25,13 @@ uv run consolidar-atus --verificar   # contrasta .shp vs CSV por año (lee ~5 GB
 
 uv run zona-atus                     # processed/atus_georreferenciado.parquet → processed/atus_zmm.parquet
 uv run zona-atus --geo               # además atus_zmm_geo.parquet
+
+uv run limpiar-atus                  # processed/atus_zmm.parquet → processed/atus_zmm_limpio.parquet
+uv run limpiar-atus --geo            # además atus_zmm_limpio_geo.parquet
+uv run tabla-cruces                  # processed/atus_zmm_limpio.parquet → docs/cruces_zmm.xlsx
 ```
 
-`zona-atus` depende de que `consolidar-atus` haya corrido antes. No hay tests
+Cada comando depende de que el anterior haya corrido. No hay tests
 ni linter configurados.
 
 Si `import geostats` falla (uv + Python 3.14 en macOS deja el `.pth` oculto y
@@ -43,10 +51,13 @@ src/geostats/
   rutas.py       constantes de rutas absolutas resueltas desde el paquete
   consolidar.py  raw → parquet nacional; validaciones; escribir_geoparquet()
   zonas.py       recorte a la ZMM (usa consolidar.escribir_geoparquet para --geo)
+  limpieza.py    columnas derivadas y validación; no borra filas ni imputa (ver docs/limpieza.md)
+  tabla_cruces.py  tabla de cruces en Excel; define nombres_de_cruce() para los notebooks
   espacial.py    rejilla hexagonal, CRS métrico (UTM 14N) y celdas(): la partición común de análisis y modelo
 notebooks/       consumen processed/ vía `from geostats import rutas, zonas`
 docs/            diccionario de datos, selección de variables y el PDF de cada notebook
-docs/reporte/    reporte técnico en LaTeX (latexmk -pdf reporte.tex); figuras/ se extraen del HTML de los notebooks
+docs/reporte/    reporte técnico en LaTeX: main.tex incorpora secciones/ (latexmk -pdf main.tex); reporte.tex es el documento previo; figuras/ se extraen del HTML de los notebooks
+.claude/agents/  subagentes del proyecto: redactor-reporte, verificador-cifras, analista-atus
 data/            fuera del repo salvo .gitkeep (~5 GB)
 ```
 
@@ -66,7 +77,8 @@ absoluto (Quarto lanza el kernel desde `notebooks/`) y `--execute-daemon-restart
 (el daemon conserva el `sys.path` roto entre renders) son los que resuelven.
 En Windows, `QUARTO_PYTHON=.venv/Scripts/python.exe`.
 
-El PDF sale del HTML porque no hay LaTeX en estas máquinas. El HTML intermedio
+El PDF de los notebooks sale del HTML para no exigir LaTeX en cada máquina; solo
+el reporte lo necesita. El HTML intermedio
 está en `.gitignore`; al repo van solo el `.qmd` y el PDF de `docs/`.
 
 **Regla del proyecto: nunca se escribe en `data/raw/`.** `processed/` es
