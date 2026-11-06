@@ -1,9 +1,224 @@
 \section{Datos}\label{sec:datos}
 
 \subsection{Fuente y recorte a la ZMM}\label{sec:datos-fuente}
-\nocite{inegi_atus}% ATUS (INEGI), 2019--2024; los 18 municipios de la ZMM; llave (ANIO, EDO, MPIO, ID).
+
+La fuente es la base georreferenciada de Accidentes de Tránsito Terrestre en
+Zonas Urbanas y Suburbanas (ATUS) del Instituto Nacional de Estadística y
+Geografía (INEGI) \parencite{inegi_atus}, años 2019--2024: 1,317,810 accidentes,
+una fila por accidente, con coordenadas en WGS\,84. La consolidación deja 50
+columnas: descarta \texttt{OID}, presente solo en los archivos de 2022--2024, y
+agrega \texttt{CVE\_MUN}, la clave municipal de cinco dígitos. La cobertura no es
+nacional: la base incluye solo municipios con zonas urbanas seleccionadas, 198 en
+total.
+
+El análisis se restringe a los 18 municipios de la Zona Metropolitana de
+Monterrey (ZMM) según el Sistema Urbano Nacional, listados en
+\texttt{zonas.ZMM\_MONTERREY}: 379,294 accidentes (28.8\,\% de la base) en
+\texttt{atus\_zmm.parquet}, con 51 columnas tras agregar \texttt{NOM\_MUN}.
+% PENDIENTE: cita del Sistema Urbano Nacional (CONAPO-SEDATU-INEGI); no hay llave en referencias.bib.
+Esos 18 municipios son los únicos de Nuevo León en ATUS, de modo que
+\texttt{EDO == 19} produce el mismo recorte. Se conserva la lista explícita para
+que el recorte no dependa de esa coincidencia: el código falla si falta un
+municipio.
+
+\texttt{ID} no es llave: 268,920 filas repiten un valor ya presente, porque es un
+folio numérico en 2019--2020 y un identificador compuesto desde 2021. La llave es
+$(\texttt{ANIO}, \texttt{EDO}, \texttt{MPIO}, \texttt{ID})$, sin duplicados en la
+base ni en el recorte; la consolidación falla si aparece alguno.
 
 \subsection{Calidad y propiedades de la base}\label{sec:datos-calidad}
-% Encoding, centinelas MNAR, panel nacional desbalanceado vs. ZMM balanceada.
+
+\paragraph{Integridad.} Las diez pruebas de coherencia interna del
+\emph{notebook} \texttt{calidad\_datos} dan cero violaciones en los 379,294
+registros: los totales de víctimas cuadran con sus componentes, \texttt{CLASE} es
+coherente con las víctimas, \texttt{URBANA} y \texttt{SUBURBANA} se excluyen, todo
+accidente tiene al menos un vehículo, las edades válidas caen en 12--98, la llave
+no se repite y ningún registro cae fuera de la ZMM. Los problemas de la base
+están en la captura, no en la consistencia del archivo.
+
+\paragraph{Codificación.} Los CSV se leen como CP1252, con un manejador de errores
+que aplica latin-1 a los bytes que CP1252 no define. Se descartó latin-1 directo
+porque convierte en caracteres de control los 719 caracteres del rango
+\texttt{0x80}--\texttt{0x9F} que CP1252 sí define. Los 740 bytes indefinidos
+(\texttt{0x81} y \texttt{0x8D}) se conservan sin sustitución, pero conservarlos no
+repara el texto: los 740 siguen a \texttt{Í}, \texttt{Ã} o \texttt{Â}, como en
+\texttt{RUÍ} más \texttt{0x8D} por \texttt{RUÍZ}, patrón compatible con doble
+codificación en el origen. Afectan a 704 registros de la base y a 82 de la ZMM,
+siempre en \texttt{CALLE1}, \texttt{CALLE2} o \texttt{CARRETERA}, campos que los
+modelos no usan.
+
+\paragraph{Panel desbalanceado en la base, balanceado en la ZMM.} La base pasa de
+91 a 198 municipios (cuadro~\ref{tab:datos-panel}). El salto 2020→2021, de 48,338
+registros (32.0\,\%), es sobre todo cobertura y no siniestralidad: 33,771 de esos
+registros (69.9\,\%) provienen de 76 municipios ausentes en 2020, y los 91 municipios
+presentes los seis años crecen 9.3\,\%. En la ZMM, con los mismos 18 municipios,
+el aumento es de 3.0\,\%. Por eso las series de tiempo se construyen sobre
+\texttt{atus\_zmm.parquet} y no se comparan con el agregado de la base.
+
+\begin{table}
+	\centering\small
+	\caption{Registros y municipios por año en la base georreferenciada y en la
+		ZMM.}
+	\label{tab:datos-panel}
+	\begin{tabular}{@{}lrrrr@{}}
+		\toprule
+		     & \multicolumn{2}{c}{Base} & \multicolumn{2}{c}{ZMM}                      \\
+		\cmidrule(lr){2-3}\cmidrule(l){4-5}
+		Año  & Registros                & Mun.                    & Registros & Mun. \\
+		\midrule
+		2019 & 180,219                  & 91                      & 63,134    & 18   \\
+		2020 & 150,886                  & 93                      & 54,041    & 18   \\
+		2021 & 199,224                  & 169                     & 55,639    & 18   \\
+		2022 & 250,891                  & 180                     & 65,257    & 18   \\
+		2023 & 262,768                  & 198                     & 69,902    & 18   \\
+		2024 & 273,822                  & 198                     & 71,321    & 18   \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+El balance de la ZMM es de presencia, no de captura. Las 108 combinaciones de
+municipio y año tienen registros, pero Santa Catarina pasa de 3 en 2020 a 2,910
+en 2023; §\ref{sec:disc-regimen} desarrolla esa inestabilidad. Lo que el panel
+balanceado garantiza es que un cambio en la ZMM no proviene de la entrada o la
+salida de municipios.
+
+\paragraph{Centinelas.} El INEGI codifica la ausencia de dato como un valor del
+catálogo, así que \texttt{isna()} solo detecta faltantes en \texttt{CALLE1} (434),
+\texttt{CALLE2} (5,979) y \texttt{CARRETERA} (373,649). El
+cuadro~\ref{tab:datos-centinelas} reúne los centinelas presentes en la ZMM; los de
+\texttt{HORA}, \texttt{MINUTOS}, \texttt{DIA} y \texttt{DIASEMANA} no aparecen en
+ningún registro. \texttt{SEXO = 1} y \texttt{EDAD = 0} marcan los mismos 36,973
+accidentes, aquellos en que el conductor se fugó. Solo 96,739 registros
+(25.5\,\%) están completos en \texttt{CINTURON}, \texttt{ALIENTO}, \texttt{EDAD},
+\texttt{SEXO}, \texttt{HORA} y \texttt{DIA}. Otros huecos son estructurales:
+\texttt{CARRETERA} solo aplica a los 6,578 accidentes suburbanos (1.7\,\%), y
+\texttt{CALLE2} solo es un faltante real en los 3,072 accidentes marcados en
+intersección que no la traen.
+
+\begin{table}
+	\centering\footnotesize
+	\caption{Faltante por centinela en la ZMM, en porcentaje de registros: total
+		($N = 379{,}294$), por clase de accidente (\emph{Daños}: solo daños) y en los
+		años extremos. Entre paréntesis, el código.}
+	\label{tab:datos-centinelas}
+	\begin{tabular}{@{}lrrrrrr@{}}
+		\toprule
+		                       &       & \multicolumn{3}{c}{Clase} & \multicolumn{2}{c}{Año}                       \\
+		\cmidrule(lr){3-5}\cmidrule(l){6-7}
+		Campo                  & Total & Fatal                     & No fatal                & Daños & 2019 & 2024 \\
+		\midrule
+		\texttt{CINTURON} (9)  & 72.3  & 86.0                      & 79.3                    & 71.8  & 62.2 & 75.4 \\
+		\texttt{EDAD} (0, 99)  & 27.9  & 43.8                      & 26.5                    & 27.9  & 19.6 & 35.9 \\
+		\texttt{ALIENTO} (6)   & 14.7  & 35.0                      & 18.4                    & 14.4  & 12.0 & 18.5 \\
+		\texttt{SEXO} (1)      & 9.7   & 24.3                      & 13.4                    & 9.5   & 10.3 & 9.7  \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\paragraph{El faltante no es aleatorio.} La tasa de faltante depende de la
+gravedad: en accidentes fatales \texttt{ALIENTO} se ignora en 35.0\,\% de los
+casos contra 14.4\,\% en los de solo daños, 2.4 veces más seguido
+($\chi^2(2) = 597.7$, $p < 0.001$, sobre las tres clases). La fuga explica una
+parte, porque los 36,973 accidentes con fuga tienen \texttt{ALIENTO = 6}, pero el
+gradiente persiste sin ellos: 14.1\,\% en 814 accidentes fatales contra 5.4\,\%
+en 323,800 de solo daños. \texttt{EDAD} no es monótona (26.5\,\% en no fatales
+contra 27.9\,\% en solo daños), de modo que el contraste vale entre los extremos.
+
+Esa dependencia descarta que el dato falte completamente al azar (MCAR,
+\emph{missing completely at random}), pero no distingue por sí sola entre
+faltante al azar condicional en lo observado (MAR, \emph{missing at random}) y
+faltante no aleatorio (MNAR, \emph{missing not at random}), porque el valor
+ausente no se observa. El análisis adopta MNAR como supuesto de trabajo: ninguna
+prueba sobre la base lo descarta, y es el único de los tres que no autoriza el
+borrado ni la imputación estándar.
+% PENDIENTE: cita de la taxonomía MCAR/MAR/MNAR; no hay llave en referencias.bib.
+De ahí se siguen dos decisiones. Se descartó \texttt{dropna()}: conserva 10.2\,\%
+de los accidentes fatales contra 25.9\,\% de los de solo daños. Se descartó
+imputar, porque los métodos estándar suponen MAR. \texttt{geostats.limpieza} no
+borra filas ni imputa: conserva las 51 columnas y agrega 22 derivadas, entre ellas
+versiones de estos campos con el centinela convertido en \texttt{NA}.
+
+\paragraph{La captura difiere entre municipios.} En 2024, entre los 15 municipios
+con más de 500 accidentes, el faltante de \texttt{CINTURON} va de 10.4\,\% en San
+Pedro Garza García a 100.0\,\% en Monterrey, que aporta 172,275 registros
+(45.4\,\% de la ZMM) y solo 414 con dato real en seis años. Tampoco es estable:
+Guadalupe pasa de 20.3\,\% en 2019 a 96.8\,\% en 2020. Con un panel balanceado
+esos cambios no son de cobertura, y una comparación de estos campos entre
+municipios o años mide la práctica de captura antes que la conducta vial. Lo mismo
+ocurre con la serie de \texttt{EDAD}, cuyo faltante sube de 19.6\,\% a 35.9\,\%.
+
+\paragraph{La coordenada es un nodo de la red.} La coordenada se comporta como la
+de la intersección reportada y no como la del sitio físico del choque, por lo que
+el dato es un conteo sobre nodos de la red vial. 366,484 accidentes (96.6\,\%)
+están marcados en intersección, y 98.2\,\% de las 118,626 coordenadas exactas de
+intersección con dos vialidades corresponde a un solo par de calles. Las 131,180
+coordenadas distintas se reducen a 54,742 nodos con una tolerancia de 10\,m
+(\texttt{id\_punto\_4d}). Esta lectura se apoya en esos patrones: el repositorio no
+contiene documentación del procedimiento de geocodificación del INEGI.
+
+La precisión cambia en 2021: todas las coordenadas de 2019--2020 tienen cinco
+decimales o menos, y desde 2021 cerca del 99\,\% de las longitudes tiene seis o
+más. Los registros
+que comparten coordenada exacta caen de 86.7\,\% en 2019 a 49.8\,\% en 2024,
+mientras que a 10\,m se mantienen entre 83.3\,\% y 87.3\,\%. La caída mide un
+cambio de método y no una dispersión de los accidentes, de modo que una comparación
+entre años exige \texttt{id\_punto\_4d} o una unidad mayor, como la rejilla de
+§\ref{sec:met-unidad}. Ese cambio de precisión de 2021 es un hecho distinto del
+corte de 2022 asociado a \texttt{OID} (§\ref{sec:disc-limitaciones}).
 
 \subsection{Selección de variables}\label{sec:datos-variables}
+
+El criterio separa lo que existe haya o no accidente de lo que solo existe después
+del hecho. Las variables \emph{estructurales} describen el dónde y el cuándo y son
+las únicas admisibles como predictores de un conteo. Las \emph{consecuentes}
+describen el accidente: solo existen porque hubo un choque y no pueden explicar
+cuántos habrá, de modo que sirven para estratificar, para el descriptivo o como
+desenlace de un modelo de severidad. El cuadro~\ref{tab:datos-variables} reparte
+las 51 columnas.
+
+\begin{table}
+	\centering\footnotesize
+	\caption{Clasificación de las 51 columnas de \texttt{atus\_zmm.parquet}.}
+	\label{tab:datos-variables}
+	\begin{tabular}{@{}lrp{0.62\columnwidth}@{}}
+		\toprule
+		Familia      & Col. & Contenido                                                        \\
+		\midrule
+		Estructural  & 16   & \raggedright Llave y municipio (\texttt{ID}, \texttt{ANIO},
+		\texttt{EDO}, \texttt{MPIO}, \texttt{CVE\_MUN}, \texttt{NOM\_MUN}); tiempo (\texttt{MES},
+		\texttt{DIA}, \texttt{DIASEMANA}, \texttt{HORA}); lugar (\texttt{URBANA},
+		\texttt{SUBURBANA}, \texttt{CALLE1}, \texttt{CALLE2}, \texttt{LONGITUD},
+		\texttt{LATITUD})\tabularnewline
+		Consecuente  & 25   & \raggedright \texttt{CLASE}, \texttt{TIPACCID}, 13 conteos de
+		vehículos, 8 conteos de conductores, pasajeros, peatones y ciclistas muertos o
+		heridos, \texttt{TOTMUERTOS}, \texttt{TOTHERIDOS}\tabularnewline
+		Con reservas & 5    & \raggedright \texttt{SEXO}, \texttt{EDAD}, \texttt{ALIENTO},
+		\texttt{CAUSAACCI}, \texttt{CARRETERA}\tabularnewline
+		Descartada   & 5    & \raggedright \texttt{CINTURON}, \texttt{CAPAROD}, \texttt{MINUTOS},
+		\texttt{OTROMUERTO}, \texttt{OTROHERIDO}\tabularnewline
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+Los campos con reservas son consecuentes con una advertencia. \texttt{SEXO},
+\texttt{EDAD} y \texttt{ALIENTO} tienen el faltante de §\ref{sec:datos-calidad};
+\texttt{CAUSAACCI} atribuye la causa al conductor en 94.6\,\% de los registros, y
+\texttt{CARRETERA} está vacío en 98.5\,\% de los registros. Las descartadas no
+aportan señal utilizable en la ZMM: \texttt{CINTURON} falta en 72.3\,\% de los
+registros, con Monterrey casi sin dato; \texttt{CAPAROD} marca 99.96\,\% como
+pavimentada; \texttt{OTROMUERTO} y \texttt{OTROHERIDO} son distintos de cero en 7
+y 74 registros; y \texttt{MINUTOS} concentra 11.5\,\% en 0 y 30, contra 3.3\,\%
+esperado sin redondeo. Descartar es una decisión de análisis y no de archivo:
+\texttt{atus\_zmm\_limpio.parquet} conserva todas las columnas, por lo que la
+selección es reversible.
+
+\texttt{URBANA} no indica si la zona es urbana: distingue accidentes en
+intersección (código 1, 366,484) de accidentes fuera de ella (código 2, 6,232), y
+el código 0 marca los 6,578 suburbanos. Es la variable que separa el análisis de
+cruces del de tramos.
+
+Los modelos usan una fracción de las columnas estructurales: la celda, derivada de
+\texttt{LONGITUD} y \texttt{LATITUD}; \texttt{ANIO} y \texttt{MES}, y
+\texttt{NOM\_MUN} (§\ref{sec:met-conteo}). Ninguna tiene centinelas en la ZMM, así
+que el faltante de §\ref{sec:datos-calidad} no afecta a las covariables de los
+modelos.
