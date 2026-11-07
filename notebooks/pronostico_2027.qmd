@@ -135,7 +135,7 @@ def mapa(ax, titulo=None, escala_km=10):
 
 ## 1. Reajuste con 2019-2024
 
-El panel es el mismo del notebook anterior — celda × año sobre los 2,241
+El panel es el mismo del notebook anterior — celda × año sobre los 2,270
 hexágonos de 500 m — pero ahora **sin partición**: los seis años entran al
 ajuste. No hay conjunto de prueba porque el objetivo ya no es validar el
 modelo (eso se hizo en 2024) sino usar toda la información disponible para
@@ -144,7 +144,7 @@ proyectar. El modelo, los priors y el muestreador son idénticos; solo cambia
 
 ```{python}
 H, W = espacial.celdas(g, lado=500)
-assert len(H) == 2241 and len(W.islands) == 0
+assert len(H) == 2270 and len(W.islands) == 0
 
 union = gpd.sjoin(g[["geometry", "ANIO", "NOM_MUN"]], H[["hex", "geometry"]],
                   predicate="within", how="inner")
@@ -214,9 +214,11 @@ print(f"log μ — R̂ máximo {rhat_logmu:.3f}, ESS mínimo {ess_logmu:,.0f} (s
 resumen.round(3)
 ```
 
-Cero divergencias y $\hat R < 1.01$ en todas las $\log\mu$. Los
-hiperparámetros quedan donde estaban con cinco años: $\alpha = 0.84$,
-$\theta = 12$, $\sigma_{rw} = 0.28$. Añadir 2024 no cambió lo que el modelo
+Una transición divergente y $\hat R < 1.01$ en todas las $\log\mu$. Los
+hiperparámetros quedan donde estaban con cinco años: $\alpha = 0.92$,
+$\theta = 12$, $\sigma_{rw} = 0.29$. Como en el notebook anterior, $\beta_0$ y
+$\sigma_m$ mezclan lento ($\hat R$ de 1.04 y 1.10, ESS de 76 y 38): comparten
+información con el nivel medio de $u$, y ninguno se usa solo. Añadir 2024 no cambió lo que el modelo
 cree sobre la estructura; solo actualizó el nivel de cada municipio.
 
 ```{python}
@@ -332,7 +334,7 @@ pulir(ax); plt.tight_layout(); plt.show()
 Tres lecturas:
 
 - **Por persistencia, 2027 es 2024 suavizado.** La mediana del total queda en
-  ~73.6 mil contra 71.2 mil observados en 2024, y el intervalo del 90 % es de
+  ~73.6 mil contra 71.3 mil observados en 2024, y el intervalo del 90 % es de
   apenas ±3 %. Ese 3 % de más es el sesgo de suavizado del CAR sobre las
   celdas con pocos datos (una celda en cero recibe $\lambda > 0$ de sus
   vecinas), no una tendencia: el modelo no tiene término de tendencia, y el
@@ -341,7 +343,7 @@ Tres lecturas:
   los parámetros y la dispersión NB; no contiene la posibilidad de que un
   municipio cambie de régimen. Es lo que dice la advertencia inicial.
 - **El escenario de régimen se abre rápido y hacia arriba.** A tres años el
-  90 % va de ~53 mil a ~220 mil, y su mediana sube a ~88 mil aunque la de
+  90 % va de ~53 mil a ~230 mil, y su mediana sube a ~89 mil aunque la de
   cada celda no se mueva. La asimetría es aritmética: en escala logarítmica
   la innovación es simétrica, pero un municipio que salta ×5 añade cuatro
   veces su tamaño al total y uno que cae ÷5 solo resta el 80 %. Con seis años
@@ -456,7 +458,7 @@ plt.tight_layout(); plt.show()
 El primer mapa es el que se esperaba: Spearman de 0.96 con 2024, y el 5 %
 superior sigue concentrando el 43 % del total — el PAI que ningún modelo movió.
 El segundo es el que no daba el histórico: 89 celdas están en la cabeza con
-probabilidad mayor que 0.9, y otras 45 *compiten* por los 23 lugares que
+probabilidad mayor que 0.9, y otras 44 *compiten* por los 23 lugares que
 quedan. Si la decisión es "en qué 112 celdas intervenir", las
 seguras son las seguras; las de la frontera son donde el orden es una
 apuesta, y donde una covariable externa (exposición vial, uso de suelo) sí
@@ -507,7 +509,7 @@ Spearman 0.96 respecto a lo observado.
 
 **Lo que el modelo no controla domina la incertidumbre real.** Si se admite
 que los municipios sigan moviéndose como en 2019-2024, el 90 % del total a
-tres años va de 53 mil a 220 mil, y la caminata aleatoria sin reversión
+tres años va de 53 mil a 230 mil, y la caminata aleatoria sin reversión
 inclina la suma hacia arriba. Ese escenario no es un pronóstico — es la
 medida de cuánto depende cualquier cifra de 2027 de decisiones de reporte que
 no están en los datos.

@@ -139,11 +139,11 @@ def mapa(ax, titulo=None, escala_km=10):
 
 `espacial.celdas` reproduce la partición del notebook anterior: hexágonos de
 500 m, solo los que tienen al menos un accidente, sin islas. Se verifica que
-salen las mismas 2,241.
+salen las mismas 2,270.
 
 ```{python}
 H, W = espacial.celdas(g, lado=500)
-assert len(H) == 2241 and len(W.islands) == 0, "la partición cambió respecto a analisis_espacial.qmd"
+assert len(H) == 2270 and len(W.islands) == 0, "la partición cambió respecto a analisis_espacial.qmd"
 
 union = gpd.sjoin(g[["geometry", "ANIO", "MES", "NOM_MUN"]], H[["hex", "geometry"]],
                   predicate="within", how="inner")
@@ -165,7 +165,7 @@ print(f"Filas en cero: {(p.y == 0).mean():.1%} | media {p.y.mean():.2f} | varian
 **Los ceros son observaciones.** Una celda sin accidentes en un mes es un dato
 tan real como una con treinta; si se dejaran fuera, el modelo aprendería solo
 de los meses con eventos y sobreestimaría todo. Por eso el panel se construye
-completo y se rellena con cero. El 56 % de las filas lo son.
+completo y se rellena con cero. El 57 % de las filas lo son.
 
 La razón varianza/media de 12.9 es la sobredispersión **marginal**: antes de
 cualquier covariable. Buena parte es heterogeneidad entre celdas (una celda
@@ -206,7 +206,7 @@ Tres covariables, todas estructurales:
   leería el salto como tendencia.
 - **`log h`**: el promedio mensual histórico de la celda, calculado solo con
   entrenamiento. Es la versión de bolsillo de un efecto por celda: en vez de
-  2,241 parámetros, uno solo que dice cuánto pesa la historia propia. Su
+  2,270 parámetros, uno solo que dice cuánto pesa la historia propia. Su
   coeficiente es interpretable: **1 significa "la historia entra como offset"**;
   menos de 1 significaría que el modelo encoge las celdas hacia la media.
 
@@ -305,10 +305,10 @@ ct = sm.OLS(auxiliar, mu_tr).fit()
 print(f"α̂ = {ct.params[0]:.4f}   t = {ct.tvalues[0]:.1f}   p = {ct.pvalues[0]:.1e}")
 ```
 
-De 12.9 marginal a 1.38 condicional: **`log h` absorbe casi toda la
+De 12.9 marginal a 1.37 condicional: **`log h` absorbe casi toda la
 sobredispersión**, porque la mayor parte era heterogeneidad entre celdas. Pero
-lo que queda es inequívoco: $t = 59$. La varianza de cada celda-mes sigue siendo
-un 38 % mayor que su media, y Poisson lo ignora.
+lo que queda es inequívoco: $t = 60$. La varianza de cada celda-mes sigue siendo
+un 37 % mayor que su media, y Poisson lo ignora.
 
 ---
 
@@ -343,7 +343,7 @@ Tres lecturas:
   hipótesis nula $1/\theta = 0$ está en la frontera del espacio de parámetros
   (la dispersión no puede ser negativa), y la distribución nula correcta es una
   mezcla 50:50 de una masa en cero y una $\chi^2_1$. El *p* correcto es la
-  mitad del de tabla. Aquí da igual: 13,280 contra un umbral de ~2.7.
+  mitad del de tabla. Aquí da igual: 13,282 contra un umbral de ~2.7.
 - **NB2 sobre NB1** por 600 puntos de AIC: la varianza crece con el cuadrado de
   la media, no linealmente. Es lo usual en siniestralidad vial.
 - **El coeficiente de `log h` sigue siendo 1.01.** El modelo no encoge: cada
@@ -388,9 +388,9 @@ tabla_k = pd.DataFrame({"observados": obs, "Poisson": esp_p, "NB2": esp_n}, inde
 tabla_k.loc[[0, 1, 2, 3, 5, 10, 20, 30]].round(0).astype(int)
 ```
 
-Poisson subpredice los ceros en 4,500 y sobrepredice los unos en 2,900: el
+Poisson subpredice los ceros en 4,600 y sobrepredice los unos en 2,900: el
 patrón clásico de un modelo con la varianza demasiado angosta. NB2 lo corrige
-en buena parte, pero **no del todo**: sigue faltando el 3.3 % de los ceros. Ese
+en buena parte, pero **no del todo**: sigue faltando el 3.2 % de los ceros. Ese
 residuo es lo que decide la sección siguiente.
 
 ---
@@ -416,7 +416,7 @@ print(f"AIC — NB2 {m_nb2.aic:,.0f} | ZINB {m_zinb.aic:,.0f}   (Δ = {m_nb2.aic
 print(f"Convergió: {m_zinb.mle_retvals['converged']}")
 ```
 
-Un 2.6 % de ceros estructurales, 3,500 filas. Es real —el AIC mejora 1,200— y
+Un 2.6 % de ceros estructurales, 3,600 filas. Es real —el AIC mejora 1,200— y
 es pequeño. La pregunta útil no es si ponerle un modelo, sino **de dónde
 salen**. Si fueran celdas dispersas, ZINB sería la respuesta. Si estuvieran
 concentradas en un lugar y un tiempo, serían otra cosa.
@@ -442,7 +442,7 @@ print(f"Los 8 pares municipio×periodo de arriba explican el "
 **Los ceros estructurales no están dispersos: están en municipios y periodos
 concretos.** Ocho pares municipio × periodo explican dos tercios del exceso, y
 Santa Catarina en prepandemia y pandemia encabeza la lista: el municipio
-registró 128, 3 y 77 accidentes en 2019, 2020 y 2021, y 1,793 en 2022. Esas celdas no tenían "riesgo cero": tenían un municipio que no
+registró 128, 3 y 77 accidentes en 2019, 2020 y 2021, y 1,795 en 2022. Esas celdas no tenían "riesgo cero": tenían un municipio que no
 reportaba. Un ZINB con inflación constante repartiría esa probabilidad entre
 todas las celdas por igual, que es exactamente lo contrario de lo que pasa.
 
@@ -494,11 +494,11 @@ Lo que la tabla dice, y lo que no:
   de cada celda es $h_i \times$ (un factor común a todas). El ranking es el del
   histórico, exactamente (Spearman = 1.0). **Un GLM con covariables temporales
   no puede mover el *dónde*; solo el *cuánto* y el *con qué certeza*.**
-- Lo que sí mejora es la distribución: CRPS 0.909 → 0.886 de M0 a NB2, y la
+- Lo que sí mejora es la distribución: CRPS 0.899 → 0.876 de M0 a NB2, y la
   cobertura del 90 % sube de 89 % a 94 %. La NB2 sobrecubre un poco; es el
   precio de la discreción (con tantos ceros, el intervalo $[0, q_{95}]$ contiene
   más del 90 % siempre).
-- **El rezago espacial no aporta nada**: coeficiente −0.002, $t = -0.6$. Dado
+- **El rezago espacial no aporta nada**: coeficiente −0.002, $t = -0.5$. Dado
   el I de Moran de 0.65 sobre los conteos, esto sorprende — hasta que se mira
   dónde está el residual.
 
@@ -573,7 +573,7 @@ mapa(ax, "El error del modelo tiene forma de municipio")
 plt.tight_layout(); plt.show()
 ```
 
-**El I de Moran del residual cae de 0.31 a 0.07 al quitar la media municipal.**
+**El I de Moran del residual cae de 0.30 a 0.06 al quitar la media municipal.**
 Casi toda la autocorrelación que queda en el error no es un proceso espacial
 fino que un efecto BYM2 a 500 m pueda capturar: son 18 bloques con un nivel
 distinto cada uno. Por eso el rezago espacial no ayudó: las vecinas de una
@@ -627,7 +627,7 @@ plt.tight_layout(); plt.show()
 ```
 
 Las series no son de siniestralidad. **Santa Catarina registró 3 accidentes
-en 2020** y 2,904 en 2023. **Guadalupe registró más en plena pandemia (8,032)
+en 2020** y 2,905 en 2023. **Guadalupe registró más en plena pandemia (8,032)
 que en cualquier otro año**, cuando todos los demás cayeron, y en 2024 lleva un
 tercio de eso. Salinas Victoria alterna 286, 827, 351, 821. Ninguna dinámica
 vial produce eso; es la práctica de captura de cada municipio cambiando de un
@@ -675,8 +675,8 @@ print(f"I de Moran del residual con historia reciente: {mor_rec.I:.3f} (z = {mor
 Dos cosas, las dos importantes:
 
 - **La historia reciente gana en todo lo que mide la distribución**: la
-  devianza baja un 10 %, el CRPS de 0.886 a 0.847, y el I de Moran del residual
-  de 0.31 a 0.19. Dos años de datos predicen 2024 mejor que cinco, porque los
+  devianza baja un 10 %, el CRPS de 0.876 a 0.838, y el I de Moran del residual
+  de 0.30 a 0.20. Dos años de datos predicen 2024 mejor que cinco, porque los
   dos últimos comparten régimen de reporte con el año de prueba.
 - **Cuando se le dan las dos, el modelo elige la completa** ($\beta_h = 1.04$,
   $\beta_{h_{rec}} = -0.03$) y pierde. Eso es un artefacto: en entrenamiento la
@@ -702,7 +702,7 @@ Este notebook se hizo para decidir la especificación del modelo jerárquico. Lo
 que decide:
 
 **Verosimilitud: Binomial Negativa.** La sobredispersión condicional es real
-($t = 59$), NB2 sobre NB1, y no hace falta inflación de ceros: los ceros en
+($t = 60$), NB2 sobre NB1, y no hace falta inflación de ceros: los ceros en
 exceso son municipios sin reportar, no un segundo proceso.
 
 **Jerarquía: celda ⊂ municipio, con el municipio variando en el tiempo.** La
@@ -719,7 +719,7 @@ con los pesos que la verosimilitud le dé; no hace falta pre-cocinarla. Lo que
 sí hay que decidir es cuánto pasado usar, y este notebook dice que el pasado
 lejano estorba.
 
-**Validación: la misma tabla.** M0r es la cota nueva: CRPS 0.844, PAI 8.4. El
+**Validación: la misma tabla.** M0r es la cota nueva: CRPS 0.835, PAI 8.4. El
 paso 5 tiene que superar eso en CRPS *y* mover el PAI, que hasta ahora ningún
 modelo ha movido.
 
@@ -734,9 +734,9 @@ reportes administrativos, y hay que decirlo en cada entrega.
 
 ## Conclusiones
 
-**Sobre la dispersión.** La razón varianza/media pasa de 12.9 marginal a 1.38
+**Sobre la dispersión.** La razón varianza/media pasa de 12.9 marginal a 1.37
 condicionando en la historia de la celda; lo que queda es significativo
-($t = 59$) y la Binomial Negativa NB2 ($\theta = 5.5$) lo corrige. NB2 supera a
+($t = 60$) y la Binomial Negativa NB2 ($\theta = 5.5$) lo corrige. NB2 supera a
 NB1 y a Poisson por AIC y por CRPS.
 
 **Sobre los ceros.** Hay un 2.6 % de ceros en exceso. No están dispersos: ocho
@@ -748,14 +748,14 @@ descarta ZINB.
 $\beta_h = 1$ el orden de celdas es el del histórico (Spearman 1.0) y el PAI se
 queda en 8.4. Los GLM mejoran cuánto y con qué certeza, no dónde.
 
-**Sobre el residual.** Tiene autocorrelación espacial (I = 0.31), pero es
-casi enteramente municipal: 0.07 al quitar la media por municipio. El error de
+**Sobre el residual.** Tiene autocorrelación espacial (I = 0.30), pero es
+casi enteramente municipal: 0.06 al quitar la media por municipio. El error de
 2024 va de 0.43 (Guadalupe) a 2.5 (Santa Catarina) en cociente observado/predicho,
 y las series anuales por municipio muestran por qué: cambian de régimen de
 reporte de un año a otro.
 
-**Sobre la historia.** Dos años recientes predicen mejor que cinco (CRPS 0.847
-contra 0.886). El promedio crudo de 2022-2023 es la cota a superar: CRPS 0.844.
+**Sobre la historia.** Dos años recientes predicen mejor que cinco (CRPS 0.838
+contra 0.876). El promedio crudo de 2022-2023 es la cota a superar: CRPS 0.835.
 
 **Hallazgo nuevo de este notebook:** el supuesto de subregistro estable por
 municipio es falso y es la fuente dominante del error predictivo. Santa
