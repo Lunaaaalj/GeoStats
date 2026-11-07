@@ -34,9 +34,11 @@ Segunda, el área de los AGEB es heterogénea, y comparar conteos exigiría un
 denominador de superficie o de exposición. Tercera, en polígonos irregulares
 el número de vecinos varía considerablemente, y la matriz de pesos espaciales hereda esa
 irregularidad. Tampoco se trabajó directamente sobre los puntos: como se
-documentó en §\ref{sec:datos-calidad}, ATUS geocodifica la intersección
-reportada y no el sitio físico del choque, así que el dato es un conteo sobre
-nodos de la red y no un patrón de puntos continuo en el plano.
+documentó en §\ref{sec:datos-calidad}, la coordenada se comporta como la de la
+intersección reportada y no como la del sitio físico del choque, así que el
+dato se trata como un conteo sobre nodos de la red y no como un patrón de
+puntos continuo en el plano. Esa lectura procede de los patrones de la base: el
+repositorio no documenta el procedimiento de geocodificación del INEGI.
 
 \paragraph{La rejilla.} Los accidentes se agregan a una rejilla regular de
 hexágonos con orientación de vértice lateral (\emph{flat-top}) y lado
@@ -180,7 +182,9 @@ solo entran variables estructurales, que existen haya o no accidente:
 	      pandemia (marzo de 2020 a diciembre de 2021) y 2022 en adelante. El
 	      tercer corte corresponde al cambio en el procedimiento de
 	      georreferenciación del INEGI que sugiere el análisis espacial. Sin él, el
-	      modelo leería ese salto como tendencia.
+	      modelo leería ese salto como tendencia. El corte alternativo en 2021,
+	      cuando cambia la precisión de las coordenadas, ajusta peor
+	      (§\ref{sec:disc-limitaciones}).
 	\item \textbf{Historia de la celda}, $\log h_i$, con $h_i$ el promedio
 	      mensual de la celda calculado \emph{solo} con el periodo de
 	      entrenamiento (más medio accidente en todo el periodo, para que el
