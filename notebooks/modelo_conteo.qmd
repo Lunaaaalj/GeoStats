@@ -50,6 +50,7 @@ uv run limpiar-atus --geo
 ```{python}
 import warnings
 warnings.filterwarnings("ignore")
+from statsmodels.tools.sm_exceptions import HessianInversionWarning
 
 import numpy as np
 import pandas as pd
@@ -646,13 +647,17 @@ predictor que la reciente. Se ajusta la NB2 con `h_rec` (2022-2023) en lugar
 de `h`, y con ambas.
 
 ```{python}
-m_rec = smf.negativebinomial("y ~ C(mes) + C(periodo) + logh_rec", data=tr).fit(disp=0, maxiter=200)
+with warnings.catch_warnings(record=True) as avisos:
+    warnings.simplefilter("always")
+    m_rec = smf.negativebinomial("y ~ C(mes) + C(periodo) + logh_rec", data=tr).fit(disp=0, maxiter=200)
+hessiana_rec = not any(issubclass(x.category, HessianInversionWarning) for x in avisos)
 m_ambas = smf.negativebinomial("y ~ C(mes) + C(periodo) + logh + logh_rec", data=tr).fit(disp=0, maxiter=200)
 theta_rec, theta_ambas = 1 / m_rec.params["alpha"], 1 / m_ambas.params["alpha"]
 
 resultados.append(evaluar("M4  NB2, historia 2022-23", m_rec.predict(te).values, theta_rec))
 resultados.append(evaluar("M5  NB2, ambas historias", m_ambas.predict(te).values, theta_ambas))
-print(f"M4: coef. log h_rec = {m_rec.params['logh_rec']:.3f}")
+print(f"M4: coef. log h_rec = {m_rec.params['logh_rec']:.3f} "
+      f"(convergió: {m_rec.mle_retvals['converged']}; Hessiana invertible: {hessiana_rec})")
 print(f"M5: coef. log h = {m_ambas.params['logh']:.3f}, coef. log h_rec = {m_ambas.params['logh_rec']:.3f}")
 
 tabla = pd.DataFrame(resultados).set_index("modelo")
@@ -679,6 +684,10 @@ Dos cosas, las dos importantes:
   verosimilitud premia eso aunque no sirva para 2024. Es el ejemplo de por qué
   el AIC no puede comparar ventanas de historia y por qué solo cuenta la
   validación fuera de muestra.
+
+M4 converge, pero su Hessiana no se invierte: el ajuste no da errores estándar.
+La comparación usa solo sus predicciones y el coeficiente puntual, que no los
+requieren.
 
 El *baseline* crudo con historia reciente (M0r) empata o supera a la NB2 con la
 misma historia (M4). La estacionalidad y el periodo aportan poco sobre un
