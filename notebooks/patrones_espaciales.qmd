@@ -210,7 +210,7 @@ plt.show()
 ```
 
 La coordenada exacta cae de 86.7 % a 49.8 % en seis años. Agrupada a 10 m se
-queda plana entre 83 % y 85 %, todos los años. La conclusión es la que gobierna
+queda entre 83.3 % y 87.3 %, todos los años. La conclusión es la que gobierna
 el resto del documento:
 
 > **La dispersión aparente es del geocodificador, no de los accidentes.**

@@ -56,7 +56,7 @@ así que `isna()` sobre las originales devuelve cero y aun así falta hasta el 7
 del dato. Las derivadas son las que hacen que `isna()` diga la verdad, y las
 originales se conservan porque «se fugó» y «se ignora» son mecanismos distintos:
 `SEXO = 1` y `EDAD = 0` marcan los mismos 36,973 registros. Por lo mismo no hay
-timestamp completo: `MINUTOS` concentra la quinta parte de la base en `0` y `30`.
+timestamp completo: `MINUTOS` concentra 11.5 % de la ZMM en `0` y `30` (21.0 % de la base nacional).
 
 **`id_punto` usa `str(float)`, no un formato fijo.** Las coordenadas traen hasta
 ocho decimales y formatearlas a seis fusiona **8,115 puntos distintos** en
