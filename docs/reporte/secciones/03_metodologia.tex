@@ -57,7 +57,7 @@ celdas con al menos un accidente en los seis años: en 379,294 registros, una ce
 agrupamientos de valores bajos. Se retiran además las celdas \emph{isla},
 cuyas seis vecinas no tienen ningún accidente. No tienen con quién
 correlacionarse, y cualquier estadístico local sobre ellas degenera. El
-resultado son \textbf{2,241 celdas}. A cada celda se le asigna el municipio
+resultado son \textbf{2,270 celdas}. A cada celda se le asigna el municipio
 modal entre sus accidentes; esa es la pertenencia que usa el nivel municipal
 del modelo jerárquico.
 
@@ -66,12 +66,20 @@ estadísticos exploratorios la matriz de pesos $W$ se estandariza por fila
 ($w_{ik} = 1/|\mathcal{N}_i|$ si $k \in \mathcal{N}_i$), de modo que el
 rezago espacial de una celda es el promedio de sus vecinas. El modelo
 jerárquico usa la adyacencia binaria $A$, sin estandarizar.
+\texttt{libpysal} reconoce la contigüidad solo cuando dos polígonos comparten
+coordenadas idénticas, así que los vértices se calculan sobre una retícula
+entera de semilados y semialturas: dos hexágonos que comparten un vértice
+llegan al mismo par de flotantes. El grafo resultante tiene 5,325 aristas
+(4.69 vecinas por celda) y se contrasta con los pares de centroides a
+distancia $\sqrt{3}\,\ell$, que no dependen de la geometría de los
+polígonos. No es conexo: tiene 35 componentes, y la mayor reúne 2,126 celdas
+(93.7\,\%).
 
 \paragraph{Una sola partición.} La rejilla, el filtrado y la matriz de pesos
 viven en una función del paquete (\texttt{geostats.espacial.celdas}) y no en
 los notebooks. Así el análisis exploratorio y los modelos usan exactamente la
 misma partición, y cada notebook verifica con una aserción que obtiene las
-mismas 2,241 celdas sin islas.
+mismas 2,270 celdas sin islas.
 
 \paragraph{Elección de escala.} Los 500\,m son un compromiso: es suficiente
 resolución para distinguir corredores viales y suficiente agregación para
@@ -112,8 +120,8 @@ espacial sobre el valor de la celda. Bajo independencia su esperanza es
 $-1/(N-1) \approx 0$. La inferencia es por permutación condicional: se
 barajan los valores entre celdas 999 veces y se ubica el $I$ observado en
 esa distribución de referencia, lo que evita suponer normalidad. Con 999
-permutaciones, el menor $p$ alcanzable es $0{,}001$. En el texto, ``$p \le
-	0{,}001$'' significa que el observado quedó fuera de todas las simulaciones,
+permutaciones, el menor $p$ alcanzable es $0.001$. En el texto, ``$p \le
+	0.001$'' significa que el observado quedó fuera de todas las simulaciones,
 no una probabilidad de un milésimo.
 
 \paragraph{Estructura local.} Dos estadísticos con lógica distinta. El LISA
@@ -136,7 +144,7 @@ matriz de pesos con \texttt{libpysal}, ambos paquetes de PySAL
 \parencite{rey2007pysal,rey2022pysal}.
 
 \paragraph{Comparaciones múltiples.} Un estadístico local es una prueba por
-celda. Con 2,241 pruebas al 5\,\%, el azar solo produce del orden de 112
+celda. Con 2,270 pruebas al 5\,\%, el azar solo produce del orden de 113
 rechazos. Todo mapa local se corrige por tasa de falsos descubrimientos con
 el procedimiento de Benjamini--Hochberg \parencite{benjamini1995fdr} al 5\,\%, y
 se reporta cuántas celdas son significativas antes y después de la
@@ -168,8 +176,8 @@ responden (si hay agrupamiento y a qué escalas) a un costo computacional y de d
 \subsection{Modelos de conteo}\label{sec:met-conteo}
 % ---------------------------------------------------------------------------
 
-\paragraph{El panel.} La unidad de observación es la celda-mes: 2\,241
-celdas $\times$ 72 meses $=$ 161\,352 filas. Los meses sin accidentes se
+\paragraph{El panel.} La unidad de observación es la celda-mes: 2,270
+celdas $\times$ 72 meses $=$ 163,440 filas. Los meses sin accidentes se
 incluyen explícitamente con $Y_{it} = 0$. Son observaciones tan reales como
 las demás, y omitirlas haría que el modelo aprendiera solo de los meses con
 eventos y sobreestimara todo.
@@ -189,7 +197,7 @@ solo entran variables estructurales, que existen haya o no accidente:
 	      mensual de la celda calculado \emph{solo} con el periodo de
 	      entrenamiento (más medio accidente en todo el periodo, para que el
 	      logaritmo exista en celdas sin eventos de entrenamiento). Es un efecto de
-	      celda resumido en un solo parámetro en lugar de 2\,241. Su coeficiente se
+	      celda resumido en un solo parámetro en lugar de 2,270. Su coeficiente se
 	      interpreta así: $\beta_h = 1$ significa que la historia entra como
 	      \emph{offset}, y $\beta_h < 1$ significaría encogimiento hacia la media.
 \end{itemize}
@@ -302,8 +310,8 @@ municipio y cambia de un año a otro. Y la historia de la celda deja de ser
 una covariable precalculada y pasa a ser un efecto aleatorio estimado con
 todos los años.
 
-\paragraph{Panel anual.} El modelo se ajusta sobre celda $\times$ año (2,241
-$\times$ 5 $=$ 11,205 observaciones de entrenamiento), no celda $\times$ mes.
+\paragraph{Panel anual.} El modelo se ajusta sobre celda $\times$ año (2,270
+$\times$ 5 $=$ 11,350 observaciones de entrenamiento), no celda $\times$ mes.
 Hay dos razones. La razón estadística es que el efecto de mes es común a todas las
 celdas y aportó poco sobre un promedio bien elegido, mientras que la
 estructura de interés (el régimen municipal y el perfil de cada celda) vive
@@ -389,11 +397,11 @@ influencia se verifica reajustando con priors alternativos.
 		Parámetro     & Prior                               & Alternativo                 \\
 		\midrule
 		$\beta_0$     & $\mathcal{N}(\log(\bar y + 1),\ 2)$ & ---                         \\
-		$\sigma_m$    & Semi-normal$(1{,}5)$                & ---                         \\
-		$\sigma_{rw}$ & Semi-normal$(0{,}5)$                & ---                         \\
+		$\sigma_m$    & Semi-normal$(1.5)$                & ---                         \\
+		$\sigma_{rw}$ & Semi-normal$(0.5)$                & ---                         \\
 		$\alpha$      & Beta$(2, 1)$                        & Beta$(1, 1)$                \\
-		$\sigma_u$    & Semi-normal$(1{,}5)$                & Semi-normal$(3)$            \\
-		$\theta$      & Gamma$(2;\ 0{,}1)$, media 20        & Gamma$(2;\ 0{,}4)$, media 5 \\
+		$\sigma_u$    & Semi-normal$(1.5)$                & Semi-normal$(3)$            \\
+		$\theta$      & Gamma$(2,\ 0.1)$, media 20        & Gamma$(2,\ 0.4)$, media 5 \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -405,18 +413,20 @@ corresponde a un cambio anual típico de menos del 60\,\%.
 
 \paragraph{Ajuste.} El modelo se implementó en PyMC
 \parencite{abrilpla2023pymc} y se muestreó con NUTS \parencite{hoffman2014nuts}
-mediante \texttt{nutpie}: cuatro cadenas, 1,000 iteraciones de
-calentamiento y 2,000 muestras por cadena, semilla 42. El reajuste de
-sensibilidad usa 500 muestras por cadena.
+mediante \texttt{nutpie}: cuatro cadenas, 3,000 iteraciones de
+calentamiento y 4,000 muestras por cadena, semilla 42. El reajuste de
+sensibilidad usa 1,000 muestras por cadena.
 
-\paragraph{Diagnósticos.} Se exigen tres criterios: $\hat{R} < 1.01$ con
-la versión normalizada por rangos \parencite{vehtari2021rank}, un tamaño efectivo
-de muestra suficiente y cero transiciones divergentes. Se diagnostican las
-cantidades \emph{identificadas}: los 11,205 predictores lineales
-$\log \mu_{ia}$ y los hiperparámetros. $\beta_0$ por separado no lo está
-del todo, porque compite con la media de $\mathbf{u}$, que el CAR propio
-solo ata débilmente a cero. Por eso ninguna conclusión se apoya en $\beta_0$
-solo, sino en $m_{j,a}$, $u_i$ y $\mu_{ia}$. Las trayectorias municipales a
+\paragraph{Diagnósticos.} Se exigen tres criterios a las cantidades
+\emph{identificadas}, los 11,350 predictores lineales $\log \mu_{ia}$:
+$\hat{R} < 1.01$ con la versión normalizada por rangos
+\parencite{vehtari2021rank}, un tamaño efectivo de muestra mínimo de 400 y cero
+transiciones divergentes. Para los hiperparámetros se reportan $\hat{R}$ y ESS
+sin exigir el umbral. $\beta_0$ por separado no está identificado del todo,
+porque compite con la media de $\mathbf{u}$, que el CAR propio solo ata
+débilmente a cero, y $\alpha$ comparte información con $\sigma_u$ cuando la
+dependencia se acerca a 1. Por eso ninguna conclusión se apoya en $\beta_0$ ni
+en $\alpha$ solos, sino en $m_{j,a}$, $u_i$ y $\mu_{ia}$. Las trayectorias municipales a
 posteriori se contrastan con las series observadas como verificación del
 supuesto de caminata aleatoria (apéndice~\ref{app:supuestos}).
 
@@ -432,7 +442,7 @@ especificación base con el mismo protocolo de validación.
 \paragraph{Protocolo.} Todos los modelos se ajustan con 2019--2023 y se
 evalúan en 2024, que ninguno vio. La regla se fijó desde el principio:
 \emph{ningún modelo se compara en los datos con que se ajustó}. La razón es
-más fuerte en el jerárquico que en los GLM: con 2,241 efectos de celda
+más fuerte en el jerárquico que en los GLM: con 2,270 efectos de celda
 reproduce el periodo de entrenamiento con un error mínimo, que no valida la predicción. Todas
 las cantidades derivadas de la respuesta, como $h_i$, $h_i^{\text{rec}}$ y
 los promedios de los \emph{baselines}, se calculan solo con entrenamiento.
@@ -495,5 +505,5 @@ escalas (celda-mes y celda-año) no son comparables entre sí.
 \end{itemize}
 
 El PAI depende solo del orden de las celdas, no de los niveles predichos.
-Un modelo puede reducir el CRPS en una fracción apreciable (indicar el porcentaje) sin mover el PAI si no cambia el orden de las celdas. Por eso se reportan ambos y no se resume el desempeño en un solo
+La NB2 reduce el CRPS de M0 en 2.6\,\% con el mismo PAI, porque conserva el orden de las celdas (§\ref{sec:res-conteo}). Por eso se reportan ambos y no se resume el desempeño en un solo
 número.

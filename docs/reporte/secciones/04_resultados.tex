@@ -7,7 +7,7 @@ conteo, que reveló que el error dominante es municipal
 (§\ref{sec:res-conteo}); luego el ajuste del modelo jerárquico que se
 construyó en respuesta (§\ref{sec:res-jerarquico}), y al final la validación
 de todos contra 2024 (§\ref{sec:res-validacion}). Todas las cifras se refieren
-a la partición de 2{,}241 celdas hexagonales de 500\,m de lado descrita en
+a la partición de 2,270 celdas hexagonales de 500\,m de lado descrita en
 §\ref{sec:met-unidad}.
 
 % ---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ a la partición de 2{,}241 celdas hexagonales de 500\,m de lado descrita en
 \paragraph{Concentración.}
 Los accidentes de 2019--2024 se reparten de forma desigual entre las
 celdas (figura~\ref{fig:res-conteos}): la mediana por celda es 30 y el máximo
-3{,}741. La curva de Lorenz da un \textbf{coeficiente de Gini de 0.766}. El
+3,741. La curva de Lorenz da un \textbf{coeficiente de Gini de 0.766}. El
 1\,\% de las celdas concentra el 14.9\,\% de los accidentes; el 5\,\%, el
 43.7\,\%, y el 10\,\%, el 61.7\,\%. A escala de intersección el Gini es 0.752
 y el 5\,\% de los puntos concentra el 58\,\% (figura~\ref{fig:res-lorenz}). La
@@ -41,9 +41,9 @@ una distribución de cola pesada y no un artefacto de la agregación.
 
 \paragraph{Autocorrelación global.}
 Con pesos de contigüidad estandarizados por fila sobre $\log(1+n)$, el
-\textbf{$I$ de Moran es 0.648}, con $z = 37$ frente a 999 permutaciones
+\textbf{$I$ de Moran es 0.654}, con $z = 45$ frente a 999 permutaciones
 (figura~\ref{fig:res-moran}); ninguna permutación se acerca al valor
-observado. Sobre el conteo crudo el estadístico es 0.57, de modo que la
+observado. Sobre el conteo crudo el estadístico es 0.58, de modo que la
 conclusión no depende de la transformación. Las celdas vecinas se parecen:
 un modelo que las trate como independientes subestimará sus errores
 estándar.
@@ -52,16 +52,16 @@ estándar.
 	\centering
 	\includegraphics[width=0.85\textwidth]{moran}
 	\caption{Izquierda: diagrama de dispersión de Moran sobre $\log(1+n)$
-		estandarizado; la pendiente es $I = 0{,}648$. Derecha: distribución de $I$
+		estandarizado; la pendiente es $I = 0.654$. Derecha: distribución de $I$
 		bajo 999 permutaciones aleatorias, concentrada alrededor de cero, frente al
 		valor observado.}
 	\label{fig:res-moran}
 \end{figure*}
 
 \paragraph{Sensibilidad a la escala.}
-Repetir el análisis con lados de 250 y 1{,}000\,m
+Repetir el análisis con lados de 250 y 1,000\,m
 (cuadro~\ref{tab:res-maup}) muestra el efecto de escala esperado en el $I$ de
-Moran, que crece con la agregación de 0.52 a 0.72, mientras que el 5\,\%
+Moran, que crece con la agregación de 0.53 a 0.72, mientras que el 5\,\%
 superior concentra 43--45\,\% de los accidentes en las tres rejillas. La
 autocorrelación es una propiedad del fenómeno y no de la rejilla elegida.
 
@@ -74,26 +74,26 @@ autocorrelación es una propiedad del fenómeno y no de la rejilla elegida.
 		\toprule
 		Lado (m) & Celdas & $I$   & Gini  & Top 5\,\% \\
 		\midrule
-		250      & 6\,145 & 0,524 & 0,746 & 44,8\,\%  \\
-		500      & 2\,241 & 0,648 & 0,756 & 42,6\,\%  \\
-		1\,000   & 815    & 0,721 & 0,788 & 43,5\,\%  \\
+		250      & 6,200 & 0.528 & 0.748 & 44.9\,\%  \\
+		500      & 2,270 & 0.654 & 0.758 & 42.8\,\%  \\
+		1,000    & 849   & 0.716 & 0.795 & 44.7\,\%  \\
 		\bottomrule
 	\end{tabular}
 \end{table}
 
 \paragraph{Estructura local.}
-Con 2{,}241 pruebas al 5\,\% se esperan del orden de 112 falsos positivos por
+Con 2,270 pruebas al 5\,\% se esperan del orden de 113 falsos positivos por
 azar, por lo que los estadísticos locales se corrigieron con
 Benjamini--Hochberg \parencite{benjamini1995fdr}. Con la corrección,
-\textbf{el LISA \parencite{anselin1995lisa} pasa de 682 celdas
-	significativas a 287} ($-58$\,\%), y el $G^*_i$ \parencite{ord1995local}, de 732
-a 383. Lo que sobrevive (figura~\ref{fig:res-local}) es un núcleo compacto de
-266 celdas Alto--Alto sobre la mancha urbana consolidada, 17 Bajo--Bajo en la
+\textbf{el LISA \parencite{anselin1995lisa} pasa de 705 celdas
+	significativas a 400} ($-43$\,\%), y el $G^*_i$ \parencite{ord1995local}, de 749
+a 470. Lo que sobrevive (figura~\ref{fig:res-local}) es un núcleo compacto de
+370 celdas Alto--Alto sobre la mancha urbana consolidada, 26 Bajo--Bajo en la
 periferia y solo cuatro atípicos espaciales (uno Alto--Bajo y tres
 Bajo--Alto). No aparecen puntos calientes aislados: el riesgo se organiza en
-corredores, no en esquinas sueltas. Las 303 celdas calientes del $G^*_i$
----el 13.5\,\% del territorio con red vial, 197\,km$^2$--- concentran el
-55\,\% de los accidentes.
+corredores, no en esquinas sueltas. Las 384 celdas calientes del $G^*_i$
+---el 16.9\,\% del territorio con red vial, 249\,km$^2$--- concentran el
+64.7\,\% de los accidentes.
 
 \begin{figure*}
 	\centering
@@ -107,7 +107,7 @@ corredores, no en esquinas sueltas. Las 303 celdas calientes del $G^*_i$
 
 \paragraph{Persistencia.}
 La estructura no es propia de un año. El $I$ de Moran anual se mantiene entre
-0.60 y 0.69 de 2019 a 2024, y el ranking de celdas de 2019 tiene una
+0.61 y 0.69 de 2019 a 2024, y el ranking de celdas de 2019 tiene una
 \textbf{correlación de Spearman de 0.83 con el de 2024}, con la pandemia de
 por medio (figura~\ref{fig:res-persistencia}). La matriz de correlaciones
 tiene además dos bloques: $\sim$0.90 dentro de 2019--2021 y dentro de
@@ -137,13 +137,13 @@ superar.
 % ---------------------------------------------------------------------------
 
 \paragraph{Sobredispersión.}
-En el panel de celda$\times$mes (161\,352 filas, 56\,\% de ceros) la razón
-varianza/media marginal es 12,9. Condicionando en la historia de la celda,
+En el panel de celda$\times$mes (163,440 filas, 56.9\,\% de ceros) la razón
+varianza/media marginal es 12.9. Condicionando en la historia de la celda,
 $\log h_i$, el estadístico $\chi^2_{\text{Pearson}}/gl$ del GLM de Poisson
-cae a 1,38: la historia absorbe casi toda la heterogeneidad, pero lo que
+cae a 1.37: la historia absorbe casi toda la heterogeneidad, pero lo que
 queda es inequívoco. La prueba de \textcite{cameron1990regression} estima
-$\hat\alpha = 0{,}096$ con $t = 59$. La Binomial Negativa NB2 estima
-$\theta = 5{,}5$ y mejora el AIC en unos 13\,000 puntos respecto a Poisson y
+$\hat\alpha = 0.096$ con $t = 60$. La Binomial Negativa NB2 estima
+$\theta = 5.5$ y mejora el AIC en unos 13,000 puntos respecto a Poisson y
 en 600 respecto a NB1. Como $1/\theta = 0$ está en la frontera del espacio
 paramétrico, la razón de verosimilitudes se evalúa contra una mezcla 50:50 de
 una masa en cero y una $\chi^2_1$ \parencite{self1987asymptotic}; el rechazo de
@@ -151,9 +151,9 @@ Poisson se mantiene con cualquier convención.
 
 El rootograma colgante \parencite{kleiber2016visualizing} hace visible la
 diferencia (figura~\ref{fig:res-rootograma}): Poisson subpredice los ceros en
-unas 4\,500 celdas-mes y sobrepredice los unos en 2\,900; NB2 corrige casi
+unas 4,600 celdas-mes y sobrepredice los unos en 2,900; NB2 corrige casi
 todo el desajuste. Los residuales cuantil aleatorizados de NB2 sobre 2024
-\parencite{dunn1996randomized} tienen desviación estándar de 1,12 en lugar de 1, con
+\parencite{dunn1996randomized} tienen desviación estándar de 1.11 en lugar de 1, con
 una cola derecha más pesada que la normal (figura~\ref{fig:res-rqr}): queda
 dispersión que el modelo no captura, y la sección siguiente muestra de dónde
 viene.
@@ -176,11 +176,11 @@ viene.
 \end{figure*}
 
 \paragraph{Exceso de ceros.}
-A NB2 le falta el 3,3\,\% de los ceros. Un ZINB con inflación constante
-estima $\hat\pi = 0{,}026$ y mejora el AIC en 1\,200, pero el exceso no está
+A NB2 le falta el 3.2\,\% de los ceros. Un ZINB con inflación constante
+estima $\hat\pi = 0.026$ y mejora el AIC en 1,200, pero el exceso no está
 repartido: ocho pares municipio$\times$periodo explican dos tercios de él,
 con Santa Catarina en prepandemia y pandemia a la cabeza. Ese municipio
-registró 128, 3 y 77 accidentes en 2019, 2020 y 2021, y 1\,793 en 2022. Los
+registró 128, 3 y 77 accidentes en 2019, 2020 y 2021, y 1,795 en 2022. Los
 ceros ``estructurales'' son celdas de municipios que no reportaban, no
 celdas sin riesgo, por lo que no se adoptó un modelo de inflación de ceros.
 
@@ -198,12 +198,12 @@ de conteo a escala celda$\times$mes.
 		\toprule
 		Modelo                       & Devianza & MAE   & CRPS           & Cobertura 90\,\% & PAI 5\,\% \\
 		\midrule
-		M0: histórico 2019--2023     & 40\,737  & 1,246 & 0,909          & 89,8\,\%         & 8,41      \\
-		M0r: histórico 2022--2023    & 35\,652  & 1,196 & \textbf{0,844} & 92,0\,\%         & 8,38      \\
-		M1: Poisson                  & 39\,705  & 1,247 & 0,895          & 90,2\,\%         & 8,41      \\
-		M2: NB2                      & 39\,701  & 1,254 & 0,886          & 93,9\,\%         & 8,41      \\
-		M3: NB2 + rezago espacial    & 39\,702  & 1,254 & 0,886          & 93,9\,\%         & 8,41      \\
-		M4: NB2, historia 2022--2023 & 35\,701  & 1,200 & 0,847          & 92,0\,\%         & 8,38      \\
+		M0: histórico 2019--2023     & 40,949   & 1.232 & 0.899          & 89.8\,\%         & 8.44      \\
+		M0r: histórico 2022--2023    & 35,843   & 1.184 & \textbf{0.835} & 92.0\,\%         & 8.42      \\
+		M1: Poisson                  & 39,917   & 1.233 & 0.885          & 90.3\,\%         & 8.44      \\
+		M2: NB2                      & 39,914   & 1.240 & 0.876          & 93.9\,\%         & 8.44      \\
+		M3: NB2 + rezago espacial    & 39,913   & 1.240 & 0.876          & 93.9\,\%         & 8.44      \\
+		M4: NB2, historia 2022--2023 & 35,899   & 1.186 & 0.838          & 92.1\,\%         & 8.42      \\
 		\bottomrule
 	\end{tabular}
 \end{table*}
@@ -211,21 +211,21 @@ de conteo a escala celda$\times$mes.
 Cuatro resultados se desprenden de esta comparación:
 
 \begin{enumerate}
-	\item \textbf{El PAI es idéntico en M0--M3.} Con $\beta_h = 1{,}01$ y
+	\item \textbf{El PAI es idéntico en M0--M3.} Con $\beta_h = 1.01$ y
 	      covariables que solo varían en el tiempo, la predicción de cada celda es
 	      $h_i$ multiplicada por un factor común, y el ranking de celdas coincide con
-	      el del histórico (Spearman $= 1{,}000$). Un GLM con covariables temporales
+	      el del histórico (Spearman $= 1.000$). Un GLM con covariables temporales
 	      cambia el \emph{cuánto} y la incertidumbre, pero no el \emph{dónde}.
 	\item \textbf{El rezago espacial no aporta nada}: su coeficiente es
-	      $-0{,}002$ ($t = -0{,}6$), pese a la autocorrelación de 0,65 en los
+	      $-0.002$ ($t = -0.5$), pese a la autocorrelación de 0.65 en los
 	      conteos.
 	\item \textbf{Dos años recientes predicen mejor que cinco}: el CRPS de M4 es
-	      0,847 contra 0,886 de M2, y el promedio simple de 2022--2023 (M0r) es el
+	      0.838 contra 0.876 de M2, y el promedio simple de 2022--2023 (M0r) es el
 	      mejor de la tabla. Cuando el modelo recibe ambas historias elige la
 	      completa, porque en entrenamiento explica mejor 2019--2021 al contenerlos;
 	      solo la validación fuera de muestra revela que generaliza peor.
 	\item \textbf{El residual tiene forma de municipio.} El $I$ de Moran del
-	      residual de NB2 en 2024 es 0,31 y cae a 0,07 al restar la media de cada
+	      residual de NB2 en 2024 es 0.30 y cae a 0.06 al restar la media de cada
 	      municipio (figura~\ref{fig:res-municipal}). La autocorrelación residual no
 	      es un proceso espacial fino: son 18 bloques con un nivel propio. Por eso el
 	      rezago no ayudó: las vecinas de una celda de Guadalupe también están en
@@ -243,9 +243,9 @@ Cuatro resultados se desprenden de esta comparación:
 \end{figure*}
 
 Las series anuales por municipio (figura~\ref{fig:res-series}) explican el
-patrón: Santa Catarina pasa de 3 accidentes en 2020 a 2\,904 en 2023;
+patrón: Santa Catarina pasa de 3 accidentes en 2020 a 2,905 en 2023;
 Guadalupe alcanza su máximo en plena pandemia y cae a un tercio en 2024;
-Salinas Victoria alterna 286, 827, 351 y 821. Ninguna dinámica vial produce
+Salinas Victoria alterna 287, 829, 351 y 823. Ninguna dinámica vial produce
 saltos de esa magnitud: lo que cambia de un año a otro es la práctica de
 captura de cada municipio. El supuesto de subregistro estable no se sostiene,
 y esta es la fuente dominante del error de predicción
@@ -267,11 +267,11 @@ y esta es la fuente dominante del error de predicción
 La especificación con efecto espacial BYM2 \parencite{riebler2016intuitive} se ajustó en
 sus dos parametrizaciones y ninguna convergió
 (cuadro~\ref{tab:res-bym2}). En la no centrada, la fracción espacial colapsa
-a $\phi \to 0{,}0001$; en la centrada, $\sigma_s \to 13$ y
-$\phi \to 0{,}9998$. Con cinco años de conteos por celda los datos fijan cada
+a $\phi \to 0.0001$; en la centrada, $\sigma_s \to 13$ y
+$\phi \to 0.9998$. Con cinco años de conteos por celda los datos fijan cada
 $u_i$ casi por completo, y su reparto entre componente espacial e
 independiente solo lo sostienen los \emph{priors}. La estructura espacial existe ---el
-$I$ de Moran de la tasa por celda, neta de la media municipal, es 0,41---, pero
+$I$ de Moran de la tasa por celda, neta de la media municipal, es 0.41---, pero
 no hay información para dividirla entre dos componentes. El modelo final usa
 un CAR propio, con una sola varianza y un solo parámetro de dependencia.
 
@@ -283,46 +283,53 @@ un CAR propio, con una sola varianza y un solo parámetro de dependencia.
 		\toprule
 		Parametrización & Resultado                                                                 & $\hat{R}(\phi)$ \\
 		\midrule
-		No centrada     & $\phi \to 0{,}0001$: desaparece la parte espacial                         & 2,06            \\
-		Centrada        & $\phi \to 0{,}9998$, $\sigma_s \to 13$: desaparece la parte independiente & 1,65            \\
+		No centrada     & $\phi \to 0.0001$: desaparece la parte espacial                         & 2.06            \\
+		Centrada        & $\phi \to 0.9998$, $\sigma_s \to 13$: desaparece la parte independiente & 1.65            \\
 		\bottomrule
 	\end{tabular}
 \end{table}
 
 \paragraph{Diagnósticos de convergencia}
-El modelo final (cuatro cadenas NUTS con \texttt{nutpie}, 1\,000 iteraciones
-de calentamiento y 2\,000 muestras por cadena) se ajustó en cuatro minutos
-\textbf{sin divergencias}. Sobre las 11\,205 cantidades $\log\mu_{ia}$ ---las
-que el modelo identifica--- el $\hat{R}$ máximo \parencite{vehtari2021rank} es 1,005
-y el tamaño efectivo de muestra mínimo es 2\,441. El intercepto $\beta_0$ y
-$\sigma_m$ mezclan peor porque comparten información con el nivel medio de
-$\mathbf{u}$; ninguna conclusión depende de ellos por separado.
+El modelo final (cuatro cadenas NUTS con \texttt{nutpie}, 3,000 iteraciones
+de calentamiento y 4,000 muestras por cadena) se ajustó en 12 minutos
+\textbf{sin divergencias}. Sobre las 11,350 cantidades $\log\mu_{ia}$ ---las
+que el modelo identifica--- el $\hat{R}$ máximo \parencite{vehtari2021rank} es 1.002
+y el tamaño efectivo de muestra mínimo es 4,289. Los hiperparámetros no cumplen
+todos el umbral de 1.01: $\sigma_u$ y $\theta$ quedan en 1.00 y $\sigma_{rw}$ en
+1.01, pero $\alpha$, $\beta_0$ y $\sigma_m$ quedan en 1.02, con ESS de 219, 149
+y 78. Con la mitad de iteraciones, $\alpha$ daba 1.04; duplicarlas no alcanzó
+el umbral. $\beta_0$ y $\sigma_m$ comparten información con el nivel medio de
+$\mathbf{u}$, y $\alpha$ con $\sigma_u$ cuando la dependencia se acerca a 1.
+La media de $\alpha$ es estable (0.917 y 0.919 en las dos corridas, 0.921 con
+priors alternativos), y ninguna conclusión depende de esos parámetros por
+separado.
 
 \paragraph{Hiperparámetros}
 El cuadro~\ref{tab:res-hiper} resume la posterior. La dependencia espacial
-neta del municipio es fuerte ($\alpha = 0.85$). La sobredispersión a escala
-anual es moderada ($\theta = 12{,}2$, frente a 5,5 a escala mensual). El
+neta del municipio es fuerte ($\alpha = 0.92$). La sobredispersión a escala
+anual es moderada ($\theta = 12.2$, frente a 5.5 a escala mensual). El
 municipio típico cambia su nivel de reporte en un factor de
-$e^{0{,}29} \approx 1{,}34$ al año, y dentro de un mismo municipio las celdas
-difieren en órdenes de magnitud ($\sigma_u = 2{,}38$). Al reajustar con \emph{priors}
+$e^{0.29} \approx 1.33$ al año, y dentro de un mismo municipio las celdas
+difieren en órdenes de magnitud ($\sigma_u = 2.61$). Al reajustar con \emph{priors}
 alternativos ($\alpha$ uniforme, $\sigma_u$ con escala doble, $\theta$ con
-media 5 en lugar de 20) los cuatro valores cambian en el tercer decimal: los
-datos dominan a los priors. Con innovaciones normales en la caminata
-municipal, $\sigma_{rw}$ se estimaba en 0,61, inflada por unos pocos saltos;
-con innovaciones $t_3$ baja a 0,29.
+media 5 en lugar de 20), $\theta$ cambia 0.6\,\% (12.215 a
+12.146) y los otros tres, a lo sumo 0.002: los datos dominan a los priors. El
+reajuste deja dos transiciones divergentes. Con innovaciones normales en la caminata
+municipal, $\sigma_{rw}$ se estimaba en 0.61, inflada por unos pocos saltos;
+con innovaciones $t_3$ baja a 0.29.
 
 \begin{table}
 	\centering\small
 	\caption{Hiperparámetros a posteriori del modelo jerárquico.}
 	\label{tab:res-hiper}
-	\begin{tabular}{@{}lrl@{}}
+	\begin{tabular}{@{}lrlrr@{}}
 		\toprule
-		Parámetro     & Media & IC 94\,\%     \\
+		Parámetro     & Media & IC 94\,\%       & $\hat{R}$ & ESS    \\
 		\midrule
-		$\alpha$      & 0,85  & [0,81;\ 0,88] \\
-		$\theta$      & 12,2  &               \\
-		$\sigma_{rw}$ & 0,29  &               \\
-		$\sigma_u$    & 2,38  &               \\
+		$\alpha$      & 0.92  & [0.89,\ 0.95] & 1.02      & 219    \\
+		$\theta$      & 12.2  &                & 1.00      & 10,692 \\
+		$\sigma_{rw}$ & 0.29  &                & 1.01      & 259    \\
+		$\sigma_u$    & 2.61  &                & 1.00      & 2,357  \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -361,10 +368,10 @@ las colonias interiores y los bordes de la mancha urbana, con $u_i < 0$.
 	\label{fig:res-perfil}
 \end{figure}
 
-En las 618 celdas con cinco accidentes o menos en cinco años, el modelo
-encoge poco la estimación puntual respecto al estimador ingenuo (12\,\%),
-pero su incertidumbre es el triple que la de las celdas con más de cien
-accidentes (desviación posterior de 0.75 contra 0.25 en escala log;
+En las 643 celdas con cinco accidentes o menos en cinco años, el modelo
+encoge poco la estimación puntual respecto al estimador ingenuo (15\,\%),
+pero su incertidumbre es casi el triple que la de las celdas con más de cien
+accidentes (desviación posterior de 0.79 contra 0.28 en escala log;
 figura~\ref{fig:res-shrinkage}). Dos celdas con el mismo $u_i$ y distinta
 incertidumbre no justifican la misma intervención.
 
@@ -398,27 +405,27 @@ comparación sea directa (cuadro~\ref{tab:res-validacion}).
 		\toprule
 		Modelo      & MAE  & CRPS          & Cob.\ 90\,\%    & PAI  \\
 		\midrule
-		M0          & 9,59 & 8,04          & 63\,\%          & 8,41 \\
-		M0r         & 8,15 & 6,56          & 68\,\%          & 8,38 \\
-		M4          & 8,18 & 6,93          & \textbf{90\,\%} & 8,38 \\
-		\textbf{M6} & 8,19 & \textbf{6,17} & 87\,\%          & 8,42 \\
+		M0          & 9.49 & 7.96          & 64\,\%          & 8.44 \\
+		M0r         & 8.06 & 6.49          & 69\,\%          & 8.42 \\
+		M4          & 8.07 & 6.85          & \textbf{90\,\%} & 8.42 \\
+		\textbf{M6} & 8.10 & \textbf{6.10} & 87\,\%          & 8.44 \\
 		\bottomrule
 	\end{tabular}
 \end{table}
 
 \begin{itemize}
-	\item \textbf{Calibración del total.} El jerárquico predice 70\,815
-	      accidentes para 2024 contra 71\,249 observados: un error del 0,6\,\%.
-	\item \textbf{Media.} Empata con M0r en MAE (8,19 contra 8,15). Lo
+	\item \textbf{Calibración del total.} El jerárquico predice 70,810
+	      accidentes para 2024 contra 71,295 observados: un error del 0.7\,\%.
+	\item \textbf{Media.} Empata con M0r en MAE (8.10 contra 8.06). Lo
 	      predecible de 2024 es el nivel reciente de cada municipio debido al perfil estable de cada celda, y un promedio bien elegido ya captura esa media.
 	\item \textbf{Distribución.} Mejora el CRPS \parencite{gneiting2007strictly} del
-	      mejor \emph{baseline} en un 6\,\% (6,17 contra 6,56). El intervalo del
-	      90\,\% de M0r cubre solo el 68\,\% de las celdas, porque supone un Poisson
+	      mejor \emph{baseline} en un 6\,\% (6.10 contra 6.49). El intervalo del
+	      90\,\% de M0r cubre solo el 69\,\% de las celdas, porque supone un Poisson
 	      sin sobredispersión ni régimen; el del jerárquico cubre el 87\,\%, cerca de
 	      su nivel nominal, aun sin incorporar el riesgo de cambio de régimen. M4
-	      cubre el 90\,\% a costa de un CRPS peor (6,93): sus intervalos son más
+	      cubre el 90\,\% a costa de un CRPS peor (6.85): sus intervalos son más
 	      anchos de lo necesario.
-	\item \textbf{Selección de zonas.} El PAI al 5\,\% es 8,42, prácticamente el
+	\item \textbf{Selección de zonas.} El PAI al 5\,\% es 8.44, el
 	      mismo que el del histórico. El \emph{shrinkage} reordena la cola de la
 	      distribución de celdas, no la cabeza, que es donde se decide la selección.
 \end{itemize}
@@ -426,10 +433,10 @@ comparación sea directa (cuadro~\ref{tab:res-validacion}).
 Dos variantes se evaluaron y descartaron. La primera pronosticaba 2024 con
 una innovación $t_3$ adicional en el nivel municipal; como
 $\E[e^{T}] = \infty$ para cualquier $t$ de Student, la media predictiva no
-existe, y numéricamente la suma de medias dio 2,3 millones de accidentes
+existe, y numéricamente la suma de medias dio 2.8 millones de accidentes
 contra 71 mil observados, con valores que cambiaban con la semilla. La
 segunda añadía una deriva por municipio para capturar el crecimiento
-periférico: la posterior la encogió a cero ($\sigma_d = 0{,}07$), produjo 46
+periférico: la posterior la encogió a cero ($\sigma_d = 0.07$), produjo 46
 divergencias y no mejoró el CRPS. Con cinco años y saltos de régimen, los
 datos no distinguen una tendencia de una racha de innovaciones.
 
