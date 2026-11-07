@@ -64,6 +64,7 @@ from libpysal import weights
 from geostats import espacial, rutas
 
 SEMILLA = 42
+CALENTAMIENTO, MUESTRAS = 3000, 4000   # mismas que modelo_jerarquico.qmd
 rng = np.random.default_rng(SEMILLA)
 
 g = gpd.read_parquet(rutas.ATUS_ZMM_LIMPIO_GEO).to_crs(espacial.UTM_ZMM)
@@ -189,9 +190,10 @@ with pm.Model() as modelo:
     pm.NegativeBinomial("y", mu=pm.math.exp(log_mu), alpha=theta, observed=p.y.values)
 
     inicio = time.time()
-    idata = pm.sample(draws=2000, tune=1000, chains=4, nuts_sampler="nutpie",
+    idata = pm.sample(draws=MUESTRAS, tune=CALENTAMIENTO, chains=4, nuts_sampler="nutpie",
                       random_seed=SEMILLA, progressbar=False)
-print(f"4 cadenas × (1,000 calentamiento + 2,000 muestras) en {(time.time() - inicio) / 60:.1f} min")
+print(f"4 cadenas × ({CALENTAMIENTO:,} calentamiento + {MUESTRAS:,} muestras) "
+      f"en {(time.time() - inicio) / 60:.1f} min")
 ```
 
 ### Convergencia

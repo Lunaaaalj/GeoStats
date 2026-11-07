@@ -310,7 +310,9 @@ def construir(alpha_prior=(2, 1), sigma_u_escala=1.5, theta_prior=(2, 0.1)):
         pm.NegativeBinomial("y", mu=pm.math.exp(log_mu), alpha=theta, observed=tr.y.values)
     return modelo
 
-def muestrear(modelo, draws=2000, tune=1000, chains=4):
+CALENTAMIENTO, MUESTRAS = 3000, 4000
+
+def muestrear(modelo, draws=MUESTRAS, tune=CALENTAMIENTO, chains=4):
     inicio = time.time()
     idata = pm.sample(draws=draws, tune=tune, chains=chains, nuts_sampler="nutpie",
                       random_seed=SEMILLA, progressbar=False, model=modelo)
@@ -319,7 +321,8 @@ def muestrear(modelo, draws=2000, tune=1000, chains=4):
 
 modelo = construir()
 idata = muestrear(modelo)
-print(f"4 cadenas × (1,000 calentamiento + 2,000 muestras) en {idata.attrs['segundos'] / 60:.1f} min")
+print(f"4 cadenas × ({CALENTAMIENTO:,} calentamiento + {MUESTRAS:,} muestras) "
+      f"en {idata.attrs['segundos'] / 60:.1f} min")
 ```
 
 ### Diagnósticos
@@ -616,7 +619,7 @@ de ancho y $\theta$ con media 5 en lugar de 20.
 
 ```{python}
 modelo_alt = construir(alpha_prior=(1, 1), sigma_u_escala=3.0, theta_prior=(2, 0.4))
-idata_alt = muestrear(modelo_alt, draws=500, tune=1000, chains=4)
+idata_alt = muestrear(modelo_alt, draws=1000)
 post_alt = az.extract(idata_alt)
 
 lam_alt = np.exp(post_alt.b0.values[None, :] + post_alt.m.values[:, -1, :][te.j.values, :] + post_alt.u.values[te.i.values, :])
