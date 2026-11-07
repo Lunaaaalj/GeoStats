@@ -12,10 +12,10 @@ nacional: la base incluye solo municipios con zonas urbanas seleccionadas, 198 e
 total.
 
 El análisis se restringe a los 18 municipios de la Zona Metropolitana de
-Monterrey (ZMM) según el Sistema Urbano Nacional, listados en
+Monterrey (ZMM) según el Sistema Urbano Nacional \parencite{sun2018}, listados en
 \texttt{zonas.ZMM\_MONTERREY}: 379,294 accidentes (28.8\,\% de la base) en
 \texttt{atus\_zmm.parquet}, con 51 columnas tras agregar \texttt{NOM\_MUN}.
-% PENDIENTE: cita del Sistema Urbano Nacional (CONAPO-SEDATU-INEGI); no hay llave en referencias.bib.
+% VERIFICAR: la lista de 18 municipios no se contrastó contra el anexo del SUN 2018.
 Esos 18 municipios son los únicos de Nuevo León en ATUS, de modo que
 \texttt{EDO == 19} produce el mismo recorte. Se conserva la lista explícita para
 que el recorte no dependa de esa coincidencia: el código falla si falta un
@@ -127,11 +127,10 @@ contra 27.9\,\% en solo daños), de modo que el contraste vale entre los extremo
 Esa dependencia descarta que el dato falte completamente al azar (MCAR,
 \emph{missing completely at random}), pero no distingue por sí sola entre
 faltante al azar condicional en lo observado (MAR, \emph{missing at random}) y
-faltante no aleatorio (MNAR, \emph{missing not at random}), porque el valor
-ausente no se observa. El análisis adopta MNAR como supuesto de trabajo: ninguna
+faltante no aleatorio (MNAR, \emph{missing not at random})
+\parencite{rubin1976inference}, porque el valor ausente no se observa. El análisis adopta MNAR como supuesto de trabajo: ninguna
 prueba sobre la base lo descarta, y es el único de los tres que no autoriza el
 borrado ni la imputación estándar.
-% PENDIENTE: cita de la taxonomía MCAR/MAR/MNAR; no hay llave en referencias.bib.
 De ahí se siguen dos decisiones. Se descartó \texttt{dropna()}: conserva 10.2\,\%
 de los accidentes fatales contra 25.9\,\% de los de solo daños. Se descartó
 imputar, porque los métodos estándar suponen MAR. \texttt{geostats.limpieza} no

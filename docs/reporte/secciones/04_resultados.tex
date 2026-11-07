@@ -84,9 +84,9 @@ autocorrelación es una propiedad del fenómeno y no de la rejilla elegida.
 \paragraph{Estructura local.}
 Con 2{,}241 pruebas al 5\,\% se esperan del orden de 112 falsos positivos por
 azar, por lo que los estadísticos locales se corrigieron con
-Benjamini--Hochberg \parencite{benjamini_hochberg_1995}. Con la corrección,
-\textbf{el LISA \parencite{anselin_1995} pasa de 682 celdas
-	significativas a 287} ($-58$\,\%), y el $G^*_i$ \parencite{ord_getis_1995}, de 732
+Benjamini--Hochberg \parencite{benjamini1995fdr}. Con la corrección,
+\textbf{el LISA \parencite{anselin1995lisa} pasa de 682 celdas
+	significativas a 287} ($-58$\,\%), y el $G^*_i$ \parencite{ord1995local}, de 732
 a 383. Lo que sobrevive (figura~\ref{fig:res-local}) es un núcleo compacto de
 266 celdas Alto--Alto sobre la mancha urbana consolidada, 17 Bajo--Bajo en la
 periferia y solo cuatro atípicos espaciales (uno Alto--Bajo y tres
@@ -116,7 +116,7 @@ campo \texttt{OID} en los archivos del INEGI a partir de 2022; por eso los model
 incluyen un indicador de periodo.
 
 La prueba operativa de persistencia es el índice de precisión predictiva
-(PAI) \parencite{chainey_2008}: la fracción de accidentes capturada dividida
+(PAI) \parencite{chainey2008utility}: la fracción de accidentes capturada dividida
 entre la fracción de territorio seleccionada. \textbf{Eligiendo el 5\,\% de
 	las celdas con más accidentes en 2019--2023 se captura el 42\,\% de los
 	accidentes de 2024: PAI de 8.4.} Este resultado no usa ningún modelo ---solo
@@ -141,19 +141,19 @@ En el panel de celda$\times$mes (161\,352 filas, 56\,\% de ceros) la razón
 varianza/media marginal es 12,9. Condicionando en la historia de la celda,
 $\log h_i$, el estadístico $\chi^2_{\text{Pearson}}/gl$ del GLM de Poisson
 cae a 1,38: la historia absorbe casi toda la heterogeneidad, pero lo que
-queda es inequívoco. La prueba de \textcite{cameron_trivedi_1990} estima
+queda es inequívoco. La prueba de \textcite{cameron1990regression} estima
 $\hat\alpha = 0{,}096$ con $t = 59$. La Binomial Negativa NB2 estima
 $\theta = 5{,}5$ y mejora el AIC en unos 13\,000 puntos respecto a Poisson y
 en 600 respecto a NB1. Como $1/\theta = 0$ está en la frontera del espacio
 paramétrico, la razón de verosimilitudes se evalúa contra una mezcla 50:50 de
-una masa en cero y una $\chi^2_1$ \parencite{self_liang_1987}; el rechazo de
+una masa en cero y una $\chi^2_1$ \parencite{self1987asymptotic}; el rechazo de
 Poisson se mantiene con cualquier convención.
 
-El rootograma colgante \parencite{kleiber_zeileis_2016} hace visible la
+El rootograma colgante \parencite{kleiber2016visualizing} hace visible la
 diferencia (figura~\ref{fig:res-rootograma}): Poisson subpredice los ceros en
 unas 4\,500 celdas-mes y sobrepredice los unos en 2\,900; NB2 corrige casi
 todo el desajuste. Los residuales cuantil aleatorizados de NB2 sobre 2024
-\parencite{dunn_smyth_1996} tienen desviación estándar de 1,12 en lugar de 1, con
+\parencite{dunn1996randomized} tienen desviación estándar de 1,12 en lugar de 1, con
 una cola derecha más pesada que la normal (figura~\ref{fig:res-rqr}): queda
 dispersión que el modelo no captura, y la sección siguiente muestra de dónde
 viene.
@@ -264,7 +264,7 @@ y esta es la fuente dominante del error de predicción
 % ---------------------------------------------------------------------------
 
 \paragraph{BYM2 no se identifica}
-La especificación con efecto espacial BYM2 \parencite{riebler_2016} se ajustó en
+La especificación con efecto espacial BYM2 \parencite{riebler2016intuitive} se ajustó en
 sus dos parametrizaciones y ninguna convergió
 (cuadro~\ref{tab:res-bym2}). En la no centrada, la fracción espacial colapsa
 a $\phi \to 0{,}0001$; en la centrada, $\sigma_s \to 13$ y
@@ -293,7 +293,7 @@ un CAR propio, con una sola varianza y un solo parámetro de dependencia.
 El modelo final (cuatro cadenas NUTS con \texttt{nutpie}, 1\,000 iteraciones
 de calentamiento y 2\,000 muestras por cadena) se ajustó en cuatro minutos
 \textbf{sin divergencias}. Sobre las 11\,205 cantidades $\log\mu_{ia}$ ---las
-que el modelo identifica--- el $\hat{R}$ máximo \parencite{vehtari_2021} es 1,005
+que el modelo identifica--- el $\hat{R}$ máximo \parencite{vehtari2021rank} es 1,005
 y el tamaño efectivo de muestra mínimo es 2\,441. El intercepto $\beta_0$ y
 $\sigma_m$ mezclan peor porque comparten información con el nivel medio de
 $\mathbf{u}$; ninguna conclusión depende de ellos por separado.
@@ -411,7 +411,7 @@ comparación sea directa (cuadro~\ref{tab:res-validacion}).
 	      accidentes para 2024 contra 71\,249 observados: un error del 0,6\,\%.
 	\item \textbf{Media.} Empata con M0r en MAE (8,19 contra 8,15). Lo
 	      predecible de 2024 es el nivel reciente de cada municipio debido al perfil estable de cada celda, y un promedio bien elegido ya captura esa media.
-	\item \textbf{Distribución.} Mejora el CRPS \parencite{gneiting_raftery_2007} del
+	\item \textbf{Distribución.} Mejora el CRPS \parencite{gneiting2007strictly} del
 	      mejor \emph{baseline} en un 6\,\% (6,17 contra 6,56). El intervalo del
 	      90\,\% de M0r cubre solo el 68\,\% de las celdas, porque supone un Poisson
 	      sin sobredispersión ni régimen; el del jerárquico cubre el 87\,\%, cerca de

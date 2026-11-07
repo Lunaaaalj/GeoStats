@@ -67,7 +67,7 @@ resultados.
 accidentes, con qué estructura espacial y con qué persistencia. El índice de
 Gini, el $I$ de Moran y los mapas locales con FDR coinciden a 250, 500 y
 1\,000\,m de lado, lo que descarta que la estructura sea un artefacto de la
-rejilla \parencite{openshaw1984}. El ranking de celdas de 2019 correlaciona 0,83
+rejilla \parencite{openshaw1984maup}. El ranking de celdas de 2019 correlaciona 0,83
 con el de 2024, con una pandemia de por medio. Y, dentro de cada municipio,
 la base sostiene un perfil de riesgo relativo $u_i$ con la incertidumbre que
 corresponde a cada celda: las celdas con pocos accidentes no se encogen mucho
@@ -82,7 +82,7 @@ Tercero, no dice \emph{por qué} una celda es riesgosa: sin exposición (tránsi
 kilómetros de vialidad) un corredor con muchos accidentes puede ser un corredor
 peligroso o un corredor transitado. La exposición es la
 covariable central de los modelos de frecuencia de accidentes
-\parencite{lord2010}; sin ella, lo que aquí se estima es frecuencia y no tasa.
+\parencite{lord2010statistical}; sin ella, lo que aquí se estima es frecuencia y no tasa.
 Cuarto, no permite inferencia causal sobre intervenciones: todas las
 covariables son estructurales y ninguna es manipulable.
 
@@ -92,7 +92,7 @@ Es la expresión cuantitativa de los dos párrafos anteriores. El \emph{dónde} 
 decide el historial, que es lo que la base mide bien; las
 mejoras del jerárquico están en el \emph{cuánto} y en el \emph{con qué
 	certeza} (CRPS 6.17 contra 6.56), que es donde el régimen pesa. El PAI es la
-métrica habitual para juzgar mapas de puntos calientes \parencite{chainey2008}, y
+métrica habitual para juzgar mapas de puntos calientes \parencite{chainey2008utility}, y
 moverlo exige covariables que varíen por celda y que el historial no contenga, y esas
 no están en ATUS.
 
@@ -143,7 +143,7 @@ Se documentan porque cada uno descarta una explicación y porque, sin el
 registro, alguien volvería a intentarlos.
 
 \paragraph{BYM2.} La especificación original del nivel de celda era BYM2
-\parencite{riebler2016}, que separa un componente espacial ICAR de uno
+\parencite{riebler2016intuitive}, que separa un componente espacial ICAR de uno
 independiente y hace interpretable la fracción espacial $\phi$. No se
 identificó en ninguna de sus dos parametrizaciones: la no centrada llevó
 $\phi$ a 0 y la centrada a 1, con $\hat{R}$ de 2.06 y 1.65. El motivo es de
