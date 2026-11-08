@@ -41,6 +41,16 @@ MINUSCULAS = {"A", "De", "Del", "La", "Las", "Los", "Y", "El"}
 AZUL = "005991"
 RAMPA = (AZUL, "1B77B8")
 
+# Punto por defecto de una calle (issue #23 y #30). El parte del agente no trae
+# coordenadas: el INEGI georreferencia después a partir de las calles anotadas
+# (Síntesis metodológica ATUS 2016, Forma EE-4-8). Cuando el parte solo nombra
+# una calle, cae en un punto fijo de esa calle, y ahí se apilan accidentes que
+# pudieron ocurrir en cualquier parte de ella. Se marca la coordenada exacta con
+# al menos `PILA_MINIMA` accidentes de los que al menos `PROPORCION_UNA_CALLE`
+# nombran una sola calle; sus accidentes de una calle no son de ese cruce.
+PILA_MINIMA = 5
+PROPORCION_UNA_CALLE = 0.5
+
 TRANSPORTE_PUBLICO = ["CAMPASAJ", "MICROBUS", "PASCAMION", "OMNIBUS"]
 TRANSPORTE_CARGA = ["CAMION", "TRACTOR"]
 GRAFITO = "2C2C2C"
@@ -66,6 +76,32 @@ def calle_limpia(calle) -> str | None:
                     for k, p in enumerate(palabras))
 
 
+def _escritura(d: pd.DataFrame) -> pd.Series:
+    """Escritura más frecuente de cada calle homologada, para mostrarla."""
+    bonitas = pd.DataFrame({
+        "k": pd.concat([d.calle1_hom, d.calle2_hom], ignore_index=True),
+        "v": pd.concat([d.CALLE1.map(calle_limpia), d.CALLE2.map(calle_limpia)],
+                       ignore_index=True),
+    }).dropna()
+    return (bonitas.groupby(["k", "v"]).size().reset_index(name="n")
+            .sort_values(["k", "n", "v"], ascending=[True, False, True])
+            .drop_duplicates("k").set_index("k").v)
+
+
+def ubicacion_aproximada(d: pd.DataFrame) -> pd.Series:
+    """Accidentes de una sola calle apilados en el punto por defecto de esa calle.
+
+    `True` si el parte nombra una sola calle y su coordenada exacta reúne al
+    menos `PILA_MINIMA` accidentes, de los que al menos `PROPORCION_UNA_CALLE`
+    también nombran una sola. Su coordenada dice en qué calle fue, no dónde.
+    """
+    una = ~d.dos_vialidades
+    coord = [d.LATITUD, d.LONGITUD]
+    pila = d.groupby(coord).id_punto_4d.transform("size")
+    proporcion = una.groupby(coord).transform("mean")
+    return una & (pila >= PILA_MINIMA) & (proporcion >= PROPORCION_UNA_CALLE)
+
+
 def nombres_de_cruce(d: pd.DataFrame) -> pd.DataFrame:
     """Nombre de cada nodo y si nombra dos calles distintas.
 
@@ -80,14 +116,7 @@ def nombres_de_cruce(d: pd.DataFrame) -> pd.DataFrame:
     """
     if "vialidades_hom" not in d:
         raise KeyError("Falta vialidades_hom: vuelve a correr `uv run limpiar-atus`.")
-    bonitas = pd.DataFrame({
-        "k": pd.concat([d.calle1_hom, d.calle2_hom], ignore_index=True),
-        "v": pd.concat([d.CALLE1.map(calle_limpia), d.CALLE2.map(calle_limpia)],
-                       ignore_index=True),
-    }).dropna()
-    escritura = (bonitas.groupby(["k", "v"]).size().reset_index(name="n")
-                 .sort_values(["k", "n", "v"], ascending=[True, False, True])
-                 .drop_duplicates("k").set_index("k").v)
+    escritura = _escritura(d)
 
     def mas_frecuente(votos: pd.DataFrame) -> pd.Series:
         return (votos.groupby(["nodo", "v"]).size().reset_index(name="n")
@@ -120,8 +149,43 @@ def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
     # transporte se cuentan todas las defunciones de esos hechos.
     for k in ("moto", "publico", "carga"):
         d[f"def_{k}"] = d.TOTMUERTOS.where(d[f"con_{k}"], 0)
-    g = d.groupby("id_punto_4d")
-    nodos = pd.DataFrame({
+    # Solo los nodos que el agente marca como intersección (URBANA = 1).
+    ub = d.groupby("id_punto_4d").ubicacion.agg(lambda s: s.mode().iloc[0])
+    d = d[d.id_punto_4d.map(ub) == "Intersección"].copy()
+
+    # Un accidente va «a lo largo» de su calle si su parte no ubica el cruce:
+    # está en el punto por defecto de la calle, o en un nodo donde ningún parte
+    # trae una segunda calle. El resto se queda en su cruce.
+    d["aproximada"] = ubicacion_aproximada(d)
+    nombres = nombres_de_cruce(d[~d.aproximada])
+    d["a_lo_largo"] = d.aproximada | d.id_punto_4d.map(nombres.interseccion).ne("Sí")
+
+    en_cruce = d[~d.a_lo_largo]
+    cruces = _contar(en_cruce, "id_punto_4d")
+    cruces["nombre"] = nombres.nombre.reindex(cruces.index)
+    cruces["interseccion"] = "Sí"
+    g = en_cruce.groupby("id_punto_4d")
+    cruces["lat"], cruces["lon"] = g.LATITUD.median(), g.LONGITUD.median()
+    cruces["maps"] = [f"https://www.google.com/maps?q={la:.6f},{lo:.6f}"
+                      for la, lo in zip(cruces.lat, cruces.lon)]
+    cruces["coordenadas"] = [f"{la:.6f}, {lo:.6f}" for la, lo in zip(cruces.lat, cruces.lon)]
+
+    # Una fila por calle y municipio, sin coordenadas: una avenida recorre
+    # kilómetros y la mediana de sus puntos no ubica nada.
+    escritura = _escritura(d)
+    a_lo_largo = d[d.a_lo_largo].assign(
+        calle=lambda f: f.vialidades_hom.map(escritura).fillna(f.vialidades_hom.str.title()))
+    calles = (_contar(a_lo_largo, ["calle", "NOM_MUN"]).reset_index()
+              .assign(nombre=lambda f: "A lo largo de " + f.calle, interseccion="No",
+                      municipio=lambda f: f.NOM_MUN,
+                      maps=None, coordenadas=None, lat=None, lon=None))
+    return _rankear(cruces), _rankear(calles)
+
+
+def _contar(d: pd.DataFrame, llaves) -> pd.DataFrame:
+    """Los conteos de todas las secciones, agrupados por `llaves`."""
+    g = d.groupby(llaves)
+    return pd.DataFrame({
         "hechos": g.size(),
         "defunciones": g.TOTMUERTOS.sum(),
         "hechos_peaton": g.con_peaton.sum(),
@@ -137,28 +201,7 @@ def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
         "hechos_pc": g.con_pc.sum(),
         "defunciones_pc": g.defunciones_pc.sum(),
         "municipio": g.NOM_MUN.agg(lambda s: s.mode().iloc[0]),
-        "ubicacion": g.ubicacion.agg(lambda s: s.mode().iloc[0]),
-        "lat": g.LATITUD.median(),
-        "lon": g.LONGITUD.median(),
     })
-    cruces = nodos[nodos.ubicacion == "Intersección"].copy()
-    nombres = nombres_de_cruce(d).reindex(cruces.index)
-    cruces["nombre"] = nombres.nombre.fillna("Sin nombre")
-    cruces["interseccion"] = nombres.interseccion.fillna("No")
-
-    cruces["maps"] = [f"https://www.google.com/maps?q={la:.6f},{lo:.6f}"
-                      for la, lo in zip(cruces.lat, cruces.lon)]
-    cruces["coordenadas"] = [f"{la:.6f}, {lo:.6f}" for la, lo in zip(cruces.lat, cruces.lon)]
-
-    # Los puntos que no identifican la segunda calle no son un cruce: se juntan
-    # en una fila por calle y municipio. Sin coordenadas, porque una avenida
-    # recorre kilómetros y la mediana de sus puntos no ubica nada.
-    sin_cruce = cruces.interseccion == "No"
-    conteos = [c for c, _ in columnas_de(SECCIONES[1:-1]) if not c.startswith("r_")]
-    calles = (cruces[sin_cruce].groupby(["nombre", "municipio"], as_index=False)[conteos].sum()
-              .assign(nombre=lambda f: "A lo largo de " + f.nombre, interseccion="No",
-                      maps=None, coordenadas=None, lat=None, lon=None))
-    return _rankear(cruces[~sin_cruce]), _rankear(calles)
 
 
 def _rankear(tabla: pd.DataFrame) -> pd.DataFrame:
@@ -230,10 +273,17 @@ NOTAS = [
     ("Intersección (dos calles)", "Sí si el nombre del cruce tiene dos calles distintas; No si "
                                   "solo nombra una. Todos los puntos de la tabla están marcados "
                                   "como intersección por el agente (URBANA = 1)."),
-    ("Calles sin cruce", "Hoja aparte con los puntos que no identifican la segunda calle "
-                         "(«Intersección» = No), sumados en una fila por calle y municipio. "
-                         "Sin coordenadas: una calle recorre kilómetros. Sus rankings son "
-                         "solo entre calles; los de la hoja «Cruces», solo entre cruces."),
+    ("Calles sin cruce", "Hoja aparte con los accidentes cuyo parte no ubica el cruce, sumados "
+                         "en una fila por calle y municipio. Sin coordenadas: una calle "
+                         "recorre kilómetros. Sus rankings son solo entre calles; los de la "
+                         "hoja «Cruces», solo entre cruces."),
+    ("Punto por defecto", "El parte no trae coordenadas: el INEGI las asigna después a partir de "
+                          "las calles anotadas. Si el parte nombra una sola calle, cae en un punto "
+                          "fijo de ella. Por eso un accidente de una sola calle pasa a «Calles sin "
+                          "cruce» si su coordenada exacta reúne 5 o más accidentes y la mitad o "
+                          "más también nombran una sola calle, aunque ese punto tenga nombre de "
+                          "cruce. Ej.: 609 de 610 accidentes en una coordenada de «Fidel "
+                          "Velázquez × Manuel L. Barragán» solo dicen «Manuel L. Barragán»."),
     ("Calles sin cruce con muchos hechos", "Una fila con muchos hechos casi siempre es un punto por defecto, no un "
                         "cruce: el agente ubicó la calle sin el cruce y todos los partes caen "
                         "en la misma coordenada. Ej.: «Sendero Norte», 227 hechos de 2019 a "
