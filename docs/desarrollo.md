@@ -211,7 +211,9 @@ razón: en el rango `0x80-0x9F` CP1252 pone guiones y comillas tipográficas que
 `latin-1` convierte en caracteres de control (719 caracteres mal leídos, en
 silencio). Pero 740 bytes del origen caen en los cinco huecos que CP1252 no
 define. `consolidar` registra un manejador de errores que lee esos cinco bytes
-con semántica latin-1: texto correcto y cero bytes perdidos (ningún U+FFFD).
+con semántica latin-1: quedan como caracteres de control, residuos compatibles
+con doble codificación, sin bytes perdidos (ningún U+FFFD) y sin recuperar el
+texto original.
 
 **`ID` no es llave única.** En 2019-2020 es un folio consecutivo *por
 municipio* y se repite 268,920 veces; desde 2021 es un identificador compuesto.

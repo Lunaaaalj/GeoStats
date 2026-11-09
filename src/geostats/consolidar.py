@@ -27,8 +27,9 @@ from geostats import rutas
 # años -- pocos, pero mal leídos en silencio.
 #
 # El problema es que 740 bytes del origen caen en los cinco huecos que CP1252
-# no define. Este manejador los decodifica con semántica latin-1, así que se
-# obtiene el texto correcto sin perder ningún byte (nada se vuelve U+FFFD).
+# no define. Este manejador los decodifica con semántica latin-1: quedan como
+# caracteres de control, residuos compatibles con doble codificación, y no se
+# pierde ningún byte (nada se vuelve U+FFFD). No se recupera el texto original.
 #
 # No usar chardet: sobre estos archivos devuelve CP874/TIS-620 con confianza
 # 0.00, porque apenas ~1 de cada 250 bytes es no-ASCII.

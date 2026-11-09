@@ -97,7 +97,8 @@ chrome --headless --no-pdf-header-footer \
 \paragraph{Versiones de software.} La tabla~\ref{tab:versiones} lista las
 versiones de \texttt{uv.lock}. El modelo se escribió en PyMC
 \parencite{abrilpla2023pymc} y se muestreó con \texttt{nutpie}; \texttt{esda} y
-\texttt{libpysal} calculan los estadísticos espaciales y la contigüidad.
+\texttt{libpysal} calculan los estadísticos espaciales y la contigüidad
+\parencite{rey2007pysal,rey2022pysal}.
 \texttt{arviz} es dependencia indirecta, a través de PyMC. Python se fija en 3.14
 (\texttt{.python-version}, \texttt{requires-python = ">=3.14"}), sin fijar el
 parche. El repositorio no fija las versiones de Quarto, de la distribución de
@@ -136,9 +137,9 @@ produzca: los ajustes de BYM2 ($\hat{R}$ de 2.06 y 1.65), las innovaciones norma
 ($\sigma_{rw} = 0.61$), la deriva municipal ($\sigma_d = 0.07$, 46 divergencias) y
 el $I$ de Moran de 0.41 neto del municipio. Segundo, en
 \texttt{modelo\_conteo.qmd} los valores $z$ de Moran dependen de permutaciones sin
-semilla; el estadístico $I$ no. Tercero, la prosa de
-\texttt{modelo\_jerarquico.qmd} conserva $\hat{R} = 1.009$ y $\alpha = 0.84$,
-mientras que la salida del PDF da 1.005 y 0.848; este reporte usa la salida. La
-igualdad numérica entre dos ejecuciones con la misma semilla no se comprobó: las
-semillas fijan el flujo aleatorio, no la igualdad de resultados entre máquinas o
-versiones.
+semilla; el estadístico $I$ no. Dos ejecuciones
+completas de \texttt{modelo\_jerarquico} y de \texttt{pronostico\_2027} en la
+misma máquina, con semilla 42, dieron salidas idénticas salvo el tiempo de
+cómputo. La igualdad entre máquinas o versiones no se comprobó: las semillas
+fijan el flujo aleatorio, no la aritmética de punto flotante de cada
+plataforma.

@@ -50,7 +50,7 @@ src/geostats/
   espacial.py    rejilla hexagonal, CRS métrico (UTM 14N) y celdas(): la partición común de análisis y modelo
 notebooks/       consumen processed/ vía `from geostats import rutas, zonas`
 docs/            diccionario de datos, selección de variables y el PDF de cada notebook
-docs/reporte/    reporte técnico en LaTeX (latexmk -pdf reporte.tex); figuras/ se extraen del HTML de los notebooks
+docs/reporte/    reporte técnico en LaTeX (latexmk -pdf main.tex); figuras/ se extraen del HTML de los notebooks
 data/            fuera del repo salvo .gitkeep (~5 GB)
 ```
 

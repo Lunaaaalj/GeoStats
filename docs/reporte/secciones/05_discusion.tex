@@ -22,8 +22,8 @@ Ninguna dinámica vial produce saltos de ese tamaño en un solo periodo: lo que
 cambia es la práctica de captura.
 
 Tres resultados independientes apuntan a la misma causa. Primero, el residual
-de la Binomial Negativa tiene forma de municipio: su $I$ de Moran cae de 0.31
-a 0.07 al quitar la media municipal (sección~\ref{sec:res-conteo}), de modo que
+de la Binomial Negativa tiene forma de municipio: su $I$ de Moran cae de 0.30
+a 0.06 al quitar la media municipal (sección~\ref{sec:res-conteo}), de modo que
 lo que parecía un proceso espacial fino que faltaba modelar eran 18 bloques
 con un nivel distinto cada uno. Eso explica también por qué el rezago espacial
 no aportó nada: las vecinas de una celda comparten municipio y se equivocan en
@@ -67,11 +67,11 @@ resultados.
 accidentes, con qué estructura espacial y con qué persistencia. El índice de
 Gini, el $I$ de Moran y los mapas locales con FDR coinciden a 250, 500 y
 1\,000\,m de lado, lo que descarta que la estructura sea un artefacto de la
-rejilla \parencite{openshaw1984}. El ranking de celdas de 2019 correlaciona 0,83
+rejilla \parencite{openshaw1984maup}. El ranking de celdas de 2019 correlaciona 0.83
 con el de 2024, con una pandemia de por medio. Y, dentro de cada municipio,
 la base sostiene un perfil de riesgo relativo $u_i$ con la incertidumbre que
 corresponde a cada celda: las celdas con pocos accidentes no se encogen mucho
-en su estimación puntual, pero su intervalo es tres veces más ancho que el de
+en su estimación puntual, pero su intervalo es casi tres veces más ancho que el de
 las celdas con más de cien, y esa diferencia es información para decidir.
 
 \paragraph{Lo que no puede decir.} Primero, no distingue un municipio donde
@@ -82,7 +82,7 @@ Tercero, no dice \emph{por qué} una celda es riesgosa: sin exposición (tránsi
 kilómetros de vialidad) un corredor con muchos accidentes puede ser un corredor
 peligroso o un corredor transitado. La exposición es la
 covariable central de los modelos de frecuencia de accidentes
-\parencite{lord2010}; sin ella, lo que aquí se estima es frecuencia y no tasa.
+\parencite{lord2010statistical}; sin ella, lo que aquí se estima es frecuencia y no tasa.
 Cuarto, no permite inferencia causal sobre intervenciones: todas las
 covariables son estructurales y ninguna es manipulable.
 
@@ -91,48 +91,58 @@ vale 8.4 en todos los modelos, desde el conteo histórico hasta el jerárquico.
 Es la expresión cuantitativa de los dos párrafos anteriores. El \emph{dónde} lo
 decide el historial, que es lo que la base mide bien; las
 mejoras del jerárquico están en el \emph{cuánto} y en el \emph{con qué
-	certeza} (CRPS 6.17 contra 6.56), que es donde el régimen pesa. El PAI es la
-métrica habitual para juzgar mapas de puntos calientes \parencite{chainey2008}, y
+	certeza} (CRPS 6.10 contra 6.49), que es donde el régimen pesa. El PAI es la
+métrica habitual para juzgar mapas de puntos calientes \parencite{chainey2008utility}, y
 moverlo exige covariables que varíen por celda y que el historial no contenga, y esas
 no están en ATUS.
 
 \subsection{Limitaciones}\label{sec:disc-limitaciones}
 
-\paragraph{Geocodificación por intersección.} ATUS georreferencia la
-intersección reportada, no el punto físico del choque: el 97,6\,\% de las
-coordenadas distintas corresponde a un único par de calles. La rejilla de
-500\,m tolera bien ese error de posición, pero cualquier análisis a escala de
-cuadra o de tramo hereda un dato discreto sobre unos 60\,000 nodos, no un
-patrón de puntos continuo.
+\paragraph{Geocodificación por intersección.} La coordenada se comporta como la
+de la intersección reportada y no como la del punto físico del choque: 98.2\,\%
+de las 118,626 coordenadas exactas de intersección con dos vialidades
+corresponde a un solo par de calles (§\ref{sec:datos-calidad}). El procedimiento
+del INEGI no está documentado en el repositorio. La rejilla de 500\,m tolera ese
+error de posición, pero un análisis a escala de cuadra o de tramo hereda un dato
+discreto sobre 54,742 nodos a 10\,m de tolerancia, no un patrón de puntos
+continuo.
 
 \paragraph{Cambio de procedimiento en 2022.} La matriz de Spearman entre años
 tiene dos bloques, 2019--2021 y 2022--2024, que coinciden con la aparición del
-campo \texttt{OID} en los archivos del INEGI. La hipótesis más económica es un
-cambio en el procedimiento de georreferenciación. Se incorporó como indicador
-de periodo, pero no se pudo verificar con documentación de la fuente; si la
+campo \texttt{OID} en los archivos del INEGI. La precisión decimal de las
+coordenadas, en cambio, cambia desde 2021. Las dos señales no fechan lo mismo:
+la precisión afecta la posición del punto, y el indicador de periodo controla
+el volumen. Con el corte en 2021, la NB2 empeora el AIC en 798 puntos y el CRPS
+de 2024 de 0.876 a 0.883; un nivel propio para 2021 mejora el AIC en 35 puntos
+sin mover el CRPS ni el PAI. El indicador conserva el corte de 2022. La
+hipótesis más económica es un cambio en el procedimiento de
+georreferenciación, que no se pudo verificar con documentación de la fuente; si la
 causa fuera otra, la lectura de la discontinuidad cambiaría, aunque no la del
 régimen municipal, que opera sobre el volumen y no sobre la posición.
 
-\paragraph{Faltantes no aleatorios.} Los campos con códigos centinela tienen
-un mecanismo MNAR: en accidentes fatales el aliento alcohólico se ignora 2.4
-veces más seguido (sección~\ref{sec:datos-calidad}). El modelo de conteo no
-usa esos campos, así que no lo afecta; cualquier modelo de severidad futuro
+\paragraph{Faltantes no aleatorios.} Los campos con códigos centinela se tratan
+como MNAR por supuesto de trabajo. En accidentes fatales el aliento alcohólico
+se ignora 2.4 veces más seguido (sección~\ref{sec:datos-calidad}): esa
+dependencia con la gravedad descarta MCAR, pero no distingue MAR de MNAR, porque
+el valor ausente no se observa. El modelo de conteo no usa esos campos, así que
+no lo afecta; cualquier modelo de severidad futuro
 tendrá que tratarlos explícitamente.
 
 \paragraph{Una sola ventana de validación.} La validación fuera de muestra se
 hizo en un solo año, 2024. Es la única prueba honesta disponible —un
-jerárquico con 2\,241 efectos de celda ajusta el pasado casi a la perfección—,
+jerárquico con 2,270 efectos de celda ajusta el pasado casi a la perfección—,
 pero un solo año no permite estimar la variabilidad de las métricas entre
 ventanas, y 2024 pudo ser un año con más o menos cambios de régimen que el
 típico.
 
-\paragraph{Escala anual.} El jerárquico se ajusta sobre celda$\times$año. El
-supuesto de separabilidad espacio-tiempo está apoyado (el efecto de mes es
-común a todas las celdas y aportó casi nada), pero el modelo no dice nada
-sobre estacionalidad local ni sobre horarios, que son preguntas operativas.
+\paragraph{Escala anual.} El jerárquico se ajusta sobre celda$\times$año. La
+separabilidad espacio-tiempo es un supuesto no contrastado: el modelo impone un
+efecto de mes común a todas las celdas, que aportó poco en los GLM, sin probar
+una interacción celda$\times$mes. El modelo no informa sobre estacionalidad
+local ni sobre horarios.
 
 \paragraph{Cobertura territorial.} Se retiraron las celdas sin accidentes en
-6 años y las 103 celdas isla. La decisión se justifica porque una celda vacía
+6 años y las 74 celdas isla. La decisión se justifica porque una celda vacía
 en 379 mil registros no tiene red vial, pero implica que el modelo no
 predice para territorio donde la urbanización todavía no llega, que es
 donde crece la periferia.
@@ -143,7 +153,7 @@ Se documentan porque cada uno descarta una explicación y porque, sin el
 registro, alguien volvería a intentarlos.
 
 \paragraph{BYM2.} La especificación original del nivel de celda era BYM2
-\parencite{riebler2016}, que separa un componente espacial ICAR de uno
+\parencite{riebler2016intuitive}, que separa un componente espacial ICAR de uno
 independiente y hace interpretable la fracción espacial $\phi$. No se
 identificó en ninguna de sus dos parametrizaciones: la no centrada llevó
 $\phi$ a 0 y la centrada a 1, con $\hat{R}$ de 2.06 y 1.65. El motivo es de
@@ -157,8 +167,8 @@ BYM2 está pensado para mapeo de enfermedades con conteos escasos por área, y
 pierde su ventaja cuando cada área tiene información de sobra.
 
 \paragraph{Rezago espacial en el GLM.} Incluir el promedio de las vecinas como
-covariable, con un Moran de 0,65 en los conteos, parecía obvio. Su coeficiente
-fue $-0{,}002$ ($t = -0{,}6$). Fue el primer indicio de que el residual no era
+covariable, con un Moran de 0.65 en los conteos, parecía obvio. Su coeficiente
+fue $-0.002$ ($t = -0.5$). Fue el primer indicio de que el residual no era
 espacial fino sino municipal (sección~\ref{sec:disc-regimen}).
 
 \paragraph{Inflación de ceros.} El ZINB con inflación constante mejora el AIC,
@@ -174,7 +184,7 @@ innovaciones $t_3$ bajó a 0.29, que describe al municipio típico, y los saltos
 quedan en las colas.
 
 \paragraph{Deriva municipal.} Una tendencia local por municipio, pensada para
-capturar el crecimiento de la periferia, se encogió a cero ($\sigma_d = 0{,}07$),
+capturar el crecimiento de la periferia, se encogió a cero ($\sigma_d = 0.07$),
 introdujo 46 divergencias y no mejoró el CRPS. Con cinco años y cambios de
 régimen, los datos no distinguen una tendencia de una racha de innovaciones.
 
