@@ -41,9 +41,9 @@ siguen la nomenclatura de claves geoestadísticas del INEGI.
 | `hay_victimas` | `bool` | `CLASE ∈ {1,2}` | 21,523 `True` |
 | `calle1_norm` | `string` | Recorte, espacios, mayúsculas, sin acentos | 0.11 % |
 | `calle2_norm` | `string` | Igual | 1.58 % |
-| `calle1_hom` | `string` | `calle1_norm` homologada: sin genérico ni abreviatura, con alias verificados | 0.11 % |
-| `calle2_hom` | `string` | Igual, desde `calle2_norm`; el relleno («NINGUNO», «SIN REFERENCIA», «SIN NOMBRE», «CALLE SIN NOMBRE», «0») queda en NA | ~1.8 % |
-| `vialidades_hom` | `string` | El lugar: «A × B» (orden alfabético) si hay dos calles distintas; «A» si falta la calle 2, viene relleno o repite la calle 1 | 0.11 % |
+| `calle1_hom` | `string` | `calle1_norm` homologada: sin genérico ni abreviatura, con alias verificados; el relleno queda en NA, igual que en la calle 2 | 0.17 % |
+| `calle2_hom` | `string` | Igual, desde `calle2_norm`; el relleno («NINGUNO», «SIN REFERENCIA», «SIN NOMBRE», «CALLE SIN NOMBRE», «0») queda en NA | 1.74 % |
+| `vialidades_hom` | `string` | El lugar: «A × B» (orden alfabético) si hay dos calles distintas; «A» si falta la calle 2, viene relleno o repite la calle 1 (usa `calle1.fillna(calle2)`, por eso tiene menos NA que cada calle) | 0.07 % |
 | `dos_vialidades` | `bool` | `vialidades_hom` nombra dos calles distintas | — |
 | `carretera_norm` | `string` | Igual | 98.51 % |
 | `falta_calle2` | `bool` | `en_interseccion` y `calle2_hom` en NA: calle 2 vacía o relleno | 3,586 `True` (3,072 vacías + 514 relleno) |

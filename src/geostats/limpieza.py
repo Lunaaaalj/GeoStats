@@ -197,7 +197,7 @@ def _vialidades(calle1: pd.Series, calle2: pd.Series) -> pd.Series:
     dos = calle1.notna() & calle2.notna() & (calle1 != calle2)
     pares = pd.Series(pd.NA, index=calle1.index, dtype="object")
     pares[dos] = [SEPARADOR_CRUCE.join(sorted(p)) for p in zip(calle1[dos], calle2[dos])]
-    return pares.fillna(una)
+    return pares.fillna(una).astype("string")
 
 
 def _fecha(datos: pd.DataFrame) -> pd.Series:
