@@ -2,9 +2,15 @@
   // Entorno de Codespaces para GeoStats. Se aplica al crear o reconstruir el
   // codespace (Command Palette → "Codespaces: Rebuild Container").
   "name": "GeoStats",
-  // Imagen por defecto de Codespaces: conserva Python, Node (nvm) y uv.
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  // Imagen base ligera. La universal:2 pesa más de 10 GB (trae torch, Java,
+  // Ruby…) y, al montar los features encima, el build se quedaba sin disco
+  // («no space left on device»). Python lo instala uv desde .python-version.
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
   "features": {
+    // Node: lo exige Claude Code (y el respaldo con npm del post-create).
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
     // Claude Code (CLI) desde el feature oficial de Anthropic.
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {},
     // Quarto CLI para renderizar notebooks/*.qmd (quarto render).
@@ -12,6 +18,20 @@
       "version": "latest"
     }
   },
-  // TeX Live para compilar docs/reporte (latexmk -pdf main.tex).
-  "postCreateCommand": "bash .devcontainer/post-create.sh"
+  "overrideFeatureInstallOrder": [
+    "ghcr.io/devcontainers/features/node",
+    "ghcr.io/anthropics/devcontainer-features/claude-code",
+    "ghcr.io/rocker-org/devcontainer-features/quarto-cli"
+  ],
+  // uv se instala en ~/.local/bin; así queda en el PATH de todas las terminales.
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin"
+  },
+  // TeX Live, Chrome, uv y el entorno de Python (ver post-create.sh).
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "ms-toolsai.jupyter", "quarto.quarto"]
+    }
+  }
 }
