@@ -26,6 +26,39 @@ folio numérico en 2019--2020 y un identificador compuesto desde 2021. La llave 
 $(\texttt{ANIO}, \texttt{EDO}, \texttt{MPIO}, \texttt{ID})$, sin duplicados en la
 base ni en el recorte; la consolidación falla si aparece alguno.
 
+\subsection{Captación y georreferenciación}\label{sec:datos-captacion}
+
+La unidad de observación es el accidente de tránsito registrado por las
+corporaciones de Seguridad Pública y Vialidad, estatales o municipales. El INEGI
+los recibe como registros administrativos en tres modalidades: la Forma EE-4-8,
+el SICATUS y las bases propias de los municipios, que el INEGI homologa
+\parencite{inegi_sintesis2016}.
+% PENDIENTE: la Síntesis se cita según el issue #33; no se verificó su texto en el repositorio.
+
+Sobre la ubicación, la Forma EE-4-8 capta si el accidente «fue en intersección»
+(\texttt{URBANA}), las vialidades involucradas, «Vialidad 1» y «Vialidad 2»
+(\texttt{CALLE1} y \texttt{CALLE2}), y, en zona suburbana, el camino y el
+kilómetro \parencite{inegi_sintesis2016}. No tiene campo de coordenadas. Por eso
+\texttt{LATITUD} y \texttt{LONGITUD} se asignan después, a partir de las calles
+registradas; \texttt{OID}, presente en los archivos de 2022--2024, lo genera QGIS
+al georreferenciar (\texttt{docs/diccionario\_de\_datos.md}).
+
+Dos consecuencias se siguen para el uso de la base. Primera, la coordenada
+describe en qué calle ocurrió el accidente y no en qué punto de ella. Un parte
+con una sola calle no define un cruce; los 3,072 accidentes de la ZMM marcados en
+intersección sin \texttt{CALLE2} (§\ref{sec:datos-calidad}) son de este tipo. Su
+coordenada se lee como un punto fijo de esa calle. Es una lectura de los datos y
+no un hecho que \textcite{inegi_sintesis2016} establezca, y la bandera de punto
+por defecto que la pondría a prueba está pendiente (issues \#23 y \#30 del
+repositorio). Segunda, \texttt{CLASE = 1} (Fatal) cuenta solo las muertes en el
+lugar del evento (\texttt{docs/diccionario\_de\_datos.md}): las defunciones
+posteriores, en el traslado o en el hospital, quedan fuera de esa clase, de modo
+que las defunciones de la base pueden estar subestimadas y la gravedad por clase
+es un límite inferior. La base no permite saber cuántas son.
+
+La Síntesis describe el procedimiento de 2016, y los datos analizados son de
+2019--2024. Que el procedimiento siga vigente en esos años no se verifica aquí.
+
 \subsection{Calidad y propiedades de la base}\label{sec:datos-calidad}
 
 \paragraph{Integridad.} Las diez pruebas de coherencia interna del
@@ -148,12 +181,18 @@ ocurre con la serie de \texttt{EDAD}, cuyo faltante sube de 19.6\,\% a 35.9\,\%.
 
 \paragraph{La coordenada es un nodo de la red.} La coordenada se comporta como la
 de la intersección reportada y no como la del sitio físico del choque, por lo que
-el dato es un conteo sobre nodos de la red vial. 366,484 accidentes (96.6\,\%)
-están marcados en intersección, y 98.2\,\% de las 118,626 coordenadas exactas de
-intersección con dos vialidades corresponde a un solo par de calles. Las 131,180
-coordenadas distintas se reducen a 54,742 nodos con una tolerancia de 10\,m
-(\texttt{id\_punto\_4d}). Esta lectura se apoya en esos patrones: el repositorio no
-contiene documentación del procedimiento de geocodificación del INEGI.
+el dato es un conteo sobre nodos y no sobre posiciones continuas.
+366,484 accidentes (96.6\,\%) están marcados en intersección, y 98.2\,\% de las
+118,626 coordenadas exactas de intersección con dos vialidades corresponde a un
+solo par de calles. Las 131,180 coordenadas distintas se reducen a 54,742 nodos
+con una tolerancia de 10\,m (\texttt{id\_punto\_4d}). Los nodos son los puntos con
+al menos un accidente registrado en 2019--2024: no son la red vial ni el total de
+cruces de la ZMM, porque un cruce sin accidentes no aparece en ATUS. Esta
+lectura es consistente con el procedimiento que describe la Síntesis
+(§\ref{sec:datos-captacion}): el parte registra calles y no coordenadas, y la
+coordenada se asigna después a partir de ellas \parencite{inegi_sintesis2016}. Los
+patrones no prueban el procedimiento, y la Síntesis no describe cómo se asigna la
+coordenada a cada parte.
 
 La precisión cambia en 2021: todas las coordenadas de 2019--2020 tienen cinco
 decimales o menos, y desde 2021 cerca del 99\,\% de las longitudes tiene seis o
