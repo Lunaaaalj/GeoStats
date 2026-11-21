@@ -63,6 +63,7 @@ from sklearn.metrics import silhouette_score
 from statsmodels.stats.multitest import multipletests
 
 from geostats import rutas
+from geostats.tabla_cruces import nombres_de_cruce
 
 d = pd.read_parquet(rutas.ATUS_ZMM_LIMPIO)
 N = len(d)
@@ -237,13 +238,16 @@ Conforme de Lambert para México) para que las distancias estén en metros y
 g = d.groupby("id_punto_4d", observed=True, sort=False)
 nodos = pd.DataFrame({"n": g.size(), "lon": g.LONGITUD.median(), "lat": g.LATITUD.median()})
 
-etiquetas = (d.groupby(["id_punto_4d", "NOM_MUN", "calle1_norm", "calle2_norm"],
-                       observed=True, dropna=False, sort=False).size()
+municipio = (d.groupby(["id_punto_4d", "NOM_MUN"], observed=True, sort=False).size()
              .rename("f").reset_index()
              .sort_values("f", ascending=False)
              .drop_duplicates("id_punto_4d")
              .set_index("id_punto_4d"))
-nodos = nodos.join(etiquetas[["NOM_MUN", "calle1_norm", "calle2_norm"]])
+nodos = nodos.join(municipio[["NOM_MUN"]])
+# El nombre es el mismo que en `docs/cruces_zmm.xlsx`: el par homologado más
+# frecuente, sin importar el orden, y una calle sola solo si ningún parte trae
+# dos («MANUEL L. BARRAGAN × MANUEL L. BARRAGAN» no es un cruce).
+nodos["cruce"] = nombres_de_cruce(d).nombre.reindex(nodos.index).fillna("Sin nombre")
 
 proyectado = gpd.GeoSeries(gpd.points_from_xy(nodos.lon, nodos.lat), crs=4326).to_crs(6372)
 nodos["x"], nodos["y"] = proyectado.x.values, proyectado.y.values
@@ -259,7 +263,7 @@ FONDO = (nodos.x.to_numpy(), nodos.y.to_numpy())
 
 print(f"{len(nodos):,} nodos de 10 m | "
       f"encuadre {(EXT[1]-EXT[0])/1000:.0f} x {(EXT[3]-EXT[2])/1000:.0f} km")
-print(nodos.head(5)[["n", "NOM_MUN", "calle1_norm", "calle2_norm"]].to_string())
+print(nodos.head(5)[["n", "NOM_MUN", "cruce"]].to_string())
 ```
 
 ---
@@ -371,8 +375,6 @@ plt.show()
 
 leyenda = nodos.head(10).reset_index(drop=True)
 leyenda.index += 1
-leyenda["cruce"] = (leyenda.calle1_norm.str.title() + " × "
-                    + leyenda.calle2_norm.str.title())
 print(leyenda[["cruce", "NOM_MUN", "n"]]
       .rename(columns={"NOM_MUN": "municipio", "n": "accidentes"}).to_string())
 ```
@@ -706,12 +708,12 @@ corr = (pn2[pn2.corredor >= 0].groupby("corredor")
              municipio=("NOM_MUN", lambda s: s.mode().iat[0]))
         .sort_values("accidentes", ascending=False))
 
-# El nombre del corredor es la vialidad más repetida entre sus cruces contando
-# las dos columnas de calle: con solo `calle1_norm` el eje que define al grupo
-# se pierde cada vez que quedó capturado como segunda vialidad.
+# El nombre del corredor es la vialidad más repetida entre sus cruces, contando
+# las dos calles del nombre: con solo la primera, el eje que define al grupo se
+# pierde cada vez que quedó en segundo lugar.
 def via_dominante(cid):
-    pts = pn2.index[pn2.corredor == cid]
-    vias = pd.concat([pn2.calle1_norm[pts], pn2.calle2_norm[pts]])
+    nombres = pn2.cruce[pn2.corredor == cid]
+    vias = nombres[nombres != "Sin nombre"].str.split(" × ").explode()
     return vias.value_counts().index[0]
 
 corr["via"] = [via_dominante(cid) for cid in corr.index]
@@ -905,7 +907,7 @@ directo. La regla del manual aplica sin excepción — **más de dos series, pan
 pequeños**. Cada panel un tipo, un solo tono, el mismo encuadre.
 
 ```{python}
-P = P.join(nodos[["x", "y", "NOM_MUN", "calle1_norm", "calle2_norm"]])
+P = P.join(nodos[["x", "y", "NOM_MUN", "cruce"]])
 
 fig, ejes = plt.subplots(2, 2, figsize=(11.0, 10.4))
 for ax, tipo in zip(ejes.ravel(), centroides.index):
@@ -970,19 +972,15 @@ que decide la intervención no es el conteo, es el tipo.
 def corto(s, ancho=26):
     """Recorta un nombre de vialidad para que la tabla quepa.
 
-    `Calle` y `Avenida` son ruido de captura, no parte del nombre: aparecen en
-    unos registros y en otros no, para la misma vialidad.
+    El genérico («Calle», «Avenida») ya lo quitó `nombres_de_cruce`, salvo
+    donde sin él el nombre quedaría trunco («Calle de la Aurora»).
     """
-    s = str(s).title()
-    for prefijo in ("Calle ", "Avenida ", "Ave "):
-        while s.startswith(prefijo):
-            s = s[len(prefijo):]
     s = (s.replace("Licenciado ", "Lic. ").replace("Doctor ", "Dr. ")
           .replace("General ", "Gral. ").replace("Carretera ", "Carr. "))
     return s if len(s) <= ancho else s[:ancho - 1] + "…"
 
 tabla_final = P.assign(
-    cruce=[f"{corto(a)} × {corto(b)}" for a, b in zip(P.calle1_norm, P.calle2_norm)],
+    cruce=[" × ".join(corto(c) for c in n.split(" × ")) for n in P.cruce],
     **{"% víct.": (100 * P.victimas).round(1),
        "% moto": (100 * P.moto).round(1),
        "% madr.": (100 * P.madrugada).round(1)},
