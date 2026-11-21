@@ -13,7 +13,7 @@
    La genera notebooks/cruces_peatones.qmd: se edita esta plantilla, no index.html.
 
    Regla de color de toda la página: AZUL es el total (todos los hechos de
-   tránsito, todos los cruces, todos los fallecidos); ROJO es lo que tiene
+   tránsito, todos los cruces con hechos registrados, todos los fallecidos); ROJO es lo que tiene
    peatón o ciclista.
    =========================================================================== */
 @font-face{font-family:"Montserrat";src:url({{FUENTE:montserrat}}) format("woff2");font-weight:100 900;font-display:swap}
@@ -434,11 +434,11 @@ section{margin-top:72px}
       <div class="cab esquina"></div>
       <div class="cab">Cruces</div><div class="cab">Hechos de tránsito</div><div class="cab">Fallecidos</div>
       <div class="eti total"><i></i>En total</div>
-      ${celda("total", V.cruces, "con al menos un hecho")}
+      ${celda("total", V.cruces, "con al menos un hecho registrado")}
       ${celda("total", V.hechos, "2019–2024")}
       ${celda("total", V.fallecidos, "todas las personas")}
       <div class="eti pc"><i></i>Con peatón o ciclista</div>
-      ${celda("pc", V.crucesUnion, pct(V.crucesUnion, V.cruces) + " de los cruces")}
+      ${celda("pc", V.crucesUnion, pct(V.crucesUnion, V.cruces) + " de los cruces con hechos registrados")}
       ${celda("pc", V.union, pct(V.union, V.hechos) + " de los hechos")}
       ${celda("pc", V.fallecidosPC, pct(V.fallecidosPC, V.fallecidos) + " de los fallecidos")}`;
 
@@ -514,7 +514,7 @@ section{margin-top:72px}
               <div class="posicion">
                 <div class="k">Por hechos de tránsito</div>
                 <div class="v">#${fmt(c.lugarTotal)}</div>
-                <div class="s">de ${fmt(ZMM.cruces)} cruces de la ZMM, si se ordenan todos por su número de hechos de tránsito.</div>
+                <div class="s">de ${fmt(ZMM.cruces)} cruces de la ZMM con hechos de tránsito registrados, si se ordenan por su número de hechos.</div>
               </div>
             </div>
           </div>
@@ -546,7 +546,7 @@ section{margin-top:72px}
   // --- notas -----------------------------------------------------------------
   $("notas").innerHTML = `
     <p><b>Fuente:</b> INEGI, Accidentes de Tránsito Terrestre en Zonas Urbanas y Suburbanas (ATUS), 2019–2024, recortado a los 18 municipios de la Zona Metropolitana de Monterrey. Un cruce es un nodo de 10 m cuya ubicación más frecuente es «Intersección».</p>
-    <p><b>Colores:</b> azul es el total (todos los cruces, hechos de tránsito o fallecidos); rojo, lo que tiene peatón o ciclista. «Fallecidos» en total cuenta a todas las personas: conductores, pasajeros, peatones, ciclistas y otros.</p>
+    <p><b>Colores:</b> azul es el total (todos los cruces con hechos registrados, hechos de tránsito o fallecidos); rojo, lo que tiene peatón o ciclista. «Fallecidos» en total cuenta a todas las personas: conductores, pasajeros, peatones, ciclistas y otros.</p>
     <p><b>Desempate:</b> a igual número de hechos en la unión, sube el cruce con más defunciones de peatón o ciclista, y luego el que tiene más hechos de tránsito. En la ZMM, el lugar 10 tiene ${D.corte[0]} hechos en la unión y el 11, ${D.corte[1]}. Por municipio, el orden es el mismo y entran solo los cruces con al menos un hecho en la unión.</p>
     <p><b>Conteos, no tasas:</b> no hay aforo peatonal por cruce. Un cruce con mucha gente a pie puede tener más atropellamientos sin ser más peligroso por persona que lo cruza.</p>
     <p>${D.atribucion}. La imagen es la vigente, no la del periodo 2019–2024. Vialidades de la ubicación: OpenStreetMap.</p>`;
