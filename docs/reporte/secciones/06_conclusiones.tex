@@ -1,1 +1,73 @@
 \section{Conclusiones y trabajo futuro}\label{sec:conclusiones}
+
+\subsection{Hallazgos principales}
+
+\paragraph{La concentración espacial del reporte es persistente.} En 2,270
+celdas hexagonales de 500\,m, el 5\,\% de las celdas concentra el 42.8\,\% de
+los accidentes registrados (Gini de 0.758; $I$ de Moran de 0.654 con 999
+permutaciones). La estructura se mantiene a 250 y 1\,000\,m de lado y entre años
+(Spearman de 0.83 entre 2019 y 2024). El 5\,\% de celdas de 2019--2023
+captura el 42\,\% de los accidentes de 2024 (PAI de 8.4;
+§\ref{sec:res-espacial}); esta cifra procede de una sola ventana (2024) y no
+tiene intervalo entre ventanas. El límite: es la concentración de accidentes
+\emph{registrados}, sin exposición, de modo que describe frecuencia y no tasa
+(§\ref{sec:disc-alcance}).
+
+\paragraph{El municipio explica casi todo el residual espacial.} El $I$ de
+Moran del residual de la Binomial Negativa en 2024 baja de 0.30 a 0.06 al
+restar la media municipal, y el rezago espacial no aporta ($-0.002$,
+$t = -0.5$; §\ref{sec:res-conteo}). Es compatible con un régimen de reporte
+distinto por municipio: Santa Catarina pasa de 3 registros en 2020 a 2,905 en
+2023 en las celdas del modelo (2,910 en toda la ZMM; 5 caen en celdas
+descartadas), y no es plausible que la dinámica vial produzca saltos de esa
+magnitud en un periodo (§\ref{sec:disc-regimen}). El efecto municipal
+$m_{j,a}$ no es una medida de siniestralidad: mezcla riesgo real e intensidad
+de captura, y con esta base no se separan.
+
+\paragraph{El modelo jerárquico separa el efecto municipal del perfil de celda.}
+Con un efecto municipal dinámico y un efecto de celda $u_i$ neto del municipio
+($\alpha = 0.92$, intervalo de credibilidad del 94\,\% [0.890, 0.945]), el
+parámetro $\alpha$ mezcla lento ($\hat{R} = 1.02$, ESS de 219, sin cumplir el
+umbral de 1.01) y ninguna conclusión se apoya en $\alpha$ por separado
+(§\ref{sec:met-jerarquico}). Para 2024 el total predicho es 70,810 contra
+71,295 observados (0.7\,\%) y el CRPS baja de 6.49 a 6.10 frente al mejor
+\emph{baseline}; la cobertura es 87\,\% con intervalo nominal de 90\,\% y el
+PAI no mejora (8.44; §\ref{sec:res-validacion}). Todas estas cifras provienen
+de una sola ventana de validación (2024) y no tienen intervalo entre ventanas.
+Otros límites: el pronóstico es por persistencia del régimen de 2023 y sus
+intervalos son un piso de la incertidumbre porque excluyen el cambio de
+régimen; la convergencia de $\beta_0$ y $\sigma_m$ también queda en
+$\hat{R} = 1.02$; la separabilidad espacio-tiempo no se contrastó, y BYM2 no se
+identificó (§\ref{sec:disc-limitaciones}, §\ref{sec:disc-caminos}).
+
+\subsection{Siguientes pasos}\label{sec:conclusiones-pasos}
+
+En orden de dependencia, de lo que habilita más cosas a lo que refina:
+
+\begin{enumerate}
+	\item \textbf{Red vial y exposición.} Incorporar la geometría de las calles
+	      y una medida de tránsito o de kilómetros de vialidad habilita la
+	      función $K$ de Ripley y la densidad kernel restringidas a red
+	      (§\ref{sec:disc-caminos}) y el paso de frecuencia a tasa.
+	\item \textbf{Total de cruces de la ZMM.} Los 54,742 nodos de la
+	      §\ref{sec:disc-limitaciones} son los que tienen accidentes
+	      registrados; el total de cruces daría denominador a cualquier
+	      porcentaje de cruces.
+	\item \textbf{Bandera de punto por defecto y nombre de la intersección.}
+	      La coordenada se comporta como la de la intersección reportada y no
+	      como la del punto físico del choque (§\ref{sec:datos-calidad});
+	      identificar los puntos asignados por defecto permite excluirlos o
+	      ponderarlos en el análisis a escala de cuadra.
+	\item \textbf{Efecto del corte de georreferenciación 2021 contra 2022.}
+	      Cuantificarlo permite decidir el indicador de periodo con base en el
+	      procedimiento y no solo en el AIC y el CRPS
+	      (§\ref{sec:disc-limitaciones}).
+	\item \textbf{Más de una ventana de validación.} Repetir la validación en
+	      otros años estima la variabilidad de CRPS, cobertura y PAI entre
+	      ventanas, que con 2024 solo no se conoce.
+	\item \textbf{Interacción celda$\times$mes.} Contrasta la separabilidad
+	      espacio-tiempo y habilita la lectura de estacionalidad local.
+	\item \textbf{Otra fuente por municipio.} Una medida independiente de la
+	      captura separaría riesgo real de intensidad de reporte dentro de
+	      $m_{j,a}$, el único modo de usarlo como indicador de seguridad vial.
+\end{enumerate}

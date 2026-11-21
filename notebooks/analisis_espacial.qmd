@@ -43,8 +43,8 @@ Las columnas en MAYÚSCULAS son del INEGI; las minúsculas las construye
 | 9 | La escala fina: intersecciones |
 
 > **Advertencia que atraviesa todo el documento.** Cada estadístico local se
-> calcula sobre miles de celdas a la vez. Al 5 % de significancia, 2,241
-> pruebas producen **unos 112 falsos positivos por puro azar**. Todo mapa de
+> calcula sobre miles de celdas a la vez. Al 5 % de significancia, 2,270
+> pruebas producen **unos 113 falsos positivos por puro azar**. Todo mapa de
 > clusters o puntos calientes de este notebook lleva corrección por tasa de
 > falsos descubrimientos (Benjamini-Hochberg); se reporta cuántas celdas
 > sobreviven a la corrección y cuántas no.
@@ -289,7 +289,7 @@ print(f"Celdas isla (ningún vecino con accidentes): {len(islas)} "
 Las islas son celdas cuyo entorno inmediato no tiene un solo accidente en seis
 años: choques aislados en caminos rurales o en los bordes del área
 metropolitana. No tienen con quién correlacionarse, y un estadístico local sobre
-ellas es una división entre cero. **Se retiran**; son el 0.07 % de los registros.
+ellas es una división entre cero. **Se retiran**; son el 0.04 % de los registros.
 
 ```{python}
 H = H.drop(index=W0.islands).reset_index(drop=True)
@@ -361,11 +361,11 @@ pulir(a2)
 plt.tight_layout(); plt.show()
 ```
 
-**I = 0.65 sobre 2,241 celdas.** Para un fenómeno urbano es autocorrelación
+**I = 0.65 sobre 2,270 celdas.** Para un fenómeno urbano es autocorrelación
 alta: los accidentes no solo se concentran, se concentran *en zonas contiguas*.
-El resultado sobre el conteo crudo (0.57) confirma que no es artefacto del
+El resultado sobre el conteo crudo (0.58) confirma que no es artefacto del
 logaritmo. La distribución de permutaciones ni se acerca: el valor máximo que
-produce el azar en 999 barajadas está a más de 30 desviaciones del observado.
+produce el azar en 999 barajadas está a más de 40 desviaciones del observado.
 
 Lo que esto dice para el modelo predictivo es directo: **una celda informa sobre
 sus vecinas.** Un modelo que trate las celdas como independientes desperdicia
@@ -381,19 +381,9 @@ sobre datos agregados depende de cómo se agregaron. Antes de leer el I = 0.65
 como propiedad del fenómeno hay que ver si aguanta al cambiar la rejilla.
 
 ```{python}
-def construir(lado):
-    R = espacial.rejilla_hexagonal(g.total_bounds, lado=lado)
-    u = gpd.sjoin(g[["geometry"]], R, predicate="within", how="inner")
-    R = R.set_index("hex").join(u.groupby("hex").size().rename("n"), how="inner").reset_index()
-    w0 = weights.Queen.from_dataframe(R, use_index=False, silence_warnings=True)
-    R = R.drop(index=w0.islands).reset_index(drop=True)
-    w = weights.Queen.from_dataframe(R, use_index=False, silence_warnings=True)
-    w.transform = "r"
-    return R, w
-
 filas = []
 for lado in (250, 500, 1000):
-    R, w = construir(lado)
+    R, w = espacial.celdas(g, lado=lado)
     m = Moran(np.log1p(R.n.values), w, permutations=199)
     filas.append({"lado (m)": lado, "área (km²)": R.geometry.iloc[0].area / 1e6,
                   "celdas": len(R), "I de Moran": m.I, "z": m.z_sim,
@@ -405,7 +395,7 @@ escalas.style.format({"área (km²)": "{:.2f}", "celdas": "{:,}", "I de Moran": 
 
 Dos lecturas:
 
-- **El I de Moran crece con el tamaño de la celda** (0.52 → 0.65 → 0.72). Eso es
+- **El I de Moran crece con el tamaño de la celda** (0.53 → 0.65 → 0.72). Eso es
   el efecto de escala esperado, no una inconsistencia: agregar promedia el ruido
   local, y lo que queda es la estructura de fondo. Lo importante es que en las
   tres escalas es alto y a decenas de desviaciones de cero. *La autocorrelación
@@ -436,7 +426,7 @@ vecinas:
 | Bajo-Alto | baja | altas | Atípico: un hueco en zona caliente |
 
 Cada celda tiene su propia prueba por permutaciones. Y aquí entra la advertencia
-del inicio: 2,241 pruebas al 5 % producen ~112 rechazos por azar. Se aplica
+del inicio: 2,270 pruebas al 5 % producen ~113 rechazos por azar. Se aplica
 **Benjamini-Hochberg**, que controla la proporción esperada de falsos
 descubrimientos entre los rechazos, y se reporta el antes y el después.
 
@@ -471,14 +461,14 @@ mapa(ax, "Clusters de accidentes — LISA")
 plt.tight_layout(); plt.show()
 ```
 
-La corrección tira casi el 60 % de los rechazos: **de 682 celdas
-"significativas" a 287.** Sin ella, el mapa mostraría cuatrocientas celdas de
+La corrección tira el 43 % de los rechazos: **de 705 celdas
+"significativas" a 400.** Sin ella, el mapa mostraría unas trescientas celdas de
 cluster que son ruido. Lo que sobrevive tiene forma reconocible:
 
-- Los **Alto-Alto** (266) son el núcleo urbano continuo: el centro de Monterrey,
+- Los **Alto-Alto** (370) son el núcleo urbano continuo: el centro de Monterrey,
   San Nicolás, Guadalupe y los corredores que los conectan. No son puntos
   sueltos, es una mancha compacta.
-- Los **Bajo-Bajo** son pocos (17), y no porque falten zonas tranquilas: es
+- Los **Bajo-Bajo** son pocos (26), y no porque falten zonas tranquilas: es
   un efecto de la escala logarítmica. log(1+n) comprime los valores bajos
   —entre 1 y 10 accidentes hay menos de dos unidades— y estira los altos, así
   que una celda tranquila rodeada de tranquilas queda *cerca de la media* y su
@@ -533,12 +523,12 @@ mapa(ax, "Puntos calientes de accidentes — G*")
 plt.tight_layout(); plt.show()
 ```
 
-**303 celdas calientes —el 13.5 % de las que tienen red vial, 197 km²—
-concentran el 55 % de los accidentes de seis años.** El G\* detecta más que el
-LISA (383 contra 287 tras la corrección) porque su pregunta es más laxa: no
+**384 celdas calientes —el 16.9 % de las que tienen red vial, 249 km²—
+concentran el 65 % de los accidentes de seis años.** El G\* detecta más que el
+LISA (470 contra 400 tras la corrección) porque su pregunta es más laxa: no
 exige que la celda y sus vecinas sean *parecidas*, solo que la suma del
-vecindario sea alta. Por eso recupera 80 celdas frías donde el LISA solo
-sostenía 17.
+vecindario sea alta. Por eso recupera 86 celdas frías donde el LISA solo
+sostenía 26.
 
 Los dos estadísticos cuentan la misma historia con distinto detalle y coinciden
 en lo esencial: un núcleo caliente compacto que sigue la mancha urbana
@@ -597,12 +587,12 @@ plt.tight_layout(); plt.show()
 
 **El ranking de celdas de 2019 correlaciona 0.83 con el de 2024.** Cinco años
 después, con una pandemia en medio, las celdas siguen ordenadas casi igual. La
-autocorrelación espacial se mantiene entre 0.60 y 0.69 los seis años, sin
+autocorrelación espacial se mantiene entre 0.61 y 0.69 los seis años, sin
 tendencia.
 
 Hay algo más en la matriz de Spearman que conviene no pasar por alto: **tiene
-dos bloques.** Dentro de 2019-2021 las correlaciones son 0.87-0.90; dentro de
-2022-2024, 0.89-0.91; pero entre un bloque y otro caen a 0.80-0.84. Algo cambió
+dos bloques.** Dentro de 2019-2021 las correlaciones son 0.86-0.90; dentro de
+2022-2024, 0.88-0.91; pero entre un bloque y otro caen a 0.80-0.84. Algo cambió
 en 2022. El diccionario de datos ofrece la pista: el campo `OID`, que es el
 identificador que genera QGIS al georreferenciar, **solo existe en los archivos
 de 2022 a 2024.** La hipótesis más económica es que el INEGI cambió el
@@ -728,16 +718,16 @@ intersecciones, el 58 %. El fenómeno es de cola pesada en todos los niveles de
 agregación.
 
 **Autocorrelación.** I de Moran de 0.65 sobre hexágonos de 500 m, robusto a la
-transformación (0.57 sobre conteos crudos) y a la escala (0.52 a 250 m, 0.72 a
+transformación (0.58 sobre conteos crudos) y a la escala (0.53 a 250 m, 0.72 a
 1 km). Las celdas no son independientes: cualquier modelo que las trate así
 subestima sus errores.
 
 **Estructura local.** LISA y G\* coinciden: un núcleo Alto-Alto compacto sobre
-la mancha urbana consolidada y una periferia fría. Las 303 celdas calientes del
-G\* son el 13.5 % del territorio con red vial y concentran el 55 % de los
+la mancha urbana consolidada y una periferia fría. Las 384 celdas calientes del
+G\* son el 16.9 % del territorio con red vial y concentran el 65 % de los
 accidentes. Casi no hay atípicos espaciales (cuatro celdas): el riesgo es de
-corredor, no de esquina aislada. La corrección FDR retira el 58 % de las celdas
-LISA y el 48 % de las G\* que serían "significativas" sin ella; ese es el tamaño
+corredor, no de esquina aislada. La corrección FDR retira el 43 % de las celdas
+LISA y el 37 % de las G\* que serían "significativas" sin ella; ese es el tamaño
 del error que se cometería reportando mapas sin corregir.
 
 **Persistencia.** El ranking de celdas de 2019 correlaciona 0.83 con el de

@@ -54,6 +54,7 @@ warnings.filterwarnings("ignore")
 
 import time
 import numpy as np
+from scipy.sparse.csgraph import connected_components
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
@@ -151,7 +152,7 @@ sobre **celda × año** (13 mil), por dos razones que conviene separar:
 
 ```{python}
 H, W = espacial.celdas(g, lado=500)
-assert len(H) == 2241 and len(W.islands) == 0
+assert len(H) == 2270 and len(W.islands) == 0
 
 union = gpd.sjoin(g[["geometry", "ANIO", "NOM_MUN"]], H[["hex", "geometry"]],
                   predicate="within", how="inner")
@@ -212,7 +213,7 @@ municipios y bajar $\beta_0$ da la misma verosimilitud. Para 2024 el nivel se
 $m_{j,2023}$ pero sin una innovación nueva (ver la advertencia inicial). Las innovaciones son
 *t* de Student con 3 grados de libertad y no normales por lo que mostraron las
 series: la mayoría de los municipios se mueve poco de un año a otro y unos
-pocos saltan (Santa Catarina 77 → 1,793). Una normal tendría que elegir entre
+pocos saltan (Santa Catarina 77 → 1,795). Una normal tendría que elegir entre
 un $\sigma_{rw}$ grande que no describe a nadie o uno pequeño que no admite los
 saltos; la *t* admite ambos.
 
@@ -244,7 +245,7 @@ lo que importa en la §3.
 | Separabilidad espacio-tiempo | Spearman 0.83 entre 2019 y 2024 (análisis espacial); coherencia de $u_i$ | §1, §6 |
 | Régimen municipal como caminata aleatoria | Trayectorias $m_{j,a}$ a posteriori vs. series observadas | §5 |
 | Innovaciones de colas pesadas | $\sigma_{rw}$ con *t* vs. con normal | §5 |
-| Grafo de vecindad correcto y conexo | Construido sin islas; verificado | §1 |
+| Grafo de vecindad completo | `espacial.celdas()` falla si $A$ difiere de la adyacencia geométrica. Sin islas, pero no conexo: componentes en §3 | §3 |
 | Convergencia del MCMC | $\hat R$, ESS, divergencias — sobre las cantidades identificadas | §4 |
 | Los priors no dictan el resultado | Reajuste con priors alternativos | §8 |
 | Exogeneidad de $u_i$ respecto al municipio | El CAR está centrado en cero; el municipio absorbe el nivel | §6 |
@@ -273,7 +274,7 @@ El CAR propio tiene una sola varianza y un solo parámetro de dependencia. Es
 un prior propio, está identificado con datos fuertes, y $\alpha$ responde la
 misma pregunta que $\phi$ ("¿cuánto se parecen las vecinas?") de forma
 directamente estimable. Es la elección que recomienda la literatura cuando
-BYM no converge (Banerjee, Carlin & Gelfand 2015, §6.4).
+BYM no converge (Banerjee, Carlin & Gelfand 2014, §6.4).
 
 ```{python}
 Wb = weights.W(W.neighbors)
@@ -281,9 +282,18 @@ Wb.transform = "b"
 A = Wb.full()[0]
 assert (A == A.T).all(), "la adyacencia debe ser simétrica"
 assert (A.sum(1) == np.array([Wb.cardinalities[i] for i in range(N_HEX)])).all()
+n_componentes, etiquetas = connected_components(A, directed=False)
+mayor_componente = np.bincount(etiquetas).max()
 print(f"Adyacencia: {N_HEX:,} × {N_HEX:,}, {int(A.sum() / 2):,} aristas, "
       f"{A.sum(1).mean():.2f} vecinos por celda")
+print(f"Componentes conexas: {n_componentes}; la mayor, {mayor_componente:,} celdas "
+      f"({mayor_componente / N_HEX:.1%})")
 ```
+
+El grafo no es conexo. $D - \alpha A$ sigue siendo definida positiva para
+$\alpha < 1$, porque el CAR propio no requiere conexidad, pero el encogimiento
+hacia las vecinas opera solo dentro de cada componente. Un ICAR, en cambio,
+exigiría una restricción de suma cero por componente.
 
 ---
 
@@ -310,7 +320,9 @@ def construir(alpha_prior=(2, 1), sigma_u_escala=1.5, theta_prior=(2, 0.1)):
         pm.NegativeBinomial("y", mu=pm.math.exp(log_mu), alpha=theta, observed=tr.y.values)
     return modelo
 
-def muestrear(modelo, draws=2000, tune=1000, chains=4):
+CALENTAMIENTO, MUESTRAS = 3000, 4000
+
+def muestrear(modelo, draws=MUESTRAS, tune=CALENTAMIENTO, chains=4):
     inicio = time.time()
     idata = pm.sample(draws=draws, tune=tune, chains=chains, nuts_sampler="nutpie",
                       random_seed=SEMILLA, progressbar=False, model=modelo)
@@ -319,7 +331,8 @@ def muestrear(modelo, draws=2000, tune=1000, chains=4):
 
 modelo = construir()
 idata = muestrear(modelo)
-print(f"4 cadenas × (1,000 calentamiento + 2,000 muestras) en {idata.attrs['segundos'] / 60:.1f} min")
+print(f"4 cadenas × ({CALENTAMIENTO:,} calentamiento + {MUESTRAS:,} muestras) "
+      f"en {idata.attrs['segundos'] / 60:.1f} min")
 ```
 
 ### Diagnósticos
@@ -329,10 +342,11 @@ tamaño efectivo de muestra suficiente (las muestras no están demasiado
 correlacionadas) y cero transiciones divergentes (el integrador no se rompió
 en ninguna región).
 
-Se diagnostican las cantidades **identificadas**: $\log\mu$ y los
-hiperparámetros. $\beta_0$ por separado no lo está del todo (compite con la
-media de $u$, que el CAR solo ata débilmente a cero), y su $\hat R$ es peor sin
-que eso afecte ninguna predicción.
+El criterio se exige a las cantidades **identificadas**, los $\log\mu$. En
+los hiperparámetros se reporta $\hat R$ y ESS sin exigir el umbral: $\beta_0$
+por separado no está identificado del todo (compite con la media de $u$, que el
+CAR solo ata débilmente a cero), y $\alpha$ comparte información con
+$\sigma_u$ cuando la dependencia se acerca a 1.
 
 ```{python}
 HIPER = ["b0", "s_m", "s_rw", "alpha", "s_u", "theta"]
@@ -346,12 +360,16 @@ print(f"log μ — R̂ máximo {rhat_logmu:.3f}, ESS mínimo {ess_logmu:,.0f} (s
 resumen.round(3)
 ```
 
-Cero divergencias; el $\hat R$ máximo de las 11,205 $\log\mu$ está por
-debajo de 1.01 y su ESS mínimo supera mil. $\alpha$, $\sigma_u$ y $\theta$
-mezclan bien. $\sigma_{rw}$ mezcla más lento, y $\beta_0$ y $\sigma_m$ peor
-todavía, por la razón dicha: son los parámetros que comparten información con
-el nivel medio de $u$. Ninguno se usa solo en una conclusión; las medianas de
-$m_{j,a}$ y $u_i$, que sí están identificadas, son las que se leen.
+Cero divergencias; el $\hat R$ máximo de las 11,350 $\log\mu$ es 1.002 y su
+ESS mínimo supera cuatro mil. $\sigma_u$ y $\theta$ mezclan bien. $\alpha$,
+$\beta_0$ y $\sigma_m$ quedan en $\hat R = 1.02$, con ESS de 219, 149 y 78, y
+$\sigma_{rw}$ en 1.01: no cumplen el umbral. Duplicar calentamiento y muestras
+(de 1,000 + 2,000 a 3,000 + 4,000 por cadena) bajó el $\hat R$ de $\alpha$ de
+1.04 a 1.02 sin llegar a 1.01, porque la mezcla lenta es estructural. La
+estimación de $\alpha$ es estable: 0.917 con la corrida corta, 0.919 con esta y
+0.921 con priors alternativos (§8). Ninguno de esos parámetros se usa solo en
+una conclusión; las conclusiones descansan en $\log\mu$ y en las medianas de
+$m_{j,a}$ y $u_i$.
 
 ---
 
@@ -365,7 +383,8 @@ print(f"σ_rw (paso anual municipal):  {post.s_rw.mean():.3f}  → un cambio tí
 print(f"σ_u (dispersión entre celdas): {post.s_u.mean():.2f}")
 ```
 
-- **$\alpha = 0.84$.** Dependencia espacial fuerte y estimada con precisión.
+- **$\alpha = 0.92$.** Dependencia espacial fuerte; su intervalo es angosto,
+  pero la cadena mezcla lento ($\hat R$ 1.02).
   El perfil de una celda se parece mucho al de sus vecinas, incluso después de
   quitar el municipio. Es el I de Moran intra-municipal de 0.41 visto desde
   dentro del modelo.
@@ -445,12 +464,12 @@ plt.colorbar(sc, ax=ax, shrink=0.7, label="log₁₀ accidentes 2019-23")
 pulir(ax); plt.tight_layout(); plt.show()
 ```
 
-En las 618 celdas con cinco accidentes o menos en cinco años, la dispersión
-de $u_i$ es un 12 % menor que la del estimador ingenuo: el encogimiento del
-*punto* es modesto, porque $\sigma_u = 2.4$ es un prior ancho y el modelo deja
+En las 643 celdas con cinco accidentes o menos en cinco años, la dispersión
+de $u_i$ es un 15 % menor que la del estimador ingenuo: el encogimiento del
+*punto* es modesto, porque $\sigma_u = 2.6$ es un prior ancho y el modelo deja
 hablar a los datos aun cuando son pocos. Donde el *shrinkage* se ve de verdad
-es en la **incertidumbre**: 0.75 en esas celdas contra 0.25 en las que tienen
-más de cien accidentes, tres veces más. El modelo no mueve mucho la estimación
+es en la **incertidumbre**: 0.79 en esas celdas contra 0.28 en las que tienen
+más de cien accidentes, casi tres veces más. El modelo no mueve mucho la estimación
 de una celda pobre en datos; lo que hace es decir, con el ancho de su
 intervalo, cuánto no sabe de ella. **Ese es el *shrinkage* proporcional a la
 ignorancia** que motivó el enfoque jerárquico, y para decidir es el que
@@ -572,14 +591,14 @@ resultados.style.format({"MAE": "{:.2f}", "CRPS": "{:.3f}", "cobertura 90 %": "{
 
 Lo que dice la tabla:
 
-- **El jerárquico empata con M0r en MAE y lo supera en CRPS** (6.17 contra
-  6.56, un 6 %). El empate en MAE dice que la *mediana* de ambos apunta al
+- **El jerárquico empata con M0r en MAE y lo supera en CRPS** (6.10 contra
+  6.49, un 6 %). El empate en MAE dice que la *mediana* de ambos apunta al
   mismo sitio: lo predecible de 2024 es "el nivel reciente de cada municipio
   por el perfil estable de cada celda", y un promedio bien elegido ya lo
   captura. La ventaja en CRPS dice que la *distribución* del jerárquico es
   mejor: acierta igual en el centro y describe bien lo que hay alrededor.
 - **La diferencia está en la incertidumbre.** El intervalo del 90 % de M0r
-  cubre el 68 % de lo observado: es un Poisson que ignora la sobredispersión y
+  cubre el 69 % de lo observado: es un Poisson que ignora la sobredispersión y
   el régimen, y se queda corto. El del jerárquico cubre el 87 %, cerca del
   nominal, sin incluir siquiera el riesgo de cambio de régimen. Un intervalo
   que no cubre lo que dice cubrir no sirve para decidir con él.
@@ -616,7 +635,7 @@ de ancho y $\theta$ con media 5 en lugar de 20.
 
 ```{python}
 modelo_alt = construir(alpha_prior=(1, 1), sigma_u_escala=3.0, theta_prior=(2, 0.4))
-idata_alt = muestrear(modelo_alt, draws=500, tune=1000, chains=4)
+idata_alt = muestrear(modelo_alt, draws=1000)
 post_alt = az.extract(idata_alt)
 
 lam_alt = np.exp(post_alt.b0.values[None, :] + post_alt.m.values[:, -1, :][te.j.values, :] + post_alt.u.values[te.i.values, :])
@@ -634,8 +653,10 @@ print(f"Divergencias con priors alternativos: {int(idata_alt.sample_stats.diverg
 comparacion.round(3)
 ```
 
-Los cuatro parámetros y las dos métricas cambian en el tercer decimal. Los
-datos dominan: con 11 mil celda-año y cinco años por celda, el prior de
+$\theta$ cambia 0.6 % (12.215 a 12.146); $\alpha$, $\sigma_{rw}$ y
+$\sigma_u$, a lo sumo 0.002, y el CRPS, 0.004. El PAI no cambia. El reajuste
+deja 2 transiciones divergentes y un $\hat R$ máximo de 1.009 en $\log\mu$;
+las divergencias se reportan, pero no mueven las cifras. Los datos dominan: con 11 mil celda-año y cinco años por celda, el prior de
 $\alpha$, $\sigma_u$ o $\theta$ no tiene dónde influir.
 
 ---
@@ -645,9 +666,10 @@ $\alpha$, $\sigma_u$ o $\theta$ no tiene dónde influir.
 **Sobre la estructura.** El modelo separa lo que el notebook anterior
 encontró mezclado: un régimen de reporte por municipio que cambia en el tiempo
 ($m_{j,a}$, con $\sigma_{rw} = 0.29$ y colas pesadas) y un perfil espacial por
-celda estable y fuertemente correlacionado con sus vecinas ($\alpha = 0.84$).
-Los dos se estiman sin divergencias, con $\hat R$ de 1.009 en las cantidades
-identificadas, y son insensibles a los priors.
+celda estable y fuertemente correlacionado con sus vecinas ($\alpha = 0.92$).
+Los dos se estiman sin divergencias, con $\hat R$ de 1.002 en las cantidades
+identificadas, y son insensibles a los priors. Los hiperparámetros $\alpha$,
+$\beta_0$ y $\sigma_m$ mezclan lento ($\hat R$ 1.02).
 
 **Sobre BYM2.** No se identifica con estos datos: en dos parametrizaciones el
 muestreador colapsó a $\phi = 0$ y a $\phi = 1$. No es que falte estructura
@@ -655,16 +677,16 @@ espacial (Moran intra-municipal 0.41) sino que sobra información por celda
 para que los priors decidan cómo repartirla. El CAR propio la estima sin ese
 problema.
 
-**Sobre el *shrinkage*.** En las 618 celdas con cinco accidentes o menos en
-cinco años, el modelo encoge poco la estimación puntual (12 %) pero triplica
+**Sobre el *shrinkage*.** En las 643 celdas con cinco accidentes o menos en
+cinco años, el modelo encoge poco la estimación puntual (15 %) pero casi triplica
 la incertidumbre respecto a las celdas con más de cien. El prior ancho deja
 hablar a los datos; la incertidumbre dice cuánto no saben.
 
 **Sobre la predicción.** El jerárquico calibra el total de 2024 al 1 %,
-empata con el *baseline* reciente en MAE y lo supera en CRPS (6.17 contra 6.56).
+empata con el *baseline* reciente en MAE y lo supera en CRPS (6.10 contra 6.49).
 La mediana no mejora porque lo predecible ya lo capturaba un promedio bien
 elegido; la distribución sí mejora, y sus intervalos cubren el 87 % contra el
-68 % del *baseline*. Lo que ningún modelo captura —los cambios de régimen
+69 % del *baseline*. Lo que ningún modelo captura —los cambios de régimen
 municipal— no está en el pasado.
 
 **Sobre el PAI.** Ninguna especificación lo mueve de 8.4. El *dónde* está

@@ -1,3 +1,71 @@
 \section{Introducción}\label{sec:introduccion}
-% Motivación, la pregunta original (cuántos accidentes y dónde) y cómo se
-% reformuló. Contribuciones del trabajo y organización del documento.
+
+La Zona Metropolitana de Monterrey (ZMM) registra sus accidentes de tránsito en
+la base de Accidentes de Tránsito Terrestre en Zonas Urbanas y Suburbanas (ATUS)
+del Instituto Nacional de Estadística y Geografía (INEGI) \parencite{inegi_atus}:
+379,294 accidentes en 18 municipios durante 2019--2024 (§\ref{sec:datos-fuente}).
+La pregunta que originó el trabajo es operativa: cuántos accidentes habrá y
+dónde, de modo que la atención vial y la inversión en seguridad puedan
+anticiparse a la siguiente ventana de observación.
+
+La primera exploración mostró que la pregunta combina dos problemas de
+naturaleza distinta, y la reformulación separa el «dónde» del «cuánto».
+
+\paragraph{El «dónde» es estable.} Los accidentes se concentran en un conjunto
+reducido de celdas hexagonales, y esa concentración persiste entre años y bajo
+cambios de la escala de la rejilla (§\ref{sec:res-espacial}). La unidad de
+análisis es la celda de la rejilla hexagonal de 500\,m de lado
+(§\ref{sec:met-unidad}); se descartó el municipio como unidad porque su frontera
+administrativa es arbitraria respecto del fenómeno y mezcla territorios de
+tamaño muy distinto.
+
+\paragraph{El «cuánto» depende del régimen de reporte.} El nivel de accidentes
+de un municipio refleja, en parte, cómo y con qué cobertura se registran, no solo
+cuántos ocurren. Los modelos de conteo muestran que el error de predicción
+dominante es ese régimen municipal y no la dinámica vial
+(§\ref{sec:res-conteo}); la ZMM contiene cambios de régimen abruptos dentro de
+la propia serie (§\ref{sec:disc-regimen}). Con datos observacionales y sin
+medida de exposición (tránsito, longitud de vialidad), además, se estima una
+frecuencia y no una tasa, y los resultados se interpretan como asociaciones, no
+como efectos.
+
+Por ello la pregunta se reformuló en dos partes: predecir, por celda, el conteo
+de accidentes registrados en un año futuro, y separar de ese conteo el
+componente propio de la celda, neto del municipio. El segundo componente es el
+efecto de celda del modelo jerárquico (§\ref{sec:res-jerarquico}); no equivale a
+siniestralidad, porque mezcla riesgo real e intensidad de captura.
+
+En la base, la coordenada se comporta como la de la
+intersección reportada y no como la del punto físico del choque
+(§\ref{sec:datos-calidad}); el procedimiento de georreferenciación no está
+documentado en el repositorio.
+
+\paragraph{Contribuciones.} El trabajo aporta:
+\begin{enumerate}
+	\item una caracterización de la concentración espacial de los accidentes de la
+	      ZMM sobre una partición común de 2,270 celdas, con corrección por
+	      pruebas múltiples y validación de su estabilidad;
+	\item un diagnóstico de que el régimen de reporte municipal domina el error de
+	      los modelos de conteo, que motiva separar en el modelo un efecto
+	      municipal por año y un efecto de celda neto del municipio, sin
+	      cuantificar un reparto entre riesgo real y captura;
+	\item un modelo jerárquico bayesiano con estructura CAR, efecto municipal
+	      dinámico y efecto de celda neto del municipio, evaluado fuera de muestra
+	      frente a modelos de referencia con un protocolo común
+	      (§\ref{sec:res-validacion});
+	\item el registro de los supuestos no contrastados y de los caminos que no
+	      funcionaron (apéndice~\ref{app:supuestos},
+	      §\ref{sec:disc-caminos}).
+\end{enumerate}
+Los resultados cuantitativos se resumen en el Resumen y en
+§\ref{sec:conclusiones}.
+
+\paragraph{Organización.} La §\ref{sec:datos} describe la fuente, su calidad y
+las variables seleccionadas. La §\ref{sec:metodologia} define la unidad espacial,
+el análisis exploratorio, los modelos de conteo, el modelo jerárquico y la
+validación fuera de muestra. La §\ref{sec:resultados} presenta los resultados en
+ese mismo orden, y la §\ref{sec:discusion} examina el régimen de reporte, el
+alcance de la base, las limitaciones y los caminos descartados. La
+§\ref{sec:conclusiones} cierra con las conclusiones y el trabajo futuro. El
+apéndice~\ref{app:reproducibilidad} lista los comandos y \emph{notebooks} que
+regeneran las cifras.

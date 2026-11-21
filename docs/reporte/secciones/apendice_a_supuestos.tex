@@ -1,1 +1,164 @@
 \section{Supuestos del modelo jerárquico y su verificación}\label{app:supuestos}
+
+La tabla~\ref{tab:supuestos} confronta los 13 supuestos del modelo de la
+ecuación~\eqref{eq:jerarquico} (M6) con la evidencia disponible: uno queda
+verificado, siete tienen evidencia parcial,
+cuatro carecen de contraste y uno no se cumple. \emph{Parcial} significa que la evidencia es
+indirecta o cubre solo una parte del supuesto; \emph{sin contraste}, que no se
+ejecutó ninguna prueba. Las cifras de M6 son salidas de
+\texttt{docs/modelo\_jerarquico.pdf}, el render de
+\texttt{notebooks/modelo\_jerarquico.qmd}; el modelo no se reajustó para este
+apéndice. La fila de la pertenencia municipal es un cálculo directo sobre
+\texttt{espacial.celdas()} y \texttt{atus\_zmm\_limpio\_geo.parquet}, ausente de
+los \emph{notebooks}.
+
+\begin{table*}
+	\centering\scriptsize
+	\caption{Supuestos del modelo jerárquico, verificación aplicada, resultado y
+		estado. Las desviaciones posteriores (d.\,p.), $\hat{R}$ y el tamaño efectivo
+		de muestra (ESS) provienen de ArviZ; \texttt{az.summary} redondea $\hat{R}$ a dos decimales.}
+	\label{tab:supuestos}
+	\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.33\textwidth}>{\raggedright\arraybackslash}p{0.33\textwidth}>{\raggedright\arraybackslash}p{0.07\textwidth}@{}}
+		\toprule
+		Supuesto & Verificación & Resultado & Estado \\
+		\midrule
+		Verosimilitud NB con $\theta$ común, sin inflación de ceros
+		& Poisson, NB2 y ZINB se compararon solo en el GLM celda$\times$mes
+		(§\ref{sec:res-conteo}). En M6 hay cobertura y CRPS en 2024, sin rootograma,
+		residuales cuantil ni conteo de ceros esperados
+		& $\theta = 12.2$ (d.\,p.\ 0.447); cobertura del intervalo del 90\,\%: 87.2\,\%;
+		25.8\,\% de ceros en el panel de entrenamiento, sin esperado que comparar
+		& Parcial \\
+		\addlinespace
+		Independencia condicional de $Y_{ia}$ dado $\mu_{ia}$
+		& Sin contraste: el $I$ de Moran del residual se calculó para NB2, no para M6
+		& NB2 en 2024: 0.303, y 0.056 sin la media municipal; M6: no calculado
+		& Sin contraste \\
+		\addlinespace
+		Separabilidad espacio--tiempo dentro del año
+		& Sin contraste: no hay prueba de interacción celda$\times$mes. Todos los GLM
+		imponen un efecto de mes común, y la correlación entre años no mide la forma
+		intraanual
+		& ---
+		& Sin contraste \\
+		\addlinespace
+		$u_i$ constante en 2019--2023
+		& Spearman entre los conteos por celda de cada par de años
+		(§\ref{sec:res-espacial}). M6 no tiene indicador de periodo
+		& 0.833 entre 2019 y 2024; 0.863--0.896 dentro de 2019--2021, 0.884--0.906
+		dentro de 2022--2024 y 0.800--0.839 entre bloques: el corte de 2022 queda sin
+		modelar en $u_i$
+		& Parcial \\
+		\addlinespace
+		Caminata aleatoria de $m_{j,a}$
+		& Trayectorias a posteriori frente a las series observadas
+		(figura~\ref{fig:res-trayectorias}): comparación visual, dentro de muestra y
+		sin estadístico
+		& Reproducen los saltos de los municipios con cambio de régimen, a los que se
+		ajustaron
+		& Parcial \\
+		\addlinespace
+		Innovaciones $t_3$
+		& $\sigma_{rw}$ con $t_3$ frente a innovaciones normales. $\nu = 3$ se fijó y no
+		se estimó; la variante normal no tiene código en el \texttt{.qmd}
+		& 0.289 (d.\,p.\ 0.036) con $t_3$ y 0.61 con normales, esta sin intervalo
+		& Parcial \\
+		\addlinespace
+		Persistencia $m_{j,2024} = m_{j,2023}$
+		& Observado frente a predicho en 2024, en total y por municipio
+		(§\ref{sec:res-validacion})
+		& Total: 71,295 contra 70,810 (cociente predicho/observado 0.993). Por municipio,
+		observado/predicho de 0.30 (Abasolo) a 2.56 (El Carmen): el total acierta porque
+		errores de signo opuesto se compensan (§\ref{sec:disc-regimen})
+		& No se cumple \\
+		\addlinespace
+		Grafo de vecindad completo
+		& \texttt{espacial.celdas()} falla si las aristas de $A$ no coinciden con los
+		pares de centroides a distancia $\sqrt{3}\,\ell$; el \emph{notebook} cuenta
+		las componentes conexas
+		& 5,325 aristas, 4.69 vecinas por celda. No conexo: 35 componentes, la mayor
+		con 2,126 celdas (93.7\,\%). Ver el párrafo \emph{Grafo de vecindad}
+		& Verificado \\
+		\addlinespace
+		Cada celda pertenece a un solo municipio (el modal)
+		& Sin contraste en el \emph{notebook}. Cálculo directo: accidentes fuera del
+		municipio modal de su celda
+		& 10,559 de 379,160 accidentes (2.8\,\%) caen fuera; 430 de 2,270 celdas
+		(18.9\,\%) tienen más de un municipio
+		& Parcial \\
+		\addlinespace
+		Exogeneidad de $u_i$ respecto al municipio
+		& Sin contraste: el \emph{notebook} cita la construcción (CAR centrado en cero),
+		que no es una prueba, y $\beta_0$ compite con la media de $\mathbf{u}$
+		& ---
+		& Sin contraste \\
+		\addlinespace
+		$m_{j,a}$ mide reporte y no riesgo
+		& No contrastable con ATUS, sin una fuente externa de exposición o de
+		siniestralidad (§\ref{sec:disc-regimen})
+		& ---
+		& Sin contraste \\
+		\addlinespace
+		Convergencia del MCMC
+		& $\hat{R} < 1.01$, ESS mínimo de 400 y cero divergencias en $\log\mu$
+		(§\ref{sec:met-jerarquico}); en los hiperparámetros se reportan sin umbral
+		& Cero divergencias. Cumplen $\log\mu$ ($\hat{R}$ máx.\ 1.002, ESS mín.\ 4,289),
+		$\sigma_u$ y $\theta$ ($\hat{R}$ 1.00) y $\sigma_{rw}$ (1.01, ESS 259). Quedan en
+		1.02 $\alpha$ (ESS 219), $\beta_0$ (ESS 149) y $\sigma_m$ (ESS 78)
+		& Parcial \\
+		\addlinespace
+		Los priors no dictan el resultado
+		& Reajuste con priors alternativos en $\alpha$, $\sigma_u$ y $\theta$
+		(tabla~\ref{tab:priors}), 1,000 muestras por cadena. Sin alternativa para $\beta_0$,
+		$\sigma_m$ ni $\sigma_{rw}$
+		& $\alpha$ 0.919→0.921; $\theta$ 12.215→12.146; $\sigma_{rw}$ 0.289→0.287;
+		$\sigma_u$ 2.606 sin cambio; CRPS 6.097→6.101; PAI 8.439 sin cambio. Dos
+		divergencias; $\hat{R}$ máx.\ de $\log\mu$ 1.009
+		& Parcial \\
+		\bottomrule
+	\end{tabular}
+\end{table*}
+
+\paragraph{Grafo de vecindad.} Una versión anterior de
+\texttt{espacial.rejilla\_hexagonal()} calculaba los vértices de cada hexágono
+por separado, con senos y cosenos, y los vértices compartidos diferían en unos
+$4.7\times10^{-10}$\,m. \texttt{weights.Queen} solo une polígonos con
+coordenadas idénticas, así que el grafo perdía 1,085 de 5,284 aristas
+(20.5\,\%), quedaba en 120 componentes y contaba como islas a 29 celdas que sí
+tenían una vecina con accidentes. Las aserciones de simetría y ausencia de
+islas no lo detectaban. La rejilla actual calcula los vértices sobre una
+retícula entera, de modo que dos hexágonos vecinos llegan a los mismos
+flotantes, y \texttt{espacial.celdas()} contrasta el número de aristas con los
+pares de centroides a distancia $\sqrt{3}\,\ell$, un criterio independiente de
+la geometría de los polígonos. Con la corrección, la partición pasa de 2,241 a
+2,270 celdas (74 islas en lugar de 103) y el $I$ de Moran global de 0.648 a
+0.654. Con el mismo muestreo de 1,000 + 2,000 iteraciones, $\alpha$ pasa de
+0.848 a 0.917, $\sigma_u$ de 2.38 a 2.61 y el CRPS de M6 de 6.166 a 6.093.
+
+El grafo corregido sigue sin ser conexo: 35 componentes, y la mayor reúne el
+93.7\,\% de las celdas. El modelo está bien definido, porque toda celda
+conserva al menos una vecina y $D - \alpha A$ es definida positiva para
+$\alpha < 1$ aunque el grafo esté desconexo. El encogimiento hacia las vecinas,
+en cambio, solo opera dentro de cada componente.
+
+\paragraph{Convergencia.} §\ref{sec:met-jerarquico} exige el umbral a
+$\log\mu$ y lo reporta sin exigirlo en los hiperparámetros. $\alpha$,
+$\beta_0$ y $\sigma_m$ quedan en $\hat{R} = 1.02$ con 3,000 iteraciones de
+calentamiento y 4,000 muestras por cadena; con la mitad, $\alpha$ daba 1.04.
+La mezcla lenta de $\alpha$ es estructural: cerca de $\alpha = 1$ el CAR propio
+confunde la dependencia con $\sigma_u$. Su media es estable entre corridas y
+priors (0.917--0.921). El \emph{notebook} no calcula $\hat{R}$ para $m_{j,a}$
+ni para $u_i$ por separado: la convergencia de $\log\mu$ cubre su suma con
+$\beta_0$, y la lectura individual de ambos efectos depende de que la mezcla
+lenta de $\beta_0$ no se traslade a ellos.
+
+\paragraph{Alcance de la evidencia.} La separabilidad y la exogeneidad figuran
+como verificadas en la tabla de supuestos del \emph{notebook}, pero la evidencia
+citada allí mide otra cosa: la correlación de Spearman mide estabilidad entre
+años, no forma dentro del año, y un CAR centrado en cero es una elección del
+modelo, no un resultado. La afirmación de que $u_i$ queda neto del municipio
+(§\ref{sec:disc-regimen}) está condicionada a ambos supuestos y a que $m_{j,a}$
+absorba todo el nivel. La validación en 2024 sostiene la distribución predictiva
+en conjunto (§\ref{sec:res-validacion}), en una sola ventana
+(§\ref{sec:disc-limitaciones}), y no permite atribuir el acierto a un supuesto
+concreto.

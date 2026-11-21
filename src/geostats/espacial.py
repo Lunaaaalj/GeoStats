@@ -30,7 +30,7 @@ def rejilla_hexagonal(
 
     Orientación *flat-top*: un vértice a la izquierda y otro a la derecha. Las
     columnas impares van desplazadas media altura para que los hexágonos
-    encajen sin huecos. El área de cada celda es (3√3/2)·lado², así que un lado
+    encajen sin huecos y los vértices compartidos sean idénticos. El área de cada celda es (3√3/2)·lado², así que un lado
     de 500 m da 0.65 km², comparable a un AGEB urbano.
 
     `bounds` es `(xmin, ymin, xmax, ymax)` en la misma proyección que `crs`,
@@ -38,20 +38,31 @@ def rejilla_hexagonal(
     """
     xmin, ymin, xmax, ymax = bounds
     alto = np.sqrt(3) * lado
-    paso_x = 1.5 * lado
-    columnas = int(np.ceil((xmax - xmin) / paso_x)) + 2
+    columnas = int(np.ceil((xmax - xmin) / (1.5 * lado))) + 2
     filas = int(np.ceil((ymax - ymin) / alto)) + 2
-    angulos = np.deg2rad(np.arange(0, 360, 60))
+
+    # Retícula entera de semilados y semialturas: dos hexágonos que comparten
+    # un vértice llegan al mismo par (k, m) y, por tanto, a los mismos flotantes.
+    # `weights.Queen` compara coordenadas exactas; con cos/sen por celda los
+    # vértices compartidos diferían en unos 4.7e-10 m y se perdían vecindades.
+    paso_k = lado / 2
+    paso_m = alto / 2
+    desplazamientos = [(2, 0), (1, 1), (-1, 1), (-2, 0), (-1, -1), (1, -1)]
 
     poligonos = []
     claves = []
     for i in range(columnas):
-        cx = xmin + i * paso_x
-        desfase = alto / 2 if i % 2 else 0.0
         for j in range(filas):
-            cy = ymin + j * alto + desfase
-            vertices = zip(cx + lado * np.cos(angulos), cy + lado * np.sin(angulos))
-            poligonos.append(Polygon(vertices))
+            k_centro = 3 * i
+            m_centro = 2 * j + i % 2
+            poligonos.append(
+                Polygon(
+                    [
+                        (xmin + (k_centro + dk) * paso_k, ymin + (m_centro + dm) * paso_m)
+                        for dk, dm in desplazamientos
+                    ]
+                )
+            )
             claves.append(f"{i}_{j}")
 
     return gpd.GeoDataFrame({"hex": claves}, geometry=poligonos, crs=crs)
@@ -71,8 +82,12 @@ def celdas(
     `puntos` debe venir ya en `UTM_ZMM`. Cada punto se asigna a la celda que
     lo contiene; los que caen exactamente sobre una arista se pierden (uno en
     toda la base).
+
+    Falla si la contigüidad no coincide con los pares de hexágonos a distancia
+    √3·lado entre centroides. El grafo resultante no es conexo.
     """
     from libpysal import weights
+    from scipy.spatial import cKDTree
 
     rejilla = rejilla_hexagonal(puntos.total_bounds, lado=lado)
     union = gpd.sjoin(puntos[["geometry"]], rejilla, predicate="within", how="inner")
@@ -82,5 +97,17 @@ def celdas(
     w0 = weights.Queen.from_dataframe(rejilla, use_index=False, silence_warnings=True)
     rejilla = rejilla.drop(index=w0.islands).reset_index(drop=True)
     w = weights.Queen.from_dataframe(rejilla, use_index=False, silence_warnings=True)
+
+    # Contraste independiente de la igualdad de vértices: simetría y ausencia de
+    # islas se cumplen también en un grafo al que le faltan aristas.
+    centros = np.column_stack([rejilla.centroid.x, rejilla.centroid.y])
+    pares = cKDTree(centros).query_pairs(np.sqrt(3) * lado * 1.01)
+    aristas = sum(w.cardinalities.values()) // 2
+    if aristas != len(pares):
+        raise ValueError(
+            f"Grafo incompleto: {aristas:,} aristas contra {len(pares):,} pares "
+            "de hexágonos a distancia √3·lado"
+        )
+
     w.transform = "r"
     return rejilla, w

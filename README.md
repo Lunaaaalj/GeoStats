@@ -29,8 +29,8 @@ modelo que dice dónde va a pasar en 2027.
 
 Un pipeline de datos + notebooks (no una aplicación) que toma el censo de
 accidentes de tránsito del INEGI, lo recorta a los 18 municipios de la Zona
-Metropolitana de Monterrey, lo divide en una rejilla de **2,241 hexágonos de
-un kilómetro** y responde tres preguntas: **dónde** se concentra el riesgo,
+Metropolitana de Monterrey, lo divide en una rejilla de **2,270 hexágonos de
+500 m de lado** y responde tres preguntas: **dónde** se concentra el riesgo,
 **a quién** le cuesta más caro, y **qué tan bien se puede anticipar**.
 
 Proyecto de la Semana de la Movilidad, por Angel Eduardo Luna, Jenaro Alcaraz,
@@ -122,7 +122,7 @@ es el que manda gente al hospital.
 
 De los 200 peores cruces, 155 aparecen en los seis años. Un modelo
 jerárquico bayesiano entrenado con 2019–2023 y probado a ciegas contra
-2024 falló el total metropolitano por solo 0.6 %. Para 2027 espera
+2024 falló el total metropolitano por solo 0.7 %. Para 2027 espera
 **74 mil** hechos de tránsito en la Zona Metropolitana.
 
 </td>

@@ -1,3 +1,22 @@
 % Texto del resumen (≈200 palabras): pregunta, datos, método y los tres
 % hallazgos principales. Solo el texto: el entorno abstract vive en main.tex
 % porque en cas-dc es tipo verbatim y no admite \end{abstract} en un \input.
+Se estudia cuántos accidentes de tránsito se registrarán y dónde en la Zona
+Metropolitana de Monterrey (ZMM). Los datos son los de ATUS (INEGI) de
+2019--2024: 379,294 accidentes en 18 municipios, agregados en 2,270 celdas
+hexagonales de 500\,m. Se comparan modelos de conteo con un modelo jerárquico
+bayesiano con estructura CAR, efecto municipal dinámico y efecto de celda neto
+del municipio. Primero, la concentración espacial es persistente: el 5\,\% de
+las celdas reúne el 42.8\,\% de los accidentes (Gini de 0.758; $I$ de Moran de
+0.654) y el orden de las celdas se mantiene entre 2019 y 2024 (Spearman de
+0.83). Segundo, el municipio explica casi todo el residual espacial: el $I$ de Moran
+del residual de la Binomial Negativa en 2024 baja de 0.30 a 0.06 al restar la
+media municipal, lo
+que es compatible con un régimen de reporte distinto por municipio, sin que la
+base permita separarlo del riesgo real. Tercero, para 2024 el modelo jerárquico predice
+70,810 accidentes contra 71,295 observados y reduce el CRPS (puntuación de
+probabilidad ranqueada continua) de 6.49 a 6.10 frente al mejor modelo de
+referencia, pero no mejora el PAI (índice de precisión predictiva, 8.44). Los
+registros son administrativos y no incluyen exposición, de modo que se estima
+frecuencia y no tasa; la validación usa una sola ventana (2024) y los
+resultados son asociaciones, no efectos.
