@@ -34,7 +34,10 @@ SALIDA = rutas.RAIZ / "docs" / "cruces_zmm.xlsx"
 # «Prolongación» y «Privada» se quedan, igual que en la columna homologada.
 GENERICO = re.compile(r"^(AVENIDA|AVDA\.?|AVE\.?|AV\.?|CALLE|CALZADA|CALZ\.?|BOULEVARD|"
                       r"BLVD\.?|BLVR\.?)\s+", re.IGNORECASE)
-MINUSCULAS = {"A", "De", "Del", "La", "Las", "Los", "Y", "El"}
+MINUSCULAS = {"De", "Del", "La", "Las", "Los", "Y", "El"}
+# «a» solo tras una palabra de vía («Carretera a Reynosa»); en otro lugar suele
+# ser una inicial sin punto («José A Conchello») y se queda en mayúscula.
+VIAS_CON_A = {"Carretera", "Camino", "Via", "Vía", "Autopista", "Libramiento", "Antigua"}
 
 # Identidad GeoStats: secciones en la rampa ordinal de azules, texto grafito,
 # rejilla y subencabezados en gris claro.
@@ -72,8 +75,11 @@ def calle_limpia(calle) -> str | None:
     if nombre.split()[0].title() in MINUSCULAS or not re.search(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3}", nombre):
         nombre = completo
     palabras = nombre.title().split()
-    return " ".join(p.lower() if p in MINUSCULAS and 0 < k < len(palabras) - 1 else p
-                    for k, p in enumerate(palabras))
+    def minuscula(k: int, p: str) -> bool:
+        if not 0 < k < len(palabras) - 1:
+            return False
+        return p in MINUSCULAS or (p == "A" and palabras[k - 1] in VIAS_CON_A)
+    return " ".join(p.lower() if minuscula(k, p) else p for k, p in enumerate(palabras))
 
 
 def _escritura(d: pd.DataFrame) -> pd.Series:
@@ -172,8 +178,11 @@ def construir_tabla(d: pd.DataFrame) -> pd.DataFrame:
 
     # Una fila por calle y municipio, sin coordenadas: una avenida recorre
     # kilómetros y la mediana de sus puntos no ubica nada.
+    # Sin ninguna calle en el parte no hay vía a la cual sumarlo: agruparlos por
+    # municipio juntaría puntos sin relación como si fueran una calle. Se dejan
+    # fuera de las dos hojas (ver «Sin calle» en las notas).
     escritura = _escritura(d)
-    a_lo_largo = d[d.a_lo_largo].assign(
+    a_lo_largo = d[d.a_lo_largo & d.vialidades_hom.notna()].assign(
         calle=lambda f: f.vialidades_hom.map(escritura).fillna(f.vialidades_hom.str.title()))
     calles = (_contar(a_lo_largo, ["calle", "NOM_MUN"]).reset_index()
               .assign(nombre=lambda f: "A lo largo de " + f.calle, interseccion="No",
@@ -277,6 +286,9 @@ NOTAS = [
                          "en una fila por calle y municipio. Sin coordenadas: una calle "
                          "recorre kilómetros. Sus rankings son solo entre calles; los de la "
                          "hoja «Cruces», solo entre cruces."),
+    ("Sin calle", "Los accidentes de un punto sin cruce cuyo parte no trae ninguna calle "
+                  "(vacía o «NINGUNO», «SIN REFERENCIA»…) no aparecen en ninguna hoja: no hay "
+                  "vía a la cual sumarlos, y juntarlos por municipio los haría pasar por una calle."),
     ("Punto por defecto", "El parte no trae coordenadas: el INEGI las asigna después a partir de "
                           "las calles anotadas. Si el parte nombra una sola calle, cae en un punto "
                           "fijo de ella. Por eso un accidente de una sola calle pasa a «Calles sin "
