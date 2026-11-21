@@ -154,11 +154,12 @@ Usables, con la advertencia documentada.
 39 de 51 conservadas, más 8 derivadas. El recorte es modesto: lo que importa no
 es cuántas se tiran, sino **cuáles pueden ser predictores (16) y cuáles no**.
 
-> **La implementación construyó 20 derivadas, no 8.** Estas ocho son las que este
+> **La implementación construyó 22 derivadas, no 8.** Estas ocho son las que este
 > documento especificó desde el diccionario; `geostats.limpieza` agrega además
 > las versiones sin centinela de los campos del conductor (`edad`,
 > `aliento_alcoholico`, `cinturon`, `hora`, `dia_semana`), `gravedad`, las tres
-> vialidades normalizadas, `falta_calle2`, `id_punto_4d` y `precision_baja`.
+> vialidades normalizadas, las dos homologadas (`calle1_hom`, `calle2_hom`),
+> `falta_calle2`, `id_punto_4d` y `precision_baja`.
 > La lista completa, con su regla y su porcentaje de nulos, está en
 > [`limpieza.md`](limpieza.md).
 

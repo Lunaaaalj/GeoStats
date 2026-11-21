@@ -1,0 +1,17 @@
+{
+  // Entorno de Codespaces para GeoStats. Se aplica al crear o reconstruir el
+  // codespace (Command Palette → "Codespaces: Rebuild Container").
+  "name": "GeoStats",
+  // Imagen por defecto de Codespaces: conserva Python, Node (nvm) y uv.
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    // Claude Code (CLI) desde el feature oficial de Anthropic.
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {},
+    // Quarto CLI para renderizar notebooks/*.qmd (quarto render).
+    "ghcr.io/rocker-org/devcontainer-features/quarto-cli:1": {
+      "version": "latest"
+    }
+  },
+  // TeX Live para compilar docs/reporte (latexmk -pdf main.tex).
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
+}

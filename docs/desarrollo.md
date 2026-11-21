@@ -16,11 +16,11 @@ data/                  ← qué se versiona y qué no, abajo
   processed/           lo que genera este repo; borrable y regenerable
     atus_georreferenciado.parquet       nacional, 2019-2024
     atus_zmm.parquet                    Zona Metropolitana de Monterrey
-    atus_zmm_limpio.parquet             la ZMM más 20 columnas derivadas
+    atus_zmm_limpio.parquet             la ZMM más 22 columnas derivadas
 docs/
   diccionario_de_datos.md   los 50 campos, sus catálogos y sus centinelas
   seleccion_datos.md        qué columnas conservar y con qué papel
-  limpieza.md               las 20 derivadas, y lo que la limpieza no hace
+  limpieza.md               las 22 derivadas, y lo que la limpieza no hace
   *.pdf                     el render de cada notebook, para leer sin entorno
 notebooks/
   revisiones.ipynb              exploración
@@ -31,6 +31,7 @@ src/geostats/
   consolidar.py        raw/ATUS_20XX → processed/*.parquet
   zonas.py             recortes geográficos (ZMM de Monterrey)
   limpieza.py          columnas derivadas y validación; no borra ni imputa
+  tabla_cruces.py      processed/atus_zmm_limpio.parquet → docs/cruces_zmm.xlsx
 ```
 
 La separación `raw/` vs `processed/` es la regla del proyecto: **nunca se
@@ -128,11 +129,11 @@ municipios).
 ### Limpieza
 
 ```bash
-uv run limpiar-atus          # data/processed/atus_zmm_limpio.parquet (12 MB)
-uv run limpiar-atus --geo    # además el GeoParquet (15 MB)
+uv run limpiar-atus          # data/processed/atus_zmm_limpio.parquet (13.5 MB)
+uv run limpiar-atus --geo    # además el GeoParquet (16.0 MB)
 ```
 
-Agrega 20 columnas derivadas a las 51 del recorte, y **nunca borra filas ni
+Agrega 22 columnas derivadas a las 51 del recorte, y **nunca borra filas ni
 imputa**. No es estilo: el faltante de esta base es MNAR —en accidentes fatales
 el aliento alcohólico se ignora 2.4 veces más seguido que en los de solo daños—,
 así que `dropna()` sesga contra los accidentes graves e imputar bajo supuesto
