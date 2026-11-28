@@ -45,7 +45,8 @@ Las columnas en MAYÚSCULAS son del INEGI; las minúsculas las construye
 > continuo sobre el territorio, es un **conteo sobre nodos de la red viaria**. Una
 > superficie de densidad sobre los registros crudos contesta «¿dónde está la
 > ciudad?»; el conteo por nodo contesta «¿qué cruce es peligroso?», que es la
-> pregunta. Todo el documento agrupa por `id_punto_4d` (10 m de tolerancia) por la
+> pregunta. «Cruce» designa aquí al nodo, no solo a los de ubicación
+> «Intersección» (cifras en § 2). Todo el documento agrupa por `id_punto_4d` (10 m de tolerancia) por la
 > razón que demuestra el § 1.
 
 ```{python}
@@ -80,7 +81,7 @@ añadidos que este documento necesita:
   lo que orienta es una barra de escala en kilómetros.
 - **No hay mapa base ni contornos municipales.** `data/raw/` no trae el marco
   geoestadístico del INEGI, así que la silueta de la ciudad la dibujan los
-  propios accidentes: los 54,742 nodos en gris claro son el fondo de todos los
+  propios accidentes: los 54,742 nodos con accidentes registrados, en gris claro, son el fondo de todos los
   mapas. Es una limitación, no una decisión de diseño — ver § Limitaciones.
 - **Secuencial para magnitud sin signo, divergente solo para polaridad real.**
   Un conteo y una tasa son magnitudes: un tono, claro a oscuro, nunca arcoíris.
@@ -266,9 +267,28 @@ print(nodos.head(5)[["n", "NOM_MUN", "calle1_norm", "calle2_norm"]].to_string())
 
 ## 2. La concentración es el hallazgo
 
-54,742 cruces, 379,294 accidentes. Si estuvieran repartidos parejo no habría
-nada que mapear. La curva de concentración mide qué tan lejos está el reparto de
-la igualdad.
+```{python}
+# Ubicación modal por nodo: define qué nodos son «Intersección».
+modal = d.groupby("id_punto_4d", observed=True).ubicacion.agg(lambda s: s.mode().iloc[0])
+n_nodos = len(nodos)
+n_inter = int((modal.reindex(nodos.index) == "Intersección").sum())
+n_otro = n_nodos - n_inter
+tipo_nodos = nodos.index[nodos.n >= 30]
+n_tip = len(tipo_nodos)
+n_tip_otro = int((modal.reindex(tipo_nodos) != "Intersección").sum())
+print(f"{n_nodos:,} nodos | modal Intersección: {n_inter:,} | otra: {n_otro:,} | "
+      f"≥30 accidentes: {n_tip:,}, de ellos sin moda Intersección: {n_tip_otro:,} "
+      f"({100 * n_tip_otro / n_tip:.1f} %)")
+```
+
+`{python} f"{n_nodos:,}"` cruces con accidentes registrados, 379,294 accidentes.
+El notebook llama «cruce» al nodo de 10 m con al menos un accidente registrado:
+en `{python} f"{n_inter:,}"` la ubicación más frecuente es «Intersección» y en
+los otros `{python} f"{n_otro:,}"` es un tramo, camino o carretera. Los cruces
+sin accidentes no aparecen en ATUS, de modo que los porcentajes de esta sección
+se miden sobre esos `{python} f"{n_nodos:,}"` y no sobre el total de cruces de la
+ZMM. Si estuvieran repartidos parejo no habría nada que mapear. La curva de
+concentración mide qué tan lejos está el reparto de la igualdad.
 
 ```{python}
 cuenta = nodos.n.to_numpy()
@@ -287,12 +307,12 @@ for pct_nodos in (1.8, 9.1):
     ax.plot([pct_nodos, pct_nodos], [0, y], color=OXIDO, lw=1.0, ls=":")
     ax.plot([0, pct_nodos], [y, y], color=OXIDO, lw=1.0, ls=":")
     ax.plot(pct_nodos, y, "o", ms=6, color=OXIDO, zorder=5)
-    ax.annotate(f"{pct_nodos} % de los cruces\nconcentra {y:.0f} % de los accidentes",
+    ax.annotate(f"{pct_nodos} % de los cruces con\naccidentes registrados\nconcentra {y:.0f} % de los accidentes",
                 (pct_nodos, y), textcoords="offset points", xytext=(10, -4),
                 fontsize=8.5, color=GRAFITO, family="monospace", va="top")
 
 ax.set_title("Concentración de accidentes por cruce, ZMM 2019-2024")
-ax.set_xlabel("% de cruces, ordenados de mayor a menor")
+ax.set_xlabel("% de los cruces con accidentes registrados,\nordenados de mayor a menor")
 ax.set_ylabel("% acumulado de accidentes")
 ax.set_xlim(0, 100)
 ax.set_ylim(0, 100)
@@ -302,13 +322,14 @@ plt.show()
 resumen = pd.DataFrame({
     "cruces": [50, 100, 250, 500, 1000, 2500, 5000],
 })
-resumen["% de cruces"] = (100 * resumen.cruces / len(cuenta)).round(1)
+resumen["% de cruces con accidentes"] = (100 * resumen.cruces / len(cuenta)).round(1)
 resumen["% de accidentes"] = [round(100 * cuenta[:k].sum() / cuenta.sum(), 1)
                               for k in resumen.cruces]
 print(resumen.to_string(index=False))
 ```
 
-El 1.8 % de los cruces concentra el 40 % de los accidentes; el 9.1 %, el 68 %.
+El 1.8 % de los cruces con accidentes registrados concentra el 40 % de los
+accidentes; el 9.1 %, el 68 %.
 Esa desigualdad es lo que hace que valga la pena un mapa de puntos negros en
 lugar de una política de cobertura uniforme.
 
@@ -346,7 +367,7 @@ muestreo.
 ## 3. Mapa de puntos negros
 
 Burbuja por cruce, área proporcional al conteo. Sin superficie de densidad: el
-dato es discreto y se muestra discreto. Los 54,742 nodos en gris dibujan la
+dato es discreto y se muestra discreto. Los 54,742 nodos con accidentes registrados, en gris, dibujan la
 ciudad; los 300 primeros, en azul, son el objeto de interés.
 
 ```{python}
@@ -362,7 +383,7 @@ insignias(ax, nodos.x[:10], nodos.y[:10])
 for muestra in (100, 400, 1000):
     ax.scatter([], [], s=muestra / 3.4, c=AZUL, alpha=0.5, edgecolors=BLANCO,
                linewidths=0.5, label=f"{muestra:,} accidentes")
-ax.scatter([], [], s=6, c=FONDO_PTS, label=f"los otros {len(nodos)-TOP:,} cruces")
+ax.scatter([], [], s=6, c=FONDO_PTS, label=f"los otros {len(nodos)-TOP:,} cruces con accidentes")
 ax.legend(loc="upper right", labelspacing=1.4, borderpad=0.9,
           handletextpad=1.4, title="Accidentes 2019-2024")
 ax.set_title(f"Los {TOP} cruces con más accidentes, ZMM 2019-2024\n"
@@ -725,7 +746,7 @@ ejes[0].scatter(nodos.x[~es_mayor], nodos.y[~es_mayor], s=2, c=FONDO_PTS,
                 linewidths=0, zorder=3)
 ejes[0].scatter(nodos.x[es_mayor], nodos.y[es_mayor], s=2, c=ROJO, alpha=0.5,
                 linewidths=0, zorder=4)
-ejes[0].set_title(f"No sirve: DBSCAN ponderado sobre los 54,742 cruces\n"
+ejes[0].set_title(f"No sirve: DBSCAN ponderado sobre los 54,742 cruces con accidentes registrados\n"
                   f"un grupo encadena {100*tam.iloc[0]/N:.0f} % de los accidentes",
                   fontsize=10, color=GRAFITO, loc="left", pad=8)
 
@@ -768,7 +789,8 @@ en el volumen.
 
 Universo: los cruces con al menos 30 accidentes en seis años — 2,302 cruces,
 54.6 % de todos los registros. Por debajo de eso un porcentaje sobre 8 accidentes
-no es un perfil.
+no es un perfil. De esos nodos, `{python} f"{n_tip_otro:,}"` (`{python} f"{100 * n_tip_otro / n_tip:.1f}"` %)
+no tienen «Intersección» como ubicación más frecuente.
 
 ```{python}
 MINIMO = 30
@@ -928,7 +950,8 @@ print(P.groupby("tipo").dist_centro.agg(["mean", "median"]).round(1)
 
 comp = (pd.crosstab(P.NOM_MUN, P.tipo, normalize="index").mul(100).round(1)
         [list(centroides.index)])
-print(f"\nComposición por municipio, en % de los cruces del municipio "
+print(f"\nComposición por municipio, en % de los cruces del municipio con "
+      f"{MINIMO}+ accidentes "
       f"({len(comp)} de 18 municipios tienen al menos un cruce con "
       f"{MINIMO}+ accidentes):")
 print(comp.sort_values(centroides.index[1], ascending=False).to_string())
@@ -938,9 +961,9 @@ Los tipos tienen **geografía**, y la distancia al centroide lo mide: el alto
 flujo con daños materiales ocupa el primer anillo (6.7 km de media), mientras la
 pérdida de control nocturna se va a la periferia y a los accesos carreteros
 (10.6 km). El corredor de motocicleta queda en medio, extendido hacia el norte
-—Escobedo tiene el 54.5 % de sus cruces en ese tipo y Ciénega de Flores el
+—Escobedo tiene el 54.5 % de sus cruces con 30+ accidentes en ese tipo y Ciénega de Flores el
 90.9 %—, y la exposición de peatón y ciclista se concentra donde la red mezcla
-tránsito rápido con actividad a pie: Juárez, 57.1 % de sus cruces.
+tránsito rápido con actividad a pie: Juárez, 57.1 % de sus cruces con 30+ accidentes.
 
 La partición depende de la semilla mucho menos de lo que sugiere una silueta de
 0.21, porque lo inestable son los cruces de frontera y no los centroides:
@@ -956,7 +979,7 @@ for semilla in (1, 7, 42):
     nombres[perf.moto.drop(index=list(nombres)).idxmax()] = "Corredor de motocicleta"
     nombres[(set(perf.index) - set(nombres)).pop()] = "Alto flujo, daños materiales"
     coincide = 100 * (pd.Series(otra.labels_, index=P.index).map(nombres) == P.tipo).mean()
-    print(f"semilla {semilla:>2}: {coincide:.1f} % de los cruces conserva su tipo")
+    print(f"semilla {semilla:>2}: {coincide:.1f} % de los cruces con 30+ accidentes conserva su tipo")
 ```
 
 ---

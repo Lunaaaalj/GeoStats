@@ -14,7 +14,7 @@ Qué cruces de la Zona Metropolitana de Monterrey concentran más hechos de
 tránsito en los que un peatón o un ciclista fue arrollado o murió, 2019-2024.
 Una ficha por cruce: su nombre, cuántos hechos de tránsito tiene, qué parte
 de ellos le pegó a alguien a pie o en bicicleta, cómo se reparten por
-trimestre, la foto satelital y el lugar que ocupa entre todos los cruces.
+trimestre, la foto satelital y el lugar que ocupa entre los cruces con accidentes registrados.
 
 Fuente: `data/processed/atus_zmm_limpio.parquet` (se genera con
 `uv run limpiar-atus`). El mismo notebook escribe la página
@@ -159,6 +159,9 @@ print(f"Defunciones de peatón o ciclista (personas): {miles(d.defunciones_pc.su
 Una fila por nodo. Se quedan los nodos que son intersección: los tramos sin
 cruce, los caminos rurales y las carreteras no son cruces, aunque tengan
 hechos de tránsito.
+Los cruces sin accidentes no aparecen en ATUS: todo porcentaje «de los
+cruces» tiene como denominador los cruces con accidentes registrados, no el
+total de cruces de la ZMM.
 
 El nombre: el INEGI captura el mismo cruce de varias formas («Avenida Cristóbal
 Colón» y «Cristóbal Colón»; a veces con las calles en orden inverso). Se quita
@@ -210,11 +213,15 @@ nodos = pd.DataFrame({
 })
 cruces = nodos[nodos.ubicacion == "Intersección"].copy()
 
-# Lugar por hechos de tránsito entre TODOS los cruces: 1 es el que más tiene.
+# Nodos con algún accidente en intersección cuya ubicación modal es otra.
+alguna = d.groupby("id_punto_4d", sort=False).ubicacion.agg(lambda s: (s == "Intersección").any())
+n_fuera = int((alguna & (nodos.ubicacion != "Intersección")).sum())
+
+# Lugar por hechos de tránsito entre TODOS los cruces con accidentes registrados: 1 es el que más tiene.
 # Empates comparten el lugar más alto (método «min»), como en una tabla deportiva.
 cruces["lugar_total"] = cruces.total.rank(ascending=False, method="min").astype(int)
 
-print(f"{miles(len(nodos))} nodos -> {miles(len(cruces))} cruces "
+print(f"{miles(len(nodos))} nodos -> {miles(len(cruces))} cruces con accidentes registrados "
       f"({pct(100 * cruces.total.sum() / N)} de los hechos de tránsito)")
 print(f"Cruces con al menos un hecho de peatón o ciclista: "
       f"{miles((cruces.union > 0).sum())}")
@@ -222,6 +229,10 @@ con_def = cruces.defunciones[cruces.defunciones > 0]
 print(f"Cruces con al menos una defunción de peatón o ciclista: {miles(len(con_def))}; "
       f"por número de defunciones: {con_def.value_counts().sort_index().to_dict()}")
 ```
+
+El cruce se define por la ubicación más frecuente del nodo («Intersección»): un
+nodo con algún accidente en intersección pero otra ubicación modal queda fuera,
+`{python} f"{n_fuera:,}"` nodos.
 
 Las defunciones solas no alcanzan para ordenar: casi todos los cruces con
 alguna tienen una sola, y el máximo de la ZMM es tres. Ordenar solo por
@@ -254,7 +265,7 @@ print(f"Corte: el lugar 10 tiene {corte10} hechos en la unión; el 11, {corte11}
          else "Hay empate en la frontera: decide el desempate."))
 print(f"Los 10 suman {miles(top.union.sum())} hechos de peatón o ciclista: "
       f"{pct(100 * top.union.sum() / d.union.sum())} de la ZMM en "
-      f"{100 * 10 / len(cruces):.2f} % de los cruces.\n")
+      f"{100 * 10 / len(cruces):.2f} % de los cruces con accidentes registrados.\n")
 
 tabla = top[["nombre", "municipio", "union", "pct_union", "peatones", "ciclistas",
              "defunciones", "total", "lugar_total"]].copy()
@@ -326,7 +337,7 @@ Cada ficha trae:
   suma puede pasar de la unión si algún hecho tuvo a los dos.
 - **Hechos por trimestre**, 2019 T1 a 2024 T4.
 - **La foto satelital** del cruce y su ubicación en la ZMM.
-- **Lugar por hechos de tránsito** entre los cruces de la ZMM.
+- **Lugar por hechos de tránsito** entre los cruces de la ZMM con accidentes registrados.
 
 ```{python}
 anios = list(range(2019, 2025))
@@ -443,7 +454,7 @@ def ficha(k):
     fig.text(0.02, 0.975, f"{r.lugar}", fontsize=30, weight="bold", color=ROJO, va="top")
     fig.text(0.075, 0.97, r.nombre, fontsize=15, weight="bold", color=ROJO, va="top")
     fig.text(0.075, 0.925, f"{r.municipio}  ·  lugar {miles(r.lugar_total)} de "
-             f"{miles(len(cruces))} cruces por hechos de tránsito",
+             f"{miles(len(cruces))} cruces con accidentes registrados",
              fontsize=9, color=GRAFITO, va="top", family="monospace")
 
     # Cifras

@@ -173,7 +173,9 @@ NOTAS = [
     ("Fuente", "ATUS (INEGI), Zona Metropolitana de Monterrey, 2019-2024; "
                "data/processed/atus_zmm_limpio.parquet."),
     ("Cruce", "Nodo id_punto_4d (10 m de tolerancia) cuya ubicación más frecuente es "
-              "«Intersección». Nombre: el par de vialidades que más se repite."),
+              "«Intersección». Nombre: el par de vialidades que más se repite. La tabla solo "
+              "contiene cruces con accidentes registrados: los cruces sin accidentes no "
+              "aparecen en ATUS, así que no es el total de cruces de la ZMM."),
     ("Hechos de tránsito", "Accidentes registrados en el cruce."),
     ("Defunciones", "Suma de TOTMUERTOS: conductores, pasajeros, peatones, ciclistas y otros."),
     ("Hechos con peatones", "Atropellamiento (TIPACCID = 2) o algún peatón muerto."),
@@ -191,7 +193,7 @@ NOTAS = [
                             "las de esos hechos."),
     ("Nombres de calles", "Se comparan sin acentos ni mayúsculas, así «Lázaro Cárdenas» y "
                           "«Lazaro Cardenas» son la misma calle; se muestra la escritura más común."),
-    ("Ranking", "El ranking va junto a los hechos de tránsito de su sección; 1 = el cruce con más. Empates comparten el lugar más alto (método «min»), "
+    ("Ranking", "El ranking va junto a los hechos de tránsito de su sección; 1 = el cruce con más, entre los cruces con accidentes registrados. Empates comparten el lugar más alto (método «min»), "
                  "así que muchos cruces con 0 defunciones empatan en el mismo lugar."),
     ("Coordenadas", "Mediana de LATITUD y LONGITUD de los hechos del cruce (WGS84)."),
     ("Generado con", "uv run tabla-cruces (src/geostats/tabla_cruces.py)."),
