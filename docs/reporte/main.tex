@@ -8,8 +8,9 @@
 % Las figuras vienen de los notebooks (notebooks/*.qmd) y viven en figuras/.
 % ---------------------------------------------------------------------------
 
-% natbib: el cas-dc de TeX Live 2023 (Ubuntu) no lo carga y \bibsep queda indefinido.
-\usepackage{natbib}
+% El cas-dc de TeX Live 2023 (Ubuntu) usa \bibsep sin definirlo. natbib lo
+% define, pero biblatex reciente rechaza natbib: basta con declarar la longitud.
+\ifdefined\bibsep\else\newlength{\bibsep}\fi
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[spanish,es-tabla,es-noquoting,es-noshorthands]{babel}
@@ -77,12 +78,15 @@
   }
   { \egroup }
 \ExplSyntaxOff
+% La clase activa \ps@cas al cargarse y copia el pie original («Page x of y»);
+% se vuelve a activar para que las páginas 2 en adelante usen el pie en español.
+\pagestyle{cas}
 % babel reimpone \abstractname al iniciar el documento; se fija en sus captions.
 \addto\captionsspanish{\renewcommand{\abstractname}{R\,E\,S\,U\,M\,E\,N}}
 
 % Encabezados cortos de página
 \shorttitle{Predicción espacial de accidentes en la ZMM}
-\shortauthors{E. Luna}
+\shortauthors{E. Luna y Mateo}
 
 \begin{document}
 \let\WriteBookmarks\relax
@@ -93,6 +97,7 @@
 	Zona Metropolitana de Monterrey}
 
 \author[1]{Angel Eduardo Luna}
+\author[1]{Mateo}
 \affiliation[1]{organization={Tecnológico de Monterrey},
 	city={Monterrey}, state={Nuevo León}, country={México}}
 
